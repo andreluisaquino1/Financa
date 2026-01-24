@@ -31,6 +31,7 @@ export interface Expense {
   installments: number;
   paidBy: 'person1' | 'person2';
   createdAt: string;
+  splitMethod?: 'proportional' | 'equal';
   metadata?: {
     overrides?: Record<string, number>;
   };

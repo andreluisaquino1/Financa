@@ -70,9 +70,18 @@ export const calculateSummary = (
       case ExpenseType.COMMON:
         if (exp.type === ExpenseType.FIXED) totalFixed += monthlyValue;
         else totalCommon += monthlyValue;
-        // Divisão Proporcional
-        p1Target += monthlyValue * ratio1;
-        p2Target += monthlyValue * ratio2;
+
+        // Decidir método de divisão: Se tiver splitMethod definido, usa ele.
+        // Se não, o padrão para FIXED e COMMON é proporcional.
+        const isActuallyEqual = exp.splitMethod === 'equal';
+
+        if (isActuallyEqual) {
+          p1Target += monthlyValue * 0.5;
+          p2Target += monthlyValue * 0.5;
+        } else {
+          p1Target += monthlyValue * ratio1;
+          p2Target += monthlyValue * ratio2;
+        }
         break;
 
       case ExpenseType.EQUAL:

@@ -18,6 +18,7 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
+  const [selectedPerson, setSelectedPerson] = useState<'Todos' | 'person1' | 'person2'>('Todos');
   const [sortBy, setSortBy] = useState<'date' | 'value'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
@@ -45,7 +46,10 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
       const matchesSearch = exp.description.toLowerCase().includes(searchTerm.toLowerCase());
       // Filtro de Categoria
       const matchesCategory = selectedCategory === 'Todas' || exp.category === selectedCategory;
-      return matchesSearch && matchesCategory;
+      // Filtro de Pessoa
+      const matchesPerson = selectedPerson === 'Todos' || exp.paidBy === selectedPerson;
+
+      return matchesSearch && matchesCategory && matchesPerson;
     })
     .sort((a, b) => {
       if (sortBy === 'date') {
@@ -61,7 +65,7 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
 
   const tabTitles: Record<string, string> = {
     fixed: 'Gastos Fixos',
-    common: 'Gastos Comuns',
+    common: 'Gastos Proporcionais',
     equal: 'Gastos 50/50',
     reimbursement: 'Reembolsos'
   };
@@ -100,17 +104,30 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <div className="relative flex-1 md:flex-none">
               <select
                 value={selectedCategory}
                 onChange={e => setSelectedCategory(e.target.value)}
-                className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl pl-4 pr-10 py-3 text-sm font-bold outline-none transition appearance-none min-w-[140px]"
+                className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl pl-4 pr-10 py-3 text-sm font-bold outline-none transition appearance-none min-w-[120px]"
               >
-                <option>Todas</option>
+                <option>Todas Categorias</option>
                 {(coupleInfo.categories || ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']).map(cat => (
                   <option key={cat}>{cat}</option>
                 ))}
+              </select>
+              <svg className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </div>
+
+            <div className="relative flex-1 md:flex-none">
+              <select
+                value={selectedPerson}
+                onChange={e => setSelectedPerson(e.target.value as any)}
+                className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl pl-4 pr-10 py-3 text-sm font-bold outline-none transition appearance-none min-w-[120px]"
+              >
+                <option value="Todos">Todas Pessoas</option>
+                <option value="person1">{coupleInfo.person1Name}</option>
+                <option value="person2">{coupleInfo.person2Name}</option>
               </select>
               <svg className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </div>
@@ -123,7 +140,7 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
                   setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
                 }
               }}
-              className="bg-gray-50 border-2 border-transparent hover:bg-gray-100 rounded-2xl px-4 py-3 text-sm font-black text-gray-600 flex items-center gap-2 transition"
+              className="bg-gray-50 border-2 border-transparent hover:bg-gray-100 rounded-2xl px-4 py-3 text-sm font-black text-gray-600 flex items-center gap-2 transition ml-auto"
             >
               <span>{sortBy === 'date' ? 'Data' : 'Valor'}</span>
               <svg className={`w-4 h-4 transition-transform ${sortOrder === 'desc' ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
@@ -146,9 +163,16 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
                   <span className="text-[9px] text-gray-400 font-bold uppercase">{parseSafeDate(exp.date).toLocaleDateString('pt-BR')}</span>
                 </div>
                 <h4 className="font-bold text-gray-800">{exp.description}</h4>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  Pago por <span className={exp.paidBy === 'person1' ? 'text-blue-600 font-bold' : 'text-pink-500 font-bold'}>{exp.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name}</span>
-                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <p className="text-xs text-gray-400">
+                    Pago por <span className={exp.paidBy === 'person1' ? 'text-blue-600 font-bold' : 'text-pink-500 font-bold'}>{exp.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name}</span>
+                  </p>
+                  {exp.type === ExpenseType.FIXED && (
+                    <span className="text-[9px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-bold uppercase">
+                      {exp.splitMethod === 'equal' ? '50/50' : 'Prop.'}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="text-right flex items-center gap-2">
                 <div>
@@ -197,6 +221,7 @@ export const AddExpenseModal: React.FC<{
   const [paidBy, setPaidBy] = useState<'person1' | 'person2'>(initialData?.paidBy || 'person1');
   const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
   const [installments, setInstallments] = useState(initialData?.installments?.toString() || '1');
+  const [splitMethod, setSplitMethod] = useState<'proportional' | 'equal'>(initialData?.splitMethod || 'proportional');
 
   const [onlyThisMonth, setOnlyThisMonth] = useState(false);
 
@@ -267,6 +292,7 @@ export const AddExpenseModal: React.FC<{
       paidBy: type === ExpenseType.PERSONAL_P1 ? 'person1' : (type === ExpenseType.PERSONAL_P2 ? 'person2' : paidBy),
       date,
       installments: type === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
+      splitMethod: type === ExpenseType.FIXED ? splitMethod : (type === ExpenseType.COMMON ? 'proportional' : (type === ExpenseType.EQUAL ? 'equal' : undefined)),
       metadata: finalMetadata
     });
     onClose();
@@ -297,6 +323,28 @@ export const AddExpenseModal: React.FC<{
         )}
 
         <form onSubmit={handleFinalSubmit} className="space-y-5">
+          {type === ExpenseType.FIXED && (
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Método de Divisão</label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSplitMethod('proportional')}
+                  className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all border-2 ${splitMethod === 'proportional' ? 'bg-blue-50 border-blue-600 text-blue-600' : 'bg-white border-gray-100 text-gray-400'}`}
+                >
+                  Proporcional
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSplitMethod('equal')}
+                  className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all border-2 ${splitMethod === 'equal' ? 'bg-blue-50 border-blue-600 text-blue-600' : 'bg-white border-gray-100 text-gray-400'}`}
+                >
+                  50% / 50%
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Valor Total</label>
