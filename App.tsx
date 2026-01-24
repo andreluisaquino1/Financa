@@ -316,9 +316,9 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 selection:bg-blue-100 pb-20 lg:pb-0">
-      <header className="bg-white border-b sticky top-0 z-30 px-4 md:px-6 py-4 shadow-sm backdrop-blur-md bg-white/80">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+      <header className="bg-white/80 border-b sticky top-0 z-30 px-4 md:px-6 py-3 md:py-4 shadow-sm backdrop-blur-md">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 shrink-0">
             <button onClick={() => setIsMenuOpen(true)} className="p-2 hover:bg-gray-100 rounded-xl transition">
               <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
@@ -326,11 +326,11 @@ const AppContent: React.FC = () => {
               <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-200">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </div>
-              <h1 className="text-xl font-black tracking-tighter">Finanças em Casal</h1>
+              <h1 className="text-xl font-black tracking-tighter hidden md:block">Finanças em Casal</h1>
             </div>
           </div>
 
-          <nav className="hidden lg:flex items-center space-x-1 bg-gray-100 p-1 rounded-2xl overflow-x-auto no-scrollbar">
+          <nav className="hidden lg:flex items-center space-x-1 bg-gray-100 p-1 rounded-2xl overflow-x-auto no-scrollbar flex-1 justify-center max-w-2xl mx-auto min-w-0">
             <NavItem active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} label="Resumo" />
             <NavItem active={currentTab === 'fixed'} onClick={() => setCurrentTab('fixed')} label="Fixos" />
             <NavItem active={currentTab === 'common'} onClick={() => setCurrentTab('common')} label="Proporcional" />
@@ -340,12 +340,12 @@ const AppContent: React.FC = () => {
             <NavItem active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
           </nav>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0">
             <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-1 shadow-inner">
               <button onClick={() => navigateMonth(-1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-gray-500 transition-all active:scale-90">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
               </button>
-              <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-gray-800 font-black px-2 py-1 text-sm focus:outline-none cursor-pointer uppercase tracking-tight" />
+              <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-gray-800 font-black px-2 py-1 text-xs md:text-sm focus:outline-none cursor-pointer uppercase tracking-tight" />
               <button onClick={() => navigateMonth(1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-gray-500 transition-all active:scale-90">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
               </button>

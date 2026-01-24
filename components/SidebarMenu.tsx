@@ -39,6 +39,15 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
     }
   };
 
+  const moveCategory = (index: number, direction: 'up' | 'down') => {
+    const newCats = [...categories];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex >= 0 && targetIndex < newCats.length) {
+      [newCats[index], newCats[targetIndex]] = [newCats[targetIndex], newCats[index]];
+      handleUpdateCategories(newCats);
+    }
+  };
+
   const removeCategory = (cat: string) => {
     if (confirm(`Deseja remover a categoria "${cat}"?`)) {
       const updated = categories.filter(c => c !== cat);
@@ -96,16 +105,32 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
                 </button>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                {categories.map(cat => (
-                  <div key={cat} className="group flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+              <div className="space-y-2">
+                {categories.map((cat, idx) => (
+                  <div key={cat} className="group flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100 hover:border-blue-200 transition">
                     <span className="text-xs font-bold text-gray-700">{cat}</span>
-                    <button
-                      onClick={() => removeCategory(cat)}
-                      className="text-gray-400 hover:text-red-500 transition"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => moveCategory(idx, 'up')}
+                        disabled={idx === 0}
+                        className={`p-1.5 rounded-lg transition ${idx === 0 ? 'text-gray-200' : 'text-gray-400 hover:bg-white hover:text-blue-600'}`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" /></svg>
+                      </button>
+                      <button
+                        onClick={() => moveCategory(idx, 'down')}
+                        disabled={idx === categories.length - 1}
+                        className={`p-1.5 rounded-lg transition ${idx === categories.length - 1 ? 'text-gray-200' : 'text-gray-400 hover:bg-white hover:text-blue-600'}`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      <button
+                        onClick={() => removeCategory(cat)}
+                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
