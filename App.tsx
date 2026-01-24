@@ -92,8 +92,14 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleUpdateSalaries = (s1: number, s2: number) => {
-    saveCoupleInfo({ ...coupleInfo, salary1: s1, salary2: s2 });
+  const handleUpdateSettings = (n1: string, n2: string, s1: number, s2: number) => {
+    saveCoupleInfo({
+      ...coupleInfo,
+      person1Name: n1,
+      person2Name: n2,
+      salary1: s1,
+      salary2: s2
+    });
   };
 
   const handleUpdateSalary1 = (val: number) => {
@@ -275,8 +281,8 @@ const AppContent: React.FC = () => {
           <MobileTab active={currentTab === 'common'} onClick={() => setCurrentTab('common')} icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" label="Comum" />
           <MobileTab active={currentTab === 'equal'} onClick={() => setCurrentTab('equal')} icon="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" label="50/50" />
           <MobileTab active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} icon="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" label="Reemb." />
-          <MobileTab active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label="Carteira 1" />
-          <MobileTab active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} icon="M20 7a4 4 0 11-8 0 4 4 0 018 0zM16 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label="Carteira 2" />
+          <MobileTab active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={`Cart. ${coupleInfo.person1Name.slice(0, 3)}`} />
+          <MobileTab active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} icon="M20 7a4 4 0 11-8 0 4 4 0 018 0zM16 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={`Cart. ${coupleInfo.person2Name.slice(0, 3)}`} />
         </div>
       </nav>
 
@@ -285,7 +291,7 @@ const AppContent: React.FC = () => {
         onClose={() => setIsMenuOpen(false)}
         onDeleteAccount={() => { if (confirm('Zerar todos os dados?')) { localStorage.clear(); location.reload(); } }}
         coupleInfo={coupleInfo}
-        onUpdateSalaries={handleUpdateSalaries}
+        onUpdateSettings={handleUpdateSettings}
         userEmail={user.email}
         onSignOut={handleSignOut}
       />
