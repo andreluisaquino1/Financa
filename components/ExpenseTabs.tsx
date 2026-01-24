@@ -176,7 +176,14 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
               </div>
               <div className="text-right flex items-center gap-2">
                 <div>
-                  <p className="font-black text-gray-900 text-lg tracking-tight">{formatCurrency(exp.totalValue / exp.installments)}</p>
+                  <p className="font-black text-gray-900 text-lg tracking-tight">
+                    {formatCurrency(exp.totalValue / exp.installments)}
+                    {exp.installments > 1 && (
+                      <span className="text-[10px] text-gray-400 ml-1.5 font-bold">
+                        {Math.floor(((targetYear - parseSafeDate(exp.date).getFullYear()) * 12 + (targetMonth - (parseSafeDate(exp.date).getMonth() + 1)))) + 1}/{exp.installments}
+                      </span>
+                    )}
+                  </p>
                   <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
                     <button onClick={() => handleEdit(exp)} className="text-blue-300 hover:text-blue-600 p-1.5 transition">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
@@ -192,19 +199,21 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
         )}
       </div>
 
-      {showAdd && (
-        <AddExpenseModal
-          type={editingExpense?.type || typeMap[activeTab]}
-          coupleInfo={coupleInfo}
-          initialData={editingExpense}
-          onClose={() => { setShowAdd(false); setEditingExpense(null); }}
-          onAdd={(data) => {
-            if (editingExpense) onUpdateExpense(editingExpense.id, data);
-            else onAddExpense(data);
-          }}
-        />
-      )}
-    </div>
+      {
+        showAdd && (
+          <AddExpenseModal
+            type={editingExpense?.type || typeMap[activeTab]}
+            coupleInfo={coupleInfo}
+            initialData={editingExpense}
+            onClose={() => { setShowAdd(false); setEditingExpense(null); }}
+            onAdd={(data) => {
+              if (editingExpense) onUpdateExpense(editingExpense.id, data);
+              else onAddExpense(data);
+            }}
+          />
+        )
+      }
+    </div >
   );
 };
 
