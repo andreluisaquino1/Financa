@@ -119,42 +119,61 @@ const AppContent: React.FC = () => {
   const addExpense = async (exp: Omit<Expense, 'id' | 'createdAt'>) => {
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('expenses')
-      .insert({
-        user_id: user.id,
-        date: exp.date,
-        type: exp.type,
-        category: exp.category,
-        description: exp.description,
-        total_value: exp.totalValue,
-        installments: exp.installments,
-        paid_by: exp.paidBy
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert({
+          user_id: user.id,
+          date: exp.date,
+          type: exp.type,
+          category: exp.category,
+          description: exp.description,
+          total_value: exp.totalValue,
+          installments: exp.installments,
+          paid_by: exp.paidBy
+        })
+        .select()
+        .single();
 
-    if (data && !error) {
-      const newExp: Expense = {
-        id: data.id,
-        date: data.date,
-        type: data.type as ExpenseType,
-        category: data.category,
-        description: data.description,
-        totalValue: Number(data.total_value),
-        installments: data.installments,
-        paidBy: data.paid_by as 'person1' | 'person2',
-        createdAt: data.created_at
-      };
-      setExpenses(prev => [newExp, ...prev]);
+      if (error) {
+        console.error('Erro ao adicionar gasto:', error);
+        alert('Erro ao salvar o gasto: ' + error.message);
+        return;
+      }
+
+      if (data) {
+        const newExp: Expense = {
+          id: data.id,
+          date: data.date,
+          type: data.type as ExpenseType,
+          category: data.category,
+          description: data.description,
+          totalValue: Number(data.total_value),
+          installments: data.installments,
+          paidBy: data.paid_by as 'person1' | 'person2',
+          createdAt: data.created_at
+        };
+        setExpenses(prev => [newExp, ...prev]);
+      }
+    } catch (err: any) {
+      console.error('Erro inesperado:', err);
+      alert('Ocorreu um erro inesperado ao salvar.');
     }
   };
 
   const deleteExpense = async (id: string) => {
     if (!user) return;
 
-    await supabase.from('expenses').delete().eq('id', id);
-    setExpenses(prev => prev.filter(e => e.id !== id));
+    try {
+      const { error } = await supabase.from('expenses').delete().eq('id', id);
+      if (error) {
+        alert('Erro ao excluir: ' + error.message);
+        return;
+      }
+      setExpenses(prev => prev.filter(e => e.id !== id));
+    } catch (err: any) {
+      alert('Erro inesperado ao excluir.');
+    }
   };
 
   const handleSignOut = async () => {
