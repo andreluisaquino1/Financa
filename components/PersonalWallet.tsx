@@ -59,6 +59,29 @@ const PersonalWallet: React.FC<Props> = ({
         setShowAdd(true);
     };
 
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
+    const [sortBy, setSortBy] = useState<'date' | 'value'>('date');
+    const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+
+    const filteredPersonalExpenses = personalExpenses
+        .filter(exp => {
+            const matchesSearch = exp.description.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesCategory = selectedCategory === 'Todas' || exp.category === selectedCategory;
+            return matchesSearch && matchesCategory;
+        })
+        .sort((a, b) => {
+            if (sortBy === 'date') {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+            } else {
+                const valA = a.totalValue / a.installments;
+                const valB = b.totalValue / b.installments;
+                return sortOrder === 'desc' ? valB - valA : valA - valB;
+            }
+        });
+
     return (
         <div className="space-y-6 md:space-y-8 animate-in slide-in-from-right duration-500 pb-24">
             {/* Cabeçalho da Carteira */}
@@ -99,6 +122,52 @@ const PersonalWallet: React.FC<Props> = ({
                 </div>
             </div>
 
+            {/* Barra de Filtros */}
+            <div className="bg-white p-4 rounded-3xl border border-gray-100 shadow-sm">
+                <div className="flex flex-col md:flex-row gap-3">
+                    <div className="flex-1 relative">
+                        <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        <input
+                            type="text"
+                            placeholder="Buscar gasto pessoal..."
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold outline-none transition"
+                        />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <div className="relative flex-1 md:flex-none">
+                            <select
+                                value={selectedCategory}
+                                onChange={e => setSelectedCategory(e.target.value)}
+                                className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl pl-4 pr-10 py-3 text-sm font-bold outline-none transition appearance-none min-w-[140px]"
+                            >
+                                <option>Todas</option>
+                                {(coupleInfo.categories || ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']).map(cat => (
+                                    <option key={cat}>{cat}</option>
+                                ))}
+                            </select>
+                            <svg className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                if (sortBy === 'date') setSortBy('value');
+                                else {
+                                    setSortBy('date');
+                                    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
+                                }
+                            }}
+                            className="bg-gray-50 border-2 border-transparent hover:bg-gray-100 rounded-2xl px-4 py-3 text-sm font-black text-gray-600 flex items-center gap-2 transition"
+                        >
+                            <span>{sortBy === 'date' ? 'Data' : 'Valor'}</span>
+                            <svg className={`w-4 h-4 transition-transform ${sortOrder === 'desc' ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Lista de Gastos Pessoais */}
             <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
                 <div className="p-6 border-b bg-gray-50/50 flex justify-between items-center">
@@ -106,12 +175,12 @@ const PersonalWallet: React.FC<Props> = ({
                     <span className="font-bold text-gray-900">{formatCurrency(personPersonalTotal)}</span>
                 </div>
                 <div className="divide-y divide-gray-100">
-                    {personalExpenses.length === 0 ? (
+                    {filteredPersonalExpenses.length === 0 ? (
                         <div className="p-12 text-center text-gray-400 font-medium italic">
-                            Nenhum gasto pessoal lançado neste mês.
+                            Nenhum gasto encontrado com os filtros atuais.
                         </div>
                     ) : (
-                        personalExpenses.map(exp => (
+                        filteredPersonalExpenses.map(exp => (
                             <div key={exp.id} className="p-5 flex justify-between items-center group hover:bg-gray-50 transition">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">

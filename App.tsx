@@ -73,7 +73,8 @@ const AppContent: React.FC = () => {
           totalValue: Number(e.total_value),
           installments: e.installments,
           paidBy: e.paid_by as 'person1' | 'person2',
-          createdAt: e.created_at
+          createdAt: e.created_at,
+          metadata: e.metadata
         })));
       }
 
@@ -133,7 +134,8 @@ const AppContent: React.FC = () => {
           description: exp.description,
           total_value: exp.totalValue,
           installments: exp.installments,
-          paid_by: exp.paidBy
+          paid_by: exp.paidBy,
+          metadata: exp.metadata || {}
         })
         .select()
         .single();
@@ -154,7 +156,8 @@ const AppContent: React.FC = () => {
           totalValue: Number(data.total_value),
           installments: data.installments,
           paidBy: data.paid_by as 'person1' | 'person2',
-          createdAt: data.created_at
+          createdAt: data.created_at,
+          metadata: data.metadata
         };
         setExpenses(prev => [newExp, ...prev]);
       }
@@ -177,7 +180,8 @@ const AppContent: React.FC = () => {
           description: updates.description,
           total_value: updates.totalValue,
           installments: updates.installments,
-          paid_by: updates.paidBy
+          paid_by: updates.paidBy,
+          metadata: updates.metadata || {}
         })
         .eq('id', id)
         .select()

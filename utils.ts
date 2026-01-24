@@ -59,7 +59,11 @@ export const calculateSummary = (
     const isValidMonth = diffMonths >= 0 && (exp.type === ExpenseType.FIXED || diffMonths < exp.installments);
     if (!isValidMonth) return;
 
-    const monthlyValue = exp.totalValue / exp.installments;
+    // Verificar se existe um valor específico para este mês (exceção)
+    let monthlyValue = exp.totalValue / exp.installments;
+    if (exp.metadata?.overrides?.[monthKey]) {
+      monthlyValue = exp.metadata.overrides[monthKey];
+    }
 
     switch (exp.type) {
       case ExpenseType.FIXED:
