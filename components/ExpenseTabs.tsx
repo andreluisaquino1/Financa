@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Expense, ExpenseType, CoupleInfo } from '../types';
-import { formatCurrency, parseBRL, parseSafeDate } from '../utils';
+import { formatCurrency, parseBRL, parseSafeDate, formatAsBRL } from '../utils';
 
 interface Props {
   activeTab: 'fixed' | 'common' | 'equal' | 'reimbursement';
@@ -216,7 +216,7 @@ export const AddExpenseModal: React.FC<{
   onAdd: (exp: any) => void
 }> = ({ type, coupleInfo, initialData, onClose, onAdd }) => {
   const [description, setDescription] = useState(initialData?.description || '');
-  const [value, setValue] = useState(initialData?.totalValue?.toString().replace('.', ',') || '');
+  const [value, setValue] = useState(initialData?.totalValue ? formatAsBRL((initialData.totalValue * 100).toString()) : '');
   const [category, setCategory] = useState(initialData?.category || (coupleInfo.categories?.[0] || 'Outros'));
   const [paidBy, setPaidBy] = useState<'person1' | 'person2'>(initialData?.paidBy || 'person1');
   const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
@@ -348,7 +348,7 @@ export const AddExpenseModal: React.FC<{
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Valor Total</label>
-              <input type="text" inputMode="decimal" required value={value} onChange={e => setValue(e.target.value.replace('-', ''))} className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl px-5 py-4 font-bold outline-none transition" placeholder="R$ 0,00" />
+              <input type="text" inputMode="decimal" required value={value} onChange={e => setValue(formatAsBRL(e.target.value))} className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl px-5 py-4 font-bold outline-none transition" placeholder="R$ 0,00" />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Data</label>

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { CoupleInfo } from '../types';
-import { parseBRL } from '../utils';
+import { parseBRL, formatAsBRL } from '../utils';
 
 interface Props {
   onComplete: (info: CoupleInfo) => void;
@@ -88,7 +88,7 @@ const Onboarding: React.FC<Props> = ({ onComplete }) => {
                     type="text"
                     inputMode="decimal"
                     value={salary1}
-                    onChange={(e) => setSalary1(e.target.value.replace('-', ''))}
+                    onChange={(e) => setSalary1(formatAsBRL(e.target.value))}
                     className="w-full bg-white text-black border-2 border-gray-100 rounded-2xl pl-12 pr-5 py-4 focus:ring-4 focus:ring-blue-100 focus:border-blue-600 outline-none transition-all"
                     placeholder="0,00"
                   />
@@ -102,7 +102,7 @@ const Onboarding: React.FC<Props> = ({ onComplete }) => {
                     type="text"
                     inputMode="decimal"
                     value={salary2}
-                    onChange={(e) => setSalary2(e.target.value.replace('-', ''))}
+                    onChange={(e) => setSalary2(formatAsBRL(e.target.value))}
                     className="w-full bg-white text-black border-2 border-gray-100 rounded-2xl pl-12 pr-5 py-4 focus:ring-4 focus:ring-blue-100 focus:border-blue-600 outline-none transition-all"
                     placeholder="0,00"
                   />

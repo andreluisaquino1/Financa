@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { CoupleInfo } from '../types';
-import { parseBRL } from '../utils';
+import { parseBRL, formatAsBRL } from '../utils';
 
 interface Props {
   isOpen: boolean;
@@ -16,8 +16,8 @@ interface Props {
 const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, coupleInfo, onUpdateSettings, userEmail, onSignOut }) => {
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
-  const [s1, setS1] = useState(coupleInfo.salary1 ? coupleInfo.salary1.toString().replace('.', ',') : '');
-  const [s2, setS2] = useState(coupleInfo.salary2 ? coupleInfo.salary2.toString().replace('.', ',') : '');
+  const [s1, setS1] = useState(coupleInfo.salary1 ? formatAsBRL((coupleInfo.salary1 * 100).toString()) : '');
+  const [s2, setS2] = useState(coupleInfo.salary2 ? formatAsBRL((coupleInfo.salary2 * 100).toString()) : '');
   const [categories, setCategories] = useState<string[]>(coupleInfo.categories || []);
   const [newCategory, setNewCategory] = useState('');
 
@@ -165,8 +165,8 @@ const MoneyInput: React.FC<{ label: string, value: string, onChange: (v: string)
         type="text"
         inputMode="decimal"
         value={value}
-        onChange={e => onChange(e.target.value.replace('-', ''))}
-        placeholder="0"
+        onChange={e => onChange(formatAsBRL(e.target.value))}
+        placeholder="0,00"
         className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-xl pl-10 pr-4 py-3 outline-none transition-all font-bold text-sm"
       />
     </div>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { CoupleInfo, Expense } from '../types';
-import { calculateSummary, formatCurrency } from '../utils';
+import { calculateSummary, formatCurrency, formatAsBRL, parseBRL } from '../utils';
 
 interface Props {
   coupleInfo: CoupleInfo;
@@ -117,23 +117,26 @@ const Dashboard: React.FC<Props> = ({
   );
 };
 
-const QuickMoneyInput: React.FC<{ label: string; value: number; onChange: (v: number) => void }> = ({ label, value, onChange }) => (
-  <div>
-    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</label>
-    <div className="relative">
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">R$</span>
-      <input
-        type="number"
-        inputMode="decimal"
-        min={0}
-        value={value || ''}
-        onChange={(e) => onChange(Math.abs(Number(e.target.value)) || 0)}
-        placeholder="0"
-        className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-xl pl-10 pr-4 py-3 outline-none transition-all font-black"
-      />
+const QuickMoneyInput: React.FC<{ label: string; value: number; onChange: (v: number) => void }> = ({ label, value, onChange }) => {
+  const displayValue = value ? formatAsBRL((value * 100).toString()) : '';
+
+  return (
+    <div>
+      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</label>
+      <div className="relative">
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">R$</span>
+        <input
+          type="text"
+          inputMode="decimal"
+          value={displayValue}
+          onChange={(e) => onChange(parseBRL(e.target.value))}
+          placeholder="0,00"
+          className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-xl pl-10 pr-4 py-3 outline-none transition-all font-black text-sm"
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const SalaryDisplayCard: React.FC<{ name: string, value: number, color: 'blue' | 'pink' }> = ({ name, value, color }) => (
   <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100">
