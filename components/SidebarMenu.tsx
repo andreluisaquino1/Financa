@@ -26,7 +26,6 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
     onClose();
   };
 
-  // Esta função agora será chamada sempre que uma categoria for adicionada/removida
   const handleUpdateCategories = (updatedCats: string[]) => {
     setCategories(updatedCats);
     onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2), updatedCats);
@@ -74,6 +73,10 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
             </div>
           </div>
 
+          <button onClick={handleSave} className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition">
+            Salvar Nomes e Salários
+          </button>
+
           <div className="space-y-4 pt-4 border-t border-gray-50">
             <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Categorias de Gasto</h3>
             <div className="space-y-3">
@@ -108,10 +111,6 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
               </div>
             </div>
           </div>
-
-          <button onClick={handleSave} className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition">
-            Salvar Nomes e Salários
-          </button>
 
           <hr className="border-gray-100" />
 
