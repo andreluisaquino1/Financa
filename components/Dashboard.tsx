@@ -52,8 +52,6 @@ const Dashboard: React.FC<Props> = ({
         </div>
       </div>
 
-
-
       {/* Resultado da Transferência (PIX) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm flex flex-col justify-center">
@@ -97,7 +95,7 @@ const Dashboard: React.FC<Props> = ({
 
       {/* Tabela Resumo Categorias */}
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
           <Stat label="Fixos" value={summary.totalFixed} />
           <Stat label="Proporcional" value={summary.totalCommon} />
           <Stat label="50% / 50%" value={summary.totalEqual} />
@@ -107,7 +105,7 @@ const Dashboard: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Edição rápida de salários (opcional) */}
+      {/* Edição rápida de salários */}
       <div className="bg-white p-6 md:p-8 rounded-[2rem] border border-gray-100 shadow-sm">
         <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs mb-6">Ajustar salários</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

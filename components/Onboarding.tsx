@@ -14,7 +14,6 @@ const Onboarding: React.FC<Props> = ({ onComplete }) => {
   const [salary1, setSalary1] = useState('');
   const [salary2, setSalary2] = useState('');
 
-
   const handleNext = () => {
     if (step === 1 && person1Name && person2Name) {
       setStep(2);
@@ -110,8 +109,6 @@ const Onboarding: React.FC<Props> = ({ onComplete }) => {
                 </div>
               </div>
             </div>
-
-
           </div>
         )}
 

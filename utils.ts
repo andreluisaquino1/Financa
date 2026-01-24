@@ -97,8 +97,7 @@ export const calculateSummary = (
         break;
     }
 
-    // Registrar quem desembolsou o dinheiro (exceto gastos pessoais que não afetam o casal diretamente no rateio,
-    // mas se uma pessoa pagou o gasto pessoal da outra, isso deveria ser reembolso, aqui assumimos que cada um paga o seu ou não entra na conta do casal)
+    // Registrar quem desembolsou o dinheiro (exceto gastos pessoais que não afetam o casal)
     if (exp.type !== ExpenseType.PERSONAL_P1 && exp.type !== ExpenseType.PERSONAL_P2) {
       if (exp.paidBy === 'person1') p1Spent += monthlyValue;
       else p2Spent += monthlyValue;

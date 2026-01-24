@@ -1,3 +1,4 @@
+
 export enum ExpenseType {
   FIXED = 'FIXED',
   COMMON = 'COMMON',
