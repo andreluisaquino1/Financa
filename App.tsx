@@ -4,7 +4,7 @@ import { UserAccount, Expense, ExpenseType, CoupleInfo } from './types';
 import Dashboard from './components/Dashboard';
 import SidebarMenu from './components/SidebarMenu';
 import ExpenseTabs from './components/ExpenseTabs';
-import AndreWallet from './components/AndreWallet';
+import PersonalWallet from './components/PersonalWallet';
 import Auth from './components/Auth';
 import { AuthProvider, useAuth } from './AuthContext';
 import { supabase } from './supabaseClient';
@@ -17,14 +17,12 @@ const AppContent: React.FC = () => {
     person1Name: 'André',
     person2Name: 'Luciana',
     salary1: 5000,
-    salary2: 5000,
-    andreCreditCardValue: 0,
-    andrePersonalExpenses: 0
+    salary2: 5000
   });
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet'>('summary');
+  const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2'>('summary');
   const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -46,7 +44,14 @@ const AppContent: React.FC = () => {
         .single();
 
       if (profile?.couple_info) {
-        setCoupleInfo(profile.couple_info as CoupleInfo);
+        // Garantir retrocompatibilidade ou limpeza de dados antigos
+        const info = profile.couple_info as any;
+        setCoupleInfo({
+          person1Name: info.person1Name || 'André',
+          person2Name: info.person2Name || 'Luciana',
+          salary1: Number(info.salary1) || 0,
+          salary2: Number(info.salary2) || 0
+        });
       }
 
       // Carregar gastos
@@ -87,12 +92,8 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleUpdateSalaries = (s1: number, s2: number, card: number) => {
-    saveCoupleInfo({ ...coupleInfo, salary1: s1, salary2: s2, andreCreditCardValue: card });
-  };
-
-  const handleUpdateCardValue = (card: number) => {
-    saveCoupleInfo({ ...coupleInfo, andreCreditCardValue: card });
+  const handleUpdateSalaries = (s1: number, s2: number) => {
+    saveCoupleInfo({ ...coupleInfo, salary1: s1, salary2: s2 });
   };
 
   const handleUpdateSalary1 = (val: number) => {
@@ -157,9 +158,7 @@ const AppContent: React.FC = () => {
       person1Name: 'André',
       person2Name: 'Luciana',
       salary1: 5000,
-      salary2: 5000,
-      andreCreditCardValue: 0,
-      andrePersonalExpenses: 0
+      salary2: 5000
     });
   };
 
@@ -206,7 +205,8 @@ const AppContent: React.FC = () => {
             <NavItem active={currentTab === 'common'} onClick={() => setCurrentTab('common')} label="Comum" />
             <NavItem active={currentTab === 'equal'} onClick={() => setCurrentTab('equal')} label="50/50" />
             <NavItem active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} label="Reembolsos" />
-            <NavItem active={currentTab === 'wallet'} onClick={() => setCurrentTab('wallet')} label="Carteira André" />
+            <NavItem active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} label={`Carteira ${coupleInfo.person1Name.split(' ')[0]}`} />
+            <NavItem active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
           </nav>
 
           <div className="flex items-center space-x-2">
@@ -230,13 +230,23 @@ const AppContent: React.FC = () => {
               coupleInfo={coupleInfo}
               expenses={expenses}
               monthKey={selectedMonth}
-              onUpdateCardValue={handleUpdateCardValue}
               onUpdateSalary1={handleUpdateSalary1}
               onUpdateSalary2={handleUpdateSalary2}
             />
           )}
-          {currentTab === 'wallet' && (
-            <AndreWallet
+          {currentTab === 'wallet1' && (
+            <PersonalWallet
+              person="person1"
+              coupleInfo={coupleInfo}
+              expenses={expenses}
+              monthKey={selectedMonth}
+              onAddExpense={addExpense}
+              onDeleteExpense={deleteExpense}
+            />
+          )}
+          {currentTab === 'wallet2' && (
+            <PersonalWallet
+              person="person2"
               coupleInfo={coupleInfo}
               expenses={expenses}
               monthKey={selectedMonth}
@@ -265,7 +275,8 @@ const AppContent: React.FC = () => {
           <MobileTab active={currentTab === 'common'} onClick={() => setCurrentTab('common')} icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" label="Comum" />
           <MobileTab active={currentTab === 'equal'} onClick={() => setCurrentTab('equal')} icon="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" label="50/50" />
           <MobileTab active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} icon="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" label="Reemb." />
-          <MobileTab active={currentTab === 'wallet'} onClick={() => setCurrentTab('wallet')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label="Carteira" />
+          <MobileTab active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={`Cart. ${coupleInfo.person1Name.slice(0, 3)}`} />
+          <MobileTab active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} icon="M20 7a4 4 0 11-8 0 4 4 0 018 0zM16 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={`Cart. ${coupleInfo.person2Name.slice(0, 3)}`} />
         </div>
       </nav>
 

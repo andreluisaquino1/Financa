@@ -112,14 +112,14 @@ export const AddExpenseModal: React.FC<{ type: ExpenseType, coupleInfo: CoupleIn
       description,
       totalValue: parseBRL(value),
       category,
-      paidBy: type === ExpenseType.PERSONAL_P1 ? 'person1' : paidBy,
+      paidBy: type === ExpenseType.PERSONAL_P1 ? 'person1' : (type === ExpenseType.PERSONAL_P2 ? 'person2' : paidBy),
       date,
       installments: type === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1)
     });
     onClose();
   };
 
-  const isPersonalAndre = type === ExpenseType.PERSONAL_P1;
+  const isPersonalType = type === ExpenseType.PERSONAL_P1 || type === ExpenseType.PERSONAL_P2;
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 flex items-end sm:items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in">
@@ -158,12 +158,12 @@ export const AddExpenseModal: React.FC<{ type: ExpenseType, coupleInfo: CoupleIn
             )}
           </div>
 
-          {!isPersonalAndre && (
+          {!isPersonalType && (
             <div className="space-y-2">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Quem pagou?</label>
               <div className="flex gap-3">
-                <button type="button" onClick={() => setPaidBy('person1')} className={`flex-1 py-4 rounded-2xl font-black transition-all border-2 ${paidBy === 'person1' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-100 text-gray-400'}`}>André</button>
-                <button type="button" onClick={() => setPaidBy('person2')} className={`flex-1 py-4 rounded-2xl font-black transition-all border-2 ${paidBy === 'person2' ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white border-gray-100 text-gray-400'}`}>Luciana</button>
+                <button type="button" onClick={() => setPaidBy('person1')} className={`flex-1 py-4 rounded-2xl font-black transition-all border-2 ${paidBy === 'person1' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-100 text-gray-400'}`}>{coupleInfo.person1Name}</button>
+                <button type="button" onClick={() => setPaidBy('person2')} className={`flex-1 py-4 rounded-2xl font-black transition-all border-2 ${paidBy === 'person2' ? 'bg-pink-500 border-pink-500 text-white' : 'bg-white border-gray-100 text-gray-400'}`}>{coupleInfo.person2Name}</button>
               </div>
             </div>
           )}

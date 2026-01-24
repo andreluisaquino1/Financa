@@ -7,7 +7,6 @@ interface Props {
   coupleInfo: CoupleInfo;
   expenses: Expense[];
   monthKey: string;
-  onUpdateCardValue: (val: number) => void;
   onUpdateSalary1: (val: number) => void;
   onUpdateSalary2: (val: number) => void;
 }
@@ -16,7 +15,6 @@ const Dashboard: React.FC<Props> = ({
   coupleInfo,
   expenses,
   monthKey,
-  onUpdateCardValue,
   onUpdateSalary1,
   onUpdateSalary2
 }) => {
@@ -54,33 +52,7 @@ const Dashboard: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Cartão de Crédito - Contexto Específico */}
-      <div className="bg-blue-600 p-6 md:p-8 rounded-[2rem] shadow-xl shadow-blue-100 flex flex-col md:flex-row items-center justify-between gap-6 text-white relative overflow-hidden">
-        <div className="flex items-center space-x-5 z-10">
-          <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-md">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-          </div>
-          <div>
-            <h4 className="text-sm font-black uppercase tracking-widest text-blue-100">Cartão de {coupleInfo.person1Name}</h4>
-            <p className="text-lg font-medium opacity-90">Valor integral assumido por {coupleInfo.person2Name}</p>
-          </div>
-        </div>
-        <div className="w-full md:w-auto bg-white/10 px-6 py-4 rounded-2xl border border-white/20 backdrop-blur-md z-10 text-center">
-          <p className="text-2xl font-black text-white tracking-tighter">{formatCurrency(coupleInfo.andreCreditCardValue)}</p>
-          <div className="mt-2">
-            <label className="block text-[10px] font-black uppercase tracking-widest text-blue-100/90 mb-1">Editar valor</label>
-            <input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              value={coupleInfo.andreCreditCardValue || ''}
-              onChange={(e) => onUpdateCardValue(Number(e.target.value) || 0)}
-              placeholder="0"
-              className="w-full md:w-56 bg-white/15 placeholder:text-blue-100/60 text-white border border-white/25 focus:border-white/60 rounded-xl px-4 py-2 font-black outline-none"
-            />
-          </div>
-        </div>
-      </div>
+
 
       {/* Resultado da Transferência (PIX) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -108,7 +80,7 @@ const Dashboard: React.FC<Props> = ({
         <div className="bg-gray-50 rounded-[2rem] p-8 border border-gray-100 flex flex-col justify-between space-y-6">
           <div>
             <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Total Compartilhado</p>
-            <p className="text-3xl font-black text-gray-900 tracking-tighter">{formatCurrency(summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement + (coupleInfo.andreCreditCardValue || 0))}</p>
+            <p className="text-3xl font-black text-gray-900 tracking-tighter">{formatCurrency(summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement)}</p>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
@@ -130,7 +102,8 @@ const Dashboard: React.FC<Props> = ({
           <Stat label="Proporcional" value={summary.totalCommon} />
           <Stat label="50% / 50%" value={summary.totalEqual} />
           <Stat label="Reembolsos" value={summary.totalReimbursement} />
-          <Stat label={`Cartão ${coupleInfo.person1Name}`} value={coupleInfo.andreCreditCardValue || 0} />
+          <Stat label={`Pessoal ${coupleInfo.person1Name.split(' ')[0]}`} value={summary.person1PersonalTotal} />
+          <Stat label={`Pessoal ${coupleInfo.person2Name.split(' ')[0]}`} value={summary.person2PersonalTotal} />
         </div>
       </div>
 

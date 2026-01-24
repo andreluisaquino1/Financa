@@ -8,7 +8,7 @@ interface Props {
   onClose: () => void;
   onDeleteAccount: () => void;
   coupleInfo: CoupleInfo;
-  onUpdateSalaries: (s1: number, s2: number, card: number) => void;
+  onUpdateSalaries: (s1: number, s2: number) => void;
   userEmail?: string;
   onSignOut?: () => void;
 }
@@ -16,10 +16,9 @@ interface Props {
 const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, coupleInfo, onUpdateSalaries, userEmail, onSignOut }) => {
   const [s1, setS1] = useState(coupleInfo.salary1 ? coupleInfo.salary1.toString().replace('.', ',') : '');
   const [s2, setS2] = useState(coupleInfo.salary2 ? coupleInfo.salary2.toString().replace('.', ',') : '');
-  const [card, setCard] = useState(coupleInfo.andreCreditCardValue ? coupleInfo.andreCreditCardValue.toString().replace('.', ',') : '');
 
   const handleSave = () => {
-    onUpdateSalaries(parseBRL(s1), parseBRL(s2), parseBRL(card));
+    onUpdateSalaries(parseBRL(s1), parseBRL(s2));
     onClose();
   };
 

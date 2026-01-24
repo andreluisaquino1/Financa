@@ -29,40 +29,32 @@ export const calculateSummary = (
   coupleInfo: CoupleInfo,
   monthKey: string
 ): MonthlySummary => {
-  const { salary1, salary2, andreCreditCardValue } = coupleInfo;
+  const { salary1, salary2 } = coupleInfo;
   const totalSalary = salary1 + salary2;
-  
+
   const ratio1 = totalSalary > 0 ? salary1 / totalSalary : 0.5;
   const ratio2 = totalSalary > 0 ? salary2 / totalSalary : 0.5;
 
   let totalFixed = 0;
   let totalCommon = 0;
   let totalEqual = 0;
-  // Reembolsos lançados manualmente (não inclui o cartão do André)
   let totalReimbursement = 0;
   let person1PersonalTotal = 0;
+  let person2PersonalTotal = 0;
 
   // pTarget: O quanto a pessoa DEVERIA ter pago no total
   // pSpent: O quanto a pessoa EFETIVAMENTE pagou do bolso
-  let p1Target = 0; 
-  let p1Spent = 0;  
-  let p2Target = 0; 
-  let p2Spent = 0;  
-
-  // Caso especial: Cartão do André pago pela Luciana
-  // André deve (Target), Luciana pagou (Spent)
-  const cardValue = andreCreditCardValue || 0;
-  if (cardValue > 0) {
-    p1Target += cardValue;
-    p2Spent += cardValue;
-  }
+  let p1Target = 0;
+  let p1Spent = 0;
+  let p2Target = 0;
+  let p2Spent = 0;
 
   const [targetYear, targetMonth] = monthKey.split('-').map(Number);
 
   expenses.forEach((exp) => {
     const expDate = parseSafeDate(exp.date);
     const diffMonths = (targetYear - expDate.getFullYear()) * 12 + (targetMonth - (expDate.getMonth() + 1));
-    
+
     // Validar se o gasto pertence ao mês selecionado (Fixos são recorrentes, outros respeitam parcelas)
     const isValidMonth = diffMonths >= 0 && (exp.type === ExpenseType.FIXED || diffMonths < exp.installments);
     if (!isValidMonth) return;
@@ -99,10 +91,15 @@ export const calculateSummary = (
       case ExpenseType.PERSONAL_P1:
         person1PersonalTotal += monthlyValue;
         break;
+
+      case ExpenseType.PERSONAL_P2:
+        person2PersonalTotal += monthlyValue;
+        break;
     }
 
-    // Registrar quem desembolsou o dinheiro (exceto gastos pessoais que não afetam o casal)
-    if (exp.type !== ExpenseType.PERSONAL_P1) {
+    // Registrar quem desembolsou o dinheiro (exceto gastos pessoais que não afetam o casal diretamente no rateio,
+    // mas se uma pessoa pagou o gasto pessoal da outra, isso deveria ser reembolso, aqui assumimos que cada um paga o seu ou não entra na conta do casal)
+    if (exp.type !== ExpenseType.PERSONAL_P1 && exp.type !== ExpenseType.PERSONAL_P2) {
       if (exp.paidBy === 'person1') p1Spent += monthlyValue;
       else p2Spent += monthlyValue;
     }
@@ -134,6 +131,7 @@ export const calculateSummary = (
     person1Responsibility: p1Target,
     person2Responsibility: p2Target,
     person1PersonalTotal,
+    person2PersonalTotal,
     transferAmount,
     whoTransfers
   };
