@@ -147,7 +147,9 @@ export const AddExpenseModal: React.FC<{ type: ExpenseType, coupleInfo: CoupleIn
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Categoria</label>
               <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl px-5 py-4 font-bold outline-none transition appearance-none">
-                <option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Lazer</option><option>Saúde</option><option>Outros</option>
+                {(coupleInfo.categories || ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']).map(cat => (
+                  <option key={cat}>{cat}</option>
+                ))}
               </select>
             </div>
             {type !== ExpenseType.FIXED && (

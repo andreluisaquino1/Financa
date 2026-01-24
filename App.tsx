@@ -17,7 +17,8 @@ const AppContent: React.FC = () => {
     person1Name: 'André',
     person2Name: 'Luciana',
     salary1: 5000,
-    salary2: 5000
+    salary2: 5000,
+    categories: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']
   });
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -50,7 +51,8 @@ const AppContent: React.FC = () => {
           person1Name: info.person1Name || 'André',
           person2Name: info.person2Name || 'Luciana',
           salary1: Number(info.salary1) || 0,
-          salary2: Number(info.salary2) || 0
+          salary2: Number(info.salary2) || 0,
+          categories: info.categories || ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']
         });
       }
 
@@ -92,13 +94,14 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleUpdateSettings = (n1: string, n2: string, s1: number, s2: number) => {
+  const handleUpdateSettings = (n1: string, n2: string, s1: number, s2: number, cats?: string[]) => {
     saveCoupleInfo({
       ...coupleInfo,
       person1Name: n1,
       person2Name: n2,
       salary1: s1,
-      salary2: s2
+      salary2: s2,
+      categories: cats || coupleInfo.categories
     });
   };
 
@@ -199,7 +202,8 @@ const AppContent: React.FC = () => {
         person1Name: 'André',
         person2Name: 'Luciana',
         salary1: 5000,
-        salary2: 5000
+        salary2: 5000,
+        categories: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']
       };
 
       const { error: profError } = await supabase
@@ -231,7 +235,8 @@ const AppContent: React.FC = () => {
       person1Name: 'André',
       person2Name: 'Luciana',
       salary1: 5000,
-      salary2: 5000
+      salary2: 5000,
+      categories: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']
     });
   };
 

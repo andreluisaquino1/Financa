@@ -13,6 +13,7 @@ export interface CoupleInfo {
   person2Name: string;
   salary1: number;
   salary2: number;
+  categories?: string[];
 }
 
 export interface UserAccount {

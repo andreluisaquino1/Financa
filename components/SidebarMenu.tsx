@@ -8,7 +8,7 @@ interface Props {
   onClose: () => void;
   onDeleteAccount: () => void;
   coupleInfo: CoupleInfo;
-  onUpdateSettings: (n1: string, n2: string, s1: number, s2: number) => void;
+  onUpdateSettings: (n1: string, n2: string, s1: number, s2: number, cats?: string[]) => void;
   userEmail?: string;
   onSignOut?: () => void;
 }
@@ -18,16 +18,39 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
   const [n2, setN2] = useState(coupleInfo.person2Name);
   const [s1, setS1] = useState(coupleInfo.salary1 ? coupleInfo.salary1.toString().replace('.', ',') : '');
   const [s2, setS2] = useState(coupleInfo.salary2 ? coupleInfo.salary2.toString().replace('.', ',') : '');
+  const [categories, setCategories] = useState<string[]>(coupleInfo.categories || []);
+  const [newCategory, setNewCategory] = useState('');
 
   const handleSave = () => {
     onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2));
     onClose();
   };
 
+  // Esta função agora será chamada sempre que uma categoria for adicionada/removida
+  const handleUpdateCategories = (updatedCats: string[]) => {
+    setCategories(updatedCats);
+    onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2), updatedCats);
+  };
+
+  const addCategory = () => {
+    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
+      const updated = [...categories, newCategory.trim()];
+      handleUpdateCategories(updated);
+      setNewCategory('');
+    }
+  };
+
+  const removeCategory = (cat: string) => {
+    if (confirm(`Deseja remover a categoria "${cat}"?`)) {
+      const updated = categories.filter(c => c !== cat);
+      handleUpdateCategories(updated);
+    }
+  };
+
   return (
     <>
       <div className={`fixed inset-0 bg-gray-900/60 z-40 transition-opacity backdrop-blur-sm ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
-      <div className={`fixed top-0 left-0 bottom-0 w-80 bg-white z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-2xl ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed top-0 left-0 bottom-0 w-80 bg-white z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-2xl ${isOpen ? 'translate-x-0' : '-translate-x-full'} overflow-y-auto`}>
         <div className="p-8 bg-blue-600 text-white rounded-br-[3rem]">
           <h2 className="text-2xl font-black tracking-tighter">Ajustes</h2>
           <p className="text-sm font-medium opacity-80 mt-1">Configurações Gerais</p>
@@ -36,25 +59,58 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
           )}
         </div>
 
-        <div className="p-8 space-y-6">
+        <div className="p-8 space-y-8">
           <div className="space-y-4">
-            <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Perfil 1</h3>
-            <div className="space-y-3">
-                <TextInput label="Nome" value={n1} onChange={setN1} />
+            <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Pessoas</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <TextInput label={`Nome (${coupleInfo.person1Name})`} value={n1} onChange={setN1} />
                 <MoneyInput label="Salário" value={s1} onChange={setS1} />
+              </div>
+              <div className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <TextInput label={`Nome (${coupleInfo.person2Name})`} value={n2} onChange={setN2} />
+                <MoneyInput label="Salário" value={s2} onChange={setS2} />
+              </div>
             </div>
           </div>
 
           <div className="space-y-4 pt-4 border-t border-gray-50">
-            <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Perfil 2</h3>
+            <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Categorias de Gasto</h3>
             <div className="space-y-3">
-                <TextInput label="Nome" value={n2} onChange={setN2} />
-                <MoneyInput label="Salário" value={s2} onChange={setS2} />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={e => setNewCategory(e.target.value)}
+                  placeholder="Nova categoria..."
+                  className="flex-1 bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-xl px-4 py-2 text-sm font-bold outline-none transition"
+                />
+                <button
+                  onClick={addCategory}
+                  className="bg-blue-600 text-white p-2 rounded-xl hover:bg-blue-700 transition"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {categories.map(cat => (
+                  <div key={cat} className="group flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                    <span className="text-xs font-bold text-gray-700">{cat}</span>
+                    <button
+                      onClick={() => removeCategory(cat)}
+                      className="text-gray-400 hover:text-red-500 transition"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <button onClick={handleSave} className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition mt-4">
-            Salvar Alterações
+          <button onClick={handleSave} className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition">
+            Salvar Nomes e Salários
           </button>
 
           <hr className="border-gray-100" />
