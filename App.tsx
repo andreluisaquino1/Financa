@@ -316,22 +316,41 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 selection:bg-blue-100 pb-20 lg:pb-0">
-      <header className="bg-white/80 border-b sticky top-0 z-30 px-4 md:px-6 py-3 md:py-4 shadow-sm backdrop-blur-md">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 md:gap-4">
-          <div className="flex items-center space-x-3 shrink-0">
-            <button onClick={() => setIsMenuOpen(true)} className="p-2 hover:bg-gray-100 rounded-xl transition">
-              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-            </button>
-            <div className="flex items-center space-x-2">
-              <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-200">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <header className="bg-white border-b sticky top-0 z-30 shadow-sm backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          {/* Top Row: Brand & Month Picker */}
+          <div className="flex items-center justify-between py-3 md:py-4 gap-4">
+            <div className="flex items-center space-x-3 shrink-0">
+              <button onClick={() => setIsMenuOpen(true)} className="p-2 hover:bg-gray-100 rounded-xl transition">
+                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              </button>
+              <div className="flex items-center space-x-2">
+                <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-200">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <h1 className="text-xl font-black tracking-tighter hidden sm:block">Finanças em Casal</h1>
               </div>
-              <h1 className="text-xl font-black tracking-tighter hidden xl:block leading-tight">Finanças em Casal</h1>
+            </div>
+
+            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-1 shadow-inner shrink-0">
+              <button onClick={() => navigateMonth(-1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-gray-500 transition-all active:scale-90">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="bg-transparent text-gray-800 font-black px-2 py-1 text-sm focus:outline-none cursor-pointer uppercase tracking-tight"
+              />
+              <button onClick={() => navigateMonth(1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-gray-500 transition-all active:scale-90">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+              </button>
             </div>
           </div>
 
-          <nav className="hidden lg:flex items-center bg-gray-100 p-1 rounded-2xl overflow-x-auto no-scrollbar flex-1 min-w-0 mx-2">
-            <div className="flex items-center space-x-1">
+          {/* Bottom Row: Navigation Tabs (Desktop only) */}
+          <nav className="hidden lg:flex items-center pb-3 overflow-x-auto no-scrollbar scroll-smooth">
+            <div className="flex items-center bg-gray-100 p-1 rounded-2xl min-w-max">
               <NavItem active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} label="Resumo" />
               <NavItem active={currentTab === 'fixed'} onClick={() => setCurrentTab('fixed')} label="Fixos" />
               <NavItem active={currentTab === 'common'} onClick={() => setCurrentTab('common')} label="Proporcional" />
@@ -341,18 +360,6 @@ const AppContent: React.FC = () => {
               <NavItem active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
             </div>
           </nav>
-
-          <div className="flex items-center space-x-2 shrink-0">
-            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-1 shadow-inner">
-              <button onClick={() => navigateMonth(-1)} className="p-1.5 md:p-2 hover:bg-white hover:shadow-sm rounded-xl text-gray-500 transition-all active:scale-90">
-                <svg className="w-3.5 md:w-4 h-3.5 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
-              </button>
-              <input type="month" value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="bg-transparent text-gray-800 font-black px-1 md:px-2 py-1 text-[10px] md:text-sm focus:outline-none cursor-pointer uppercase tracking-tight" />
-              <button onClick={() => navigateMonth(1)} className="p-1.5 md:p-2 hover:bg-white hover:shadow-sm rounded-xl text-gray-500 transition-all active:scale-90">
-                <svg className="w-3.5 md:w-4 h-3.5 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
-              </button>
-            </div>
-          </div>
         </div>
       </header>
 
