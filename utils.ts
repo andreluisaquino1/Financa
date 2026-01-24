@@ -86,7 +86,7 @@ export const calculateSummary = (
 
       case ExpenseType.EQUAL:
         totalEqual += monthlyValue;
-        // Divisão 50/50
+        // Divisão 50%/50%
         p1Target += monthlyValue * 0.5;
         p2Target += monthlyValue * 0.5;
         break;

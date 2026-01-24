@@ -98,7 +98,7 @@ const Dashboard: React.FC<Props> = ({
         <div className="grid grid-cols-1 md:grid-cols-6 divide-y md:divide-y-0 md:divide-x divide-gray-100">
           <Stat label="Fixos" value={summary.totalFixed} />
           <Stat label="Proporcional" value={summary.totalCommon} />
-          <Stat label="50% / 50%" value={summary.totalEqual} />
+          <Stat label="50%/50%" value={summary.totalEqual} />
           <Stat label="Reembolsos" value={summary.totalReimbursement} />
           <Stat label={`Pessoal ${coupleInfo.person1Name.split(' ')[0]}`} value={summary.person1PersonalTotal} />
           <Stat label={`Pessoal ${coupleInfo.person2Name.split(' ')[0]}`} value={summary.person2PersonalTotal} />

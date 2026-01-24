@@ -66,7 +66,7 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
   const tabTitles: Record<string, string> = {
     fixed: 'Gastos Fixos',
     common: 'Gastos Proporcionais',
-    equal: 'Gastos 50/50',
+    equal: 'Gastos 50%/50%',
     reimbursement: 'Reembolsos'
   };
 
@@ -169,7 +169,7 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
                   </p>
                   {exp.type === ExpenseType.FIXED && (
                     <span className="text-[9px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-bold uppercase">
-                      {exp.splitMethod === 'equal' ? '50/50' : 'Prop.'}
+                      {exp.splitMethod === 'equal' ? '50%/50%' : 'Prop.'}
                     </span>
                   )}
                 </div>
@@ -339,7 +339,7 @@ export const AddExpenseModal: React.FC<{
                   onClick={() => setSplitMethod('equal')}
                   className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all border-2 ${splitMethod === 'equal' ? 'bg-blue-50 border-blue-600 text-blue-600' : 'bg-white border-gray-100 text-gray-400'}`}
                 >
-                  50% / 50%
+                  50%/50%
                 </button>
               </div>
             </div>

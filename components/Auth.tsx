@@ -46,7 +46,6 @@ const Auth: React.FC = () => {
             </svg>
           </div>
           <h1 className="text-4xl font-black tracking-tighter text-gray-900">Finanças em Casal</h1>
-          <p className="text-gray-400 mt-2 font-medium">A transparência que seu relacionamento merece.</p>
         </div>
 
         {error && (
