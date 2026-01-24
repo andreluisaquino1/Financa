@@ -127,7 +127,7 @@ const QuickMoneyInput: React.FC<{ label: string; value: number; onChange: (v: nu
         inputMode="decimal"
         min={0}
         value={value || ''}
-        onChange={(e) => onChange(Number(e.target.value) || 0)}
+        onChange={(e) => onChange(Math.abs(Number(e.target.value)) || 0)}
         placeholder="0"
         className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-xl pl-10 pr-4 py-3 outline-none transition-all font-black"
       />

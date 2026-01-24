@@ -13,10 +13,10 @@ export const getMonthYearKey = (date: Date): string => {
 };
 
 export const parseBRL = (val: string | number): number => {
-  if (typeof val === 'number') return val;
+  if (typeof val === 'number') return Math.abs(val);
   if (!val) return 0;
   const clean = val.toString().replace(/[^\d,]/g, '').replace(',', '.');
-  return parseFloat(clean) || 0;
+  return Math.abs(parseFloat(clean)) || 0;
 };
 
 export const parseSafeDate = (dateStr: string): Date => {

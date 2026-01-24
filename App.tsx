@@ -164,6 +164,49 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const updateExpense = async (id: string, updates: Omit<Expense, 'id' | 'createdAt'>) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('expenses')
+        .update({
+          date: updates.date,
+          type: updates.type,
+          category: updates.category,
+          description: updates.description,
+          total_value: updates.totalValue,
+          installments: updates.installments,
+          paid_by: updates.paidBy
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        alert('Erro ao atualizar: ' + error.message);
+        return;
+      }
+
+      if (data) {
+        const updatedExp: Expense = {
+          id: data.id,
+          date: data.date,
+          type: data.type as ExpenseType,
+          category: data.category,
+          description: data.description,
+          totalValue: Number(data.total_value),
+          installments: data.installments,
+          paidBy: data.paid_by as 'person1' | 'person2',
+          createdAt: data.created_at
+        };
+        setExpenses(prev => prev.map(e => e.id === id ? updatedExp : e));
+      }
+    } catch (err: any) {
+      alert('Erro inesperado ao atualizar.');
+    }
+  };
+
   const deleteExpense = async (id: string) => {
     if (!user) return;
 
@@ -319,6 +362,7 @@ const AppContent: React.FC = () => {
               expenses={expenses}
               monthKey={selectedMonth}
               onAddExpense={addExpense}
+              onUpdateExpense={updateExpense}
               onDeleteExpense={deleteExpense}
             />
           )}
@@ -329,6 +373,7 @@ const AppContent: React.FC = () => {
               expenses={expenses}
               monthKey={selectedMonth}
               onAddExpense={addExpense}
+              onUpdateExpense={updateExpense}
               onDeleteExpense={deleteExpense}
             />
           )}
@@ -339,6 +384,7 @@ const AppContent: React.FC = () => {
               monthKey={selectedMonth}
               coupleInfo={coupleInfo}
               onAddExpense={addExpense}
+              onUpdateExpense={updateExpense}
               onDeleteExpense={deleteExpense}
             />
           )}

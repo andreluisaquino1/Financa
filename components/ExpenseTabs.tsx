@@ -9,11 +9,13 @@ interface Props {
   monthKey: string;
   coupleInfo: CoupleInfo;
   onAddExpense: (exp: Omit<Expense, 'id' | 'createdAt'>) => void;
+  onUpdateExpense: (id: string, exp: Omit<Expense, 'id' | 'createdAt'>) => void;
   onDeleteExpense: (id: string) => void;
 }
 
-const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInfo, onAddExpense, onDeleteExpense }) => {
+const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInfo, onAddExpense, onUpdateExpense, onDeleteExpense }) => {
   const [showAdd, setShowAdd] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const typeMap: Record<string, ExpenseType> = {
     fixed: ExpenseType.FIXED,
@@ -41,6 +43,11 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
     reimbursement: 'Reembolsos'
   };
 
+  const handleEdit = (exp: Expense) => {
+    setEditingExpense(exp);
+    setShowAdd(true);
+  };
+
   return (
     <div className="space-y-6 pb-24 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
@@ -49,7 +56,7 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
           <p className="text-sm text-gray-500">Lançamentos em {monthKey}</p>
         </div>
         <button
-          onClick={() => setShowAdd(true)}
+          onClick={() => { setEditingExpense(null); setShowAdd(true); }}
           className="bg-blue-600 text-white p-4 rounded-2xl shadow-lg active:scale-95 transition"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
@@ -74,11 +81,18 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
                   Pago por <span className={exp.paidBy === 'person1' ? 'text-blue-600 font-bold' : 'text-pink-500 font-bold'}>{exp.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name}</span>
                 </p>
               </div>
-              <div className="text-right">
-                <p className="font-black text-gray-900 text-lg tracking-tight">{formatCurrency(exp.totalValue / exp.installments)}</p>
-                <button onClick={() => onDeleteExpense(exp.id)} className="text-red-300 hover:text-red-500 p-2 transition opacity-0 group-hover:opacity-100">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                </button>
+              <div className="text-right flex items-center gap-2">
+                <div>
+                  <p className="font-black text-gray-900 text-lg tracking-tight">{formatCurrency(exp.totalValue / exp.installments)}</p>
+                  <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <button onClick={() => handleEdit(exp)} className="text-blue-300 hover:text-blue-600 p-1.5 transition">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </button>
+                    <button onClick={() => onDeleteExpense(exp.id)} className="text-red-300 hover:text-red-600 p-1.5 transition">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ))
@@ -87,23 +101,33 @@ const ExpenseTabs: React.FC<Props> = ({ activeTab, expenses, monthKey, coupleInf
 
       {showAdd && (
         <AddExpenseModal
-          type={typeMap[activeTab]}
+          type={editingExpense?.type || typeMap[activeTab]}
           coupleInfo={coupleInfo}
-          onClose={() => setShowAdd(false)}
-          onAdd={onAddExpense}
+          initialData={editingExpense}
+          onClose={() => { setShowAdd(false); setEditingExpense(null); }}
+          onAdd={(data) => {
+            if (editingExpense) onUpdateExpense(editingExpense.id, data);
+            else onAddExpense(data);
+          }}
         />
       )}
     </div>
   );
 };
 
-export const AddExpenseModal: React.FC<{ type: ExpenseType, coupleInfo: CoupleInfo, onClose: () => void, onAdd: (exp: any) => void }> = ({ type, coupleInfo, onClose, onAdd }) => {
-  const [description, setDescription] = useState('');
-  const [value, setValue] = useState('');
-  const [category, setCategory] = useState('Outros');
-  const [paidBy, setPaidBy] = useState<'person1' | 'person2'>('person1');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [installments, setInstallments] = useState('1');
+export const AddExpenseModal: React.FC<{
+  type: ExpenseType,
+  coupleInfo: CoupleInfo,
+  initialData?: Expense | null,
+  onClose: () => void,
+  onAdd: (exp: any) => void
+}> = ({ type, coupleInfo, initialData, onClose, onAdd }) => {
+  const [description, setDescription] = useState(initialData?.description || '');
+  const [value, setValue] = useState(initialData?.totalValue?.toString().replace('.', ',') || '');
+  const [category, setCategory] = useState(initialData?.category || (coupleInfo.categories?.[0] || 'Outros'));
+  const [paidBy, setPaidBy] = useState<'person1' | 'person2'>(initialData?.paidBy || 'person1');
+  const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
+  const [installments, setInstallments] = useState(initialData?.installments?.toString() || '1');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,13 +148,18 @@ export const AddExpenseModal: React.FC<{ type: ExpenseType, coupleInfo: CoupleIn
   return (
     <div className="fixed inset-0 bg-gray-900/60 flex items-end sm:items-center justify-center z-50 p-4 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
-        <h3 className="text-2xl font-black text-gray-900 mb-6 tracking-tight">Novo Gasto</h3>
+        <h3 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">
+          {initialData ? 'Editar Gasto' : 'Novo Gasto'}
+        </h3>
+        {type === ExpenseType.FIXED && initialData && (
+          <p className="text-[10px] text-amber-600 font-bold uppercase mb-6">Nota: Alterar um gasto fixo muda todos os meses.</p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Valor Total</label>
-              <input type="text" inputMode="decimal" required value={value} onChange={e => setValue(e.target.value)} className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl px-5 py-4 font-bold outline-none transition" placeholder="R$ 0,00" />
+              <input type="text" inputMode="decimal" required value={value} onChange={e => setValue(e.target.value.replace('-', ''))} className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 rounded-2xl px-5 py-4 font-bold outline-none transition" placeholder="R$ 0,00" />
             </div>
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Data</label>
@@ -172,7 +201,9 @@ export const AddExpenseModal: React.FC<{ type: ExpenseType, coupleInfo: CoupleIn
 
           <div className="flex gap-3 pt-4">
             <button type="button" onClick={onClose} className="flex-1 bg-gray-100 text-gray-500 font-black py-4 rounded-2xl">Cancelar</button>
-            <button type="submit" className="flex-[2] bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-100">Lançar</button>
+            <button type="submit" className="flex-[2] bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-100">
+              {initialData ? 'Atualizar' : 'Lançar'}
+            </button>
           </div>
         </form>
       </div>

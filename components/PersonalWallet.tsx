@@ -10,6 +10,7 @@ interface Props {
     expenses: Expense[];
     monthKey: string;
     onAddExpense: (exp: Omit<Expense, 'id' | 'createdAt'>) => void;
+    onUpdateExpense: (id: string, exp: Omit<Expense, 'id' | 'createdAt'>) => void;
     onDeleteExpense: (id: string) => void;
 }
 
@@ -19,9 +20,11 @@ const PersonalWallet: React.FC<Props> = ({
     expenses,
     monthKey,
     onAddExpense,
+    onUpdateExpense,
     onDeleteExpense
 }) => {
     const [showAdd, setShowAdd] = useState(false);
+    const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
     const summary = calculateSummary(expenses, coupleInfo, monthKey);
 
     const isPerson1 = person === 'person1';
@@ -51,6 +54,11 @@ const PersonalWallet: React.FC<Props> = ({
     const textColor = isPerson1 ? 'text-blue-600' : 'text-pink-600';
     const lightTextColor = isPerson1 ? 'text-blue-400' : 'text-pink-400';
 
+    const handleEdit = (exp: Expense) => {
+        setEditingExpense(exp);
+        setShowAdd(true);
+    };
+
     return (
         <div className="space-y-6 md:space-y-8 animate-in slide-in-from-right duration-500 pb-24">
             {/* Cabeçalho da Carteira */}
@@ -66,7 +74,7 @@ const PersonalWallet: React.FC<Props> = ({
                         </div>
                     </div>
                     <button
-                        onClick={() => setShowAdd(true)}
+                        onClick={() => { setEditingExpense(null); setShowAdd(true); }}
                         className={`${bgColor} text-white p-4 rounded-2xl shadow-xl active:scale-95 transition`}
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
@@ -114,9 +122,14 @@ const PersonalWallet: React.FC<Props> = ({
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <p className="font-black text-gray-900">{formatCurrency(exp.totalValue / exp.installments)}</p>
-                                    <button onClick={() => onDeleteExpense(exp.id)} className="text-red-300 hover:text-red-500 transition p-2">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        <button onClick={() => handleEdit(exp)} className="text-blue-300 hover:text-blue-600 transition p-2">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                        </button>
+                                        <button onClick={() => onDeleteExpense(exp.id)} className="text-red-300 hover:text-red-500 transition p-2">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))
@@ -126,10 +139,14 @@ const PersonalWallet: React.FC<Props> = ({
 
             {showAdd && (
                 <AddExpenseModal
-                    type={personExpenseType}
+                    type={editingExpense?.type || personExpenseType}
                     coupleInfo={coupleInfo}
-                    onClose={() => setShowAdd(false)}
-                    onAdd={onAddExpense}
+                    initialData={editingExpense}
+                    onClose={() => { setShowAdd(false); setEditingExpense(null); }}
+                    onAdd={(data) => {
+                        if (editingExpense) onUpdateExpense(editingExpense.id, data);
+                        else onAddExpense(data);
+                    }}
                 />
             )}
         </div>

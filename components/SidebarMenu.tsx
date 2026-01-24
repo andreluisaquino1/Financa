@@ -136,7 +136,14 @@ const MoneyInput: React.FC<{ label: string, value: string, onChange: (v: string)
     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{label}</label>
     <div className="relative">
       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">R$</span>
-      <input type="text" inputMode="decimal" value={value} onChange={e => onChange(e.target.value)} placeholder="0" className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-xl pl-10 pr-4 py-3 outline-none transition-all font-bold text-sm" />
+      <input
+        type="text"
+        inputMode="decimal"
+        value={value}
+        onChange={e => onChange(e.target.value.replace('-', ''))}
+        placeholder="0"
+        className="w-full bg-gray-50 border-2 border-transparent focus:border-blue-600 focus:bg-white rounded-xl pl-10 pr-4 py-3 outline-none transition-all font-bold text-sm"
+      />
     </div>
   </div>
 );
