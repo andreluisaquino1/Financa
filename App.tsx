@@ -176,6 +176,54 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const handleDeleteAllData = async () => {
+    if (!user) return;
+
+    if (!confirm('Tem certeza que deseja apagar TODOS os seus gastos e configurações? Esta ação não pode ser desfeita.')) {
+      return;
+    }
+
+    try {
+      setDataLoading(true);
+
+      // 1. Apagar todos os gastos do usuário no Supabase
+      const { error: expError } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (expError) throw expError;
+
+      // 2. Resetar as configurações do casal para o padrão
+      const defaultInfo: CoupleInfo = {
+        person1Name: 'André',
+        person2Name: 'Luciana',
+        salary1: 5000,
+        salary2: 5000
+      };
+
+      const { error: profError } = await supabase
+        .from('user_profiles')
+        .update({
+          couple_info: defaultInfo,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (profError) throw profError;
+
+      // 3. Atualizar estado local
+      setExpenses([]);
+      setCoupleInfo(defaultInfo);
+      alert('Todos os dados foram apagados com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao apagar dados:', err);
+      alert('Erro ao apagar dados: ' + err.message);
+    } finally {
+      setDataLoading(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     setExpenses([]);
@@ -308,7 +356,7 @@ const AppContent: React.FC = () => {
       <SidebarMenu
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
-        onDeleteAccount={() => { if (confirm('Zerar todos os dados?')) { localStorage.clear(); location.reload(); } }}
+        onDeleteAccount={handleDeleteAllData}
         coupleInfo={coupleInfo}
         onUpdateSettings={handleUpdateSettings}
         userEmail={user.email}
