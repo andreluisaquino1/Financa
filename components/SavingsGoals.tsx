@@ -130,11 +130,39 @@ const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, current: nu
     const [isEditing, setIsEditing] = useState(false);
     const [newCurrent, setNewCurrent] = useState(formatAsBRL((goal.current_value * 100).toString()));
 
+    // Estados do Simulador
+    const [isSimulating, setIsSimulating] = useState(false);
+    const [aporte, setAporte] = useState('500,00');
+    const [taxaAnual, setTaxaAnual] = useState('10,00');
+
     const handleSave = () => {
         const val = parseBRL(newCurrent);
         onUpdate(goal.id, val, val >= goal.target_value);
         setIsEditing(false);
     };
+
+    const calculateMonths = () => {
+        const fv = goal.target_value;
+        const pv = goal.current_value;
+        const pmt = parseBRL(aporte);
+        const yearlyRate = parseFloat(taxaAnual.replace(',', '.')) || 0;
+        const r = yearlyRate / 12 / 100;
+
+        if (pv >= fv) return 0;
+        if (pmt <= 0 && r <= 0) return Infinity;
+
+        if (r === 0) {
+            return Math.ceil((fv - pv) / pmt);
+        }
+
+        // Fórmula: n = [ln(fv + pmt/r) - ln(pv + pmt/r)] / ln(1 + r)
+        const n = (Math.log(fv + pmt / r) - Math.log(pv + pmt / r)) / Math.log(1 + r);
+        return Math.ceil(n);
+    };
+
+    const monthsRemaining = calculateMonths();
+    const years = Math.floor(monthsRemaining / 12);
+    const months = monthsRemaining % 12;
 
     return (
         <div className={`bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden transition-all hover:shadow-xl group ${goal.is_completed ? 'bg-emerald-50/20' : ''}`}>
@@ -150,17 +178,26 @@ const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, current: nu
                         )}
                     </div>
                 </div>
-                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setIsEditing(!isEditing)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-xl transition">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setIsSimulating(!isSimulating)}
+                        className={`p-2 rounded-xl transition ${isSimulating ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-blue-50 text-blue-600'}`}
+                        title="Simular Projeção"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                     </button>
-                    <button onClick={() => confirm('Apagar meta?') && onDelete(goal.id)} className="p-2 hover:bg-red-50 text-red-500 rounded-xl transition">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => setIsEditing(!isEditing)} className="p-2 hover:bg-blue-50 text-blue-600 rounded-xl transition text-xs font-bold uppercase">
+                            Editar
+                        </button>
+                        <button onClick={() => confirm('Apagar meta?') && onDelete(goal.id)} className="p-2 hover:bg-red-50 text-red-500 rounded-xl transition">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
                 <div className="flex justify-between items-end">
                     <div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Acumulado</p>
@@ -172,7 +209,7 @@ const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, current: nu
                                     onChange={e => setNewCurrent(formatAsBRL(e.target.value))}
                                     className="w-32 bg-slate-50 border-2 border-blue-600 rounded-lg px-2 py-1 font-black text-lg outline-none"
                                 />
-                                <button onClick={handleSave} className="bg-blue-600 text-white p-1.5 rounded-lg">
+                                <button onClick={handleSave} className="bg-blue-600 text-white p-1.5 rounded-lg active:scale-90 transition-transform">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                                 </button>
                             </div>
@@ -187,17 +224,57 @@ const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, current: nu
                 </div>
 
                 <div className="space-y-2">
-                    <div className="h-4 w-full bg-slate-50 rounded-full overflow-hidden p-1 border border-slate-100">
+                    <div className="h-2.5 w-full bg-slate-50 rounded-full overflow-hidden p-0.5 border border-slate-100">
                         <div
                             style={{ width: `${percent}%` }}
                             className={`h-full rounded-full transition-all duration-1000 shadow-sm ${goal.is_completed ? 'bg-emerald-500' : 'bg-blue-600'}`}
                         ></div>
                     </div>
                     <div className="flex justify-between items-center px-1">
-                        <span className={`text-xs font-black ${goal.is_completed ? 'text-emerald-500' : 'text-blue-600'}`}>{percent}% completo</span>
+                        <span className={`text-[10px] font-black ${goal.is_completed ? 'text-emerald-500' : 'text-blue-600'} uppercase tracking-tight`}>{percent}% completo</span>
                         {goal.is_completed && <span className="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase">Meta Atingida! 🎊</span>}
                     </div>
                 </div>
+
+                {/* Simulador de Projeção */}
+                {isSimulating && !goal.is_completed && (
+                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 animate-in slide-in-from-top-2 duration-300">
+                        <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Simulador de Projeção</h5>
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-bold text-slate-500 uppercase">Aporte Mensal</label>
+                                <input
+                                    type="text"
+                                    value={aporte}
+                                    onChange={e => setAporte(formatAsBRL(e.target.value))}
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black outline-none focus:border-blue-600"
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-bold text-slate-500 uppercase">Juros a.a (%)</label>
+                                <input
+                                    type="text"
+                                    value={taxaAnual}
+                                    onChange={e => setTaxaAnual(e.target.value)}
+                                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-black outline-none focus:border-blue-600"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-blue-600 rounded-2xl p-4 text-white text-center">
+                            <p className="text-[10px] font-black uppercase opacity-70 mb-1">Tempo Estimado</p>
+                            {monthsRemaining === Infinity ? (
+                                <p className="text-lg font-black italic">Aporte insuficiente</p>
+                            ) : (
+                                <p className="text-xl font-black tracking-tight">
+                                    {years > 0 ? `${years} ${years === 1 ? 'ano' : 'anos'}` : ''}
+                                    {years > 0 && months > 0 ? ' e ' : ''}
+                                    {months > 0 || years === 0 ? `${months} ${months === 1 ? 'mês' : 'meses'}` : ''}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
