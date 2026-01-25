@@ -280,15 +280,25 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const updateGoal = async (id: string, current: number, completed: boolean) => {
+  const updateGoal = async (id: string, updates: Partial<SavingsGoal>) => {
     if (!user) return;
     try {
       const { error } = await supabase
         .from('savings_goals')
-        .update({ current_value: current, is_completed: completed })
+        .update({
+          current_value: updates.current_value,
+          is_completed: updates.is_completed,
+          monthly_contribution: updates.monthly_contribution,
+          interest_rate: updates.interest_rate,
+          title: updates.title,
+          target_value: updates.target_value,
+          deadline: updates.deadline,
+          icon: updates.icon
+        })
         .eq('id', id);
+
       if (error) alert('Erro ao atualizar meta: ' + error.message);
-      else setGoals(prev => prev.map(g => g.id === id ? { ...g, current_value: current, is_completed: completed } : g));
+      else setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updates } : g));
     } catch (err) {
       alert('Erro inesperado ao atualizar meta.');
     }

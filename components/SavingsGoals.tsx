@@ -6,7 +6,7 @@ import { formatCurrency, formatAsBRL, parseBRL } from '../utils';
 interface Props {
     goals: SavingsGoal[];
     onAddGoal: (title: string, target: number, monthly: number, rate: number, deadline?: string, icon?: string) => void;
-    onUpdateGoal: (id: string, current: number, isCompleted: boolean) => void;
+    onUpdateGoal: (id: string, updates: Partial<SavingsGoal>) => void;
     onDeleteGoal: (id: string) => void;
 }
 
@@ -111,9 +111,15 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     );
 };
 
-const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, current: number, completed: boolean) => void, onDelete: (id: string) => void }> = ({ goal, onUpdate, onDelete }) => {
+const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, updates: Partial<SavingsGoal>) => void, onDelete: (id: string) => void }> = ({ goal, onUpdate, onDelete }) => {
     const [isContributing, setIsContributing] = useState(false);
+    const [isEditingSettings, setIsEditingSettings] = useState(false);
     const [contribution, setContribution] = useState('');
+
+    const [editTitle, setEditTitle] = useState(goal.title);
+    const [editTarget, setEditTarget] = useState(formatAsBRL((goal.target_value * 100).toString()));
+    const [editMonthly, setEditMonthly] = useState(formatAsBRL(((goal.monthly_contribution || 0) * 100).toString()));
+    const [editRate, setEditRate] = useState((goal.interest_rate || 0).toString().replace('.', ','));
 
     const percent = Math.min(Math.round((goal.current_value / goal.target_value) * 100), 100);
 
@@ -121,9 +127,20 @@ const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, current: nu
         const valueToAdd = parseBRL(contribution);
         if (valueToAdd <= 0) return;
         const newTotal = goal.current_value + valueToAdd;
-        onUpdate(goal.id, newTotal, newTotal >= goal.target_value);
+        onUpdate(goal.id, { current_value: newTotal, is_completed: newTotal >= goal.target_value });
         setContribution('');
         setIsContributing(false);
+    };
+
+    const handleSaveSettings = () => {
+        onUpdate(goal.id, {
+            title: editTitle,
+            target_value: parseBRL(editTarget),
+            monthly_contribution: parseBRL(editMonthly),
+            interest_rate: parseFloat(editRate.replace(',', '.')) || 0,
+            is_completed: goal.current_value >= parseBRL(editTarget)
+        });
+        setIsEditingSettings(false);
     };
 
     const calculateMonths = () => {
@@ -154,78 +171,118 @@ const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, current: nu
                     <div className="w-16 h-16 bg-slate-50 rounded-[1.5rem] flex items-center justify-center text-4xl shadow-inner group-hover:scale-110 transition-transform duration-500">
                         {goal.icon}
                     </div>
-                    <div>
-                        <h4 className="text-2xl font-black text-slate-800 tracking-tight">{goal.title}</h4>
+                    <div className="flex-1">
+                        {isEditingSettings ? (
+                            <input
+                                type="text"
+                                value={editTitle}
+                                onChange={e => setEditTitle(e.target.value)}
+                                className="bg-slate-50 border-b-2 border-blue-600 outline-none font-black text-xl w-full"
+                            />
+                        ) : (
+                            <h4 className="text-2xl font-black text-slate-800 tracking-tight">{goal.title}</h4>
+                        )}
                         <div className="flex items-center gap-2 mt-1">
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ${goal.is_completed ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
-                                {goal.is_completed ? 'Concluido' : `${percent}% do objetivo`}
+                                {goal.is_completed ? 'Concluído' : `${percent}% do objetivo`}
                             </span>
-                            {goal.deadline && (
+                            {!isEditingSettings && goal.deadline && (
                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">Meta: {new Date(goal.deadline).toLocaleDateString()}</span>
                             )}
                         </div>
                     </div>
                 </div>
-                <button onClick={() => confirm('Apagar meta?') && onDelete(goal.id)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                </button>
-            </div>
-
-            <div className="space-y-8 flex-1">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Acumulado</p>
-                        <p className="text-xl font-black text-slate-900">{formatCurrency(goal.current_value)}</p>
-                    </div>
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Faltam</p>
-                        <p className="text-xl font-black text-blue-600">{formatCurrency(Math.max(0, goal.target_value - goal.current_value))}</p>
-                    </div>
-                </div>
-
-                <div className="relative pt-2">
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div style={{ width: `${percent}%` }} className={`h-full rounded-full transition-all duration-1000 ${goal.is_completed ? 'bg-emerald-500' : 'bg-blue-600'}`}></div>
-                    </div>
-                    {monthsRemaining !== Infinity && !goal.is_completed && (
-                        <div className="mt-4 flex justify-between items-center bg-blue-50/30 p-4 rounded-2xl border border-blue-50">
-                            <div>
-                                <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Previsão de Conclusão</p>
-                                <p className="text-sm font-black text-blue-800 uppercase italic">
-                                    {finishDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-[20px] font-black text-blue-900 tracking-tighter">
-                                    ~{years > 0 ? `${years}a ` : ''}{months}m
-                                </p>
-                            </div>
-                        </div>
+                <div className="flex gap-2">
+                    <button onClick={() => setIsEditingSettings(!isEditingSettings)} className={`p-2 rounded-xl transition ${isEditingSettings ? 'bg-blue-600 text-white' : 'text-slate-300 hover:text-blue-600'}`}>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    </button>
+                    {!isEditingSettings && (
+                        <button onClick={() => confirm('Apagar meta?') && onDelete(goal.id)} className="p-2 text-slate-200 hover:text-red-500 transition-colors">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
                     )}
                 </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-50 flex gap-3">
-                {isContributing ? (
-                    <div className="flex-1 flex gap-2 animate-in slide-in-from-right-2 duration-300">
-                        <input
-                            type="text" autoFocus inputMode="decimal" value={contribution}
-                            onChange={e => setContribution(formatAsBRL(e.target.value))}
-                            placeholder="Valor do Aporte"
-                            className="flex-1 bg-blue-50 border-2 border-blue-600 rounded-2xl px-4 py-3 font-black text-blue-900 outline-none"
-                        />
-                        <button onClick={handleContribute} className="bg-blue-600 text-white px-6 rounded-2xl font-black shadow-lg">Salvar</button>
-                        <button onClick={() => setIsContributing(false)} className="bg-slate-100 text-slate-500 px-4 rounded-2xl font-black">X</button>
+            <div className="space-y-6 flex-1">
+                {isEditingSettings ? (
+                    <div className="grid grid-cols-2 gap-4 bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 animate-in zoom-in-95 duration-200">
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-blue-400 uppercase">Objetivo Final</label>
+                            <input type="text" value={editTarget} onChange={e => setEditTarget(formatAsBRL(e.target.value))} className="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm font-black outline-none focus:border-blue-600" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-blue-400 uppercase">Aporte Mensal</label>
+                            <input type="text" value={editMonthly} onChange={e => setEditMonthly(formatAsBRL(e.target.value))} className="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm font-black outline-none focus:border-blue-600" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[9px] font-black text-blue-400 uppercase">Rentabilidade %</label>
+                            <input type="text" value={editRate} onChange={e => setEditRate(e.target.value)} className="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-sm font-black outline-none focus:border-blue-600" />
+                        </div>
+                        <div className="flex items-end">
+                            <button onClick={handleSaveSettings} className="w-full bg-blue-600 text-white rounded-xl py-2 text-xs font-black shadow-lg shadow-blue-100 active:scale-95 transition-all">Salvar Tudo</button>
+                        </div>
                     </div>
                 ) : (
-                    <button
-                        onClick={() => goal.is_completed ? null : setIsContributing(true)}
-                        className={`flex-1 py-4 rounded-[1.2rem] font-black text-sm tracking-tight transition-all active:scale-[0.98] ${goal.is_completed ? 'bg-emerald-100 text-emerald-600 cursor-default' : 'bg-slate-900 text-white shadow-xl hover:bg-black'}`}
-                    >
-                        {goal.is_completed ? 'OBJETIVO ALCANÇADO!' : '+ Adicionar Aporte'}
-                    </button>
+                    <>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Acumulado</p>
+                                <p className="text-xl font-black text-slate-900">{formatCurrency(goal.current_value)}</p>
+                            </div>
+                            <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Faltam</p>
+                                <p className="text-xl font-black text-blue-600">{formatCurrency(Math.max(0, goal.target_value - goal.current_value))}</p>
+                            </div>
+                        </div>
+
+                        <div className="relative pt-2">
+                            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                                <div style={{ width: `${percent}%` }} className={`h-full rounded-full transition-all duration-1000 ${goal.is_completed ? 'bg-emerald-500' : 'bg-blue-600'}`}></div>
+                            </div>
+                            {monthsRemaining !== Infinity && !goal.is_completed && (
+                                <div className="mt-4 flex justify-between items-center bg-blue-50/30 p-4 rounded-2xl border border-blue-50">
+                                    <div>
+                                        <p className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Previsão de Conclusão</p>
+                                        <p className="text-sm font-black text-blue-800 uppercase italic">
+                                            {finishDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[20px] font-black text-blue-900 tracking-tighter">
+                                            ~{years > 0 ? `${years}a ` : ''}{months}m
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
+
+            {!isEditingSettings && (
+                <div className="mt-8 pt-6 border-t border-slate-50 flex gap-3">
+                    {isContributing ? (
+                        <div className="flex-1 flex gap-2 animate-in slide-in-from-right-2 duration-300">
+                            <input
+                                type="text" autoFocus inputMode="decimal" value={contribution}
+                                onChange={e => setContribution(formatAsBRL(e.target.value))}
+                                placeholder="Valor do Aporte"
+                                className="flex-1 bg-blue-50 border-2 border-blue-600 rounded-2xl px-4 py-3 font-black text-blue-900 outline-none"
+                            />
+                            <button onClick={handleContribute} className="bg-blue-600 text-white px-6 rounded-2xl font-black shadow-lg">Salvar</button>
+                            <button onClick={() => setIsContributing(false)} className="bg-slate-100 text-slate-500 px-4 rounded-2xl font-black">X</button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => goal.is_completed ? null : setIsContributing(true)}
+                            className={`flex-1 py-4 rounded-[1.2rem] font-black text-sm tracking-tight transition-all active:scale-[0.98] ${goal.is_completed ? 'bg-emerald-100 text-emerald-600 cursor-default' : 'bg-slate-900 text-white shadow-xl hover:bg-black'}`}
+                        >
+                            {goal.is_completed ? 'OBJETIVO ALCANÇADO!' : '+ Adicionar Aporte'}
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
