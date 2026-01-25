@@ -174,6 +174,36 @@ const Dashboard: React.FC<Props> = ({
         />
       </div>
 
+      {/* Gastos por Categoria - NOVA SEÇÃO */}
+      <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm">
+        <h3 className="font-black text-slate-300 uppercase tracking-[0.2em] text-[10px] mb-8 flex items-center gap-3">
+          <div className="h-px w-8 bg-slate-200"></div>
+          Gastos por Categoria
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Object.entries(summary.categoryTotals)
+            .sort((a, b) => b[1] - a[1]) // Ordenar do maior para o menor
+            .map(([category, total]) => (
+              <div key={category} className="flex items-center justify-between p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50 transition-all hover:bg-white hover:shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
+                    <span className="text-xs">📊</span>
+                  </div>
+                  <span className="text-sm font-bold text-slate-600">{category}</span>
+                </div>
+                <span className="text-sm font-black text-slate-900">{formatCurrency(total)}</span>
+              </div>
+            ))}
+
+          {Object.keys(summary.categoryTotals).length === 0 && (
+            <div className="col-span-full py-12 text-center text-slate-400 font-medium italic">
+              Nenhum gasto registrado neste mês.
+            </div>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 };

@@ -52,4 +52,5 @@ export interface MonthlySummary {
   person2PersonalTotal: number;
   transferAmount: number;
   whoTransfers: 'person1' | 'person2' | 'none';
+  categoryTotals: Record<string, number>;
 }

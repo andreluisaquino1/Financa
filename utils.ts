@@ -66,28 +66,28 @@ export const calculateSummary = (
   let person1PersonalTotal = 0;
   let person2PersonalTotal = 0;
 
-  // pTarget: O quanto a pessoa DEVERIA ter pago no total
-  // pSpent: O quanto a pessoa EFETIVAMENTE pagou do bolso
   let p1Target = 0;
   let p1Spent = 0;
   let p2Target = 0;
   let p2Spent = 0;
 
   const [targetYear, targetMonth] = monthKey.split('-').map(Number);
+  const categoryTotals: Record<string, number> = {};
 
   expenses.forEach((exp) => {
     const expDate = parseSafeDate(exp.date);
     const diffMonths = (targetYear - expDate.getFullYear()) * 12 + (targetMonth - (expDate.getMonth() + 1));
 
-    // Validar se o gasto pertence ao mês selecionado (Fixos são recorrentes, outros respeitam parcelas)
     const isValidMonth = diffMonths >= 0 && (exp.type === ExpenseType.FIXED || diffMonths < exp.installments);
     if (!isValidMonth) return;
 
-    // Calcular valor da parcela arredondado para centavos
     let monthlyValue = roundMoney(exp.totalValue / exp.installments);
     if (exp.metadata?.overrides?.[monthKey]) {
       monthlyValue = exp.metadata.overrides[monthKey];
     }
+
+    const cat = exp.category || 'Outros';
+    categoryTotals[cat] = roundMoney((categoryTotals[cat] || 0) + monthlyValue);
 
     switch (exp.type) {
       case ExpenseType.FIXED:
@@ -95,10 +95,7 @@ export const calculateSummary = (
         if (exp.type === ExpenseType.FIXED) totalFixed = roundMoney(totalFixed + monthlyValue);
         else totalCommon = roundMoney(totalCommon + monthlyValue);
 
-        // Decidir método de divisão: Se tiver splitMethod definido, usa ele.
-        // Se não, o padrão para FIXED e COMMON é proporcional.
         const isActuallyEqual = exp.splitMethod === 'equal';
-
         if (isActuallyEqual) {
           p1Target = roundMoney(p1Target + (monthlyValue * 0.5));
           p2Target = roundMoney(p2Target + (monthlyValue * 0.5));
@@ -110,14 +107,12 @@ export const calculateSummary = (
 
       case ExpenseType.EQUAL:
         totalEqual = roundMoney(totalEqual + monthlyValue);
-        // Divisão 50%/50%
         p1Target = roundMoney(p1Target + (monthlyValue * 0.5));
         p2Target = roundMoney(p2Target + (monthlyValue * 0.5));
         break;
 
       case ExpenseType.REIMBURSEMENT:
         totalReimbursement = roundMoney(totalReimbursement + monthlyValue);
-        // Reembolso: 100% de quem NÃO pagou
         if (exp.paidBy === 'person1') {
           p2Target = roundMoney(p2Target + monthlyValue);
         } else {
@@ -134,21 +129,18 @@ export const calculateSummary = (
         break;
     }
 
-    // Registrar quem desembolsou o dinheiro (exceto gastos pessoais que não afetam o casal)
     if (exp.type !== ExpenseType.PERSONAL_P1 && exp.type !== ExpenseType.PERSONAL_P2) {
       if (exp.paidBy === 'person1') p1Spent = roundMoney(p1Spent + monthlyValue);
       else p2Spent = roundMoney(p2Spent + monthlyValue);
     }
   });
 
-  // Saldo: Se Target > Spent, a pessoa deve a diferença.
   const balance1 = roundMoney(p1Target - p1Spent);
   const balance2 = roundMoney(p2Target - p2Spent);
 
   let transferAmount = 0;
   let whoTransfers: 'person1' | 'person2' | 'none' = 'none';
 
-  // Tolerância de 1 centavo para arredondamentos
   if (balance1 > 0.01) {
     transferAmount = balance1;
     whoTransfers = 'person1';
@@ -169,6 +161,7 @@ export const calculateSummary = (
     person1PersonalTotal,
     person2PersonalTotal,
     transferAmount,
-    whoTransfers
+    whoTransfers,
+    categoryTotals
   };
 };
