@@ -61,6 +61,8 @@ export interface SavingsGoal {
   title: string;
   target_value: number;
   current_value: number;
+  monthly_contribution?: number;
+  interest_rate?: number;
   deadline?: string;
   icon?: string;
   is_completed: boolean;

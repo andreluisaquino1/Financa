@@ -255,7 +255,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const addGoal = async (title: string, target: number, deadline?: string, icon?: string) => {
+  const addGoal = async (title: string, target: number, monthly: number, rate: number, deadline?: string, icon?: string) => {
     if (!user) return;
     try {
       const { data, error } = await supabase
@@ -264,6 +264,8 @@ const AppContent: React.FC = () => {
           user_id: user.id,
           title,
           target_value: target,
+          monthly_contribution: monthly,
+          interest_rate: rate,
           deadline: deadline || null,
           icon: icon || '💰',
           current_value: 0,
