@@ -54,3 +54,15 @@ export interface MonthlySummary {
   whoTransfers: 'person1' | 'person2' | 'none';
   categoryTotals: Record<string, number>;
 }
+
+export interface SavingsGoal {
+  id: string;
+  user_id: string;
+  title: string;
+  target_value: number;
+  current_value: number;
+  deadline?: string;
+  icon?: string;
+  is_completed: boolean;
+  created_at: string;
+}

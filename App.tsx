@@ -5,10 +5,12 @@ import Dashboard from './components/Dashboard';
 import SidebarMenu from './components/SidebarMenu';
 import ExpenseTabs from './components/ExpenseTabs';
 import PersonalWallet from './components/PersonalWallet';
+import SavingsGoals from './components/SavingsGoals';
 import Auth from './components/Auth';
 import { AuthProvider, useAuth } from './AuthContext';
 import { supabase } from './supabaseClient';
 import { getMonthYearKey } from './utils';
+import { SavingsGoal } from './types';
 
 const AppContent: React.FC = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -22,8 +24,9 @@ const AppContent: React.FC = () => {
   });
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2'>('summary');
+  const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals'>('summary');
   const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -77,6 +80,17 @@ const AppContent: React.FC = () => {
           metadata: e.metadata,
           splitMethod: e.split_method as 'proportional' | 'equal'
         })));
+      }
+
+      // Carregar metas
+      const { data: goalsData } = await supabase
+        .from('savings_goals')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (goalsData) {
+        setGoals(goalsData);
       }
 
       setDataLoading(false);
@@ -229,7 +243,6 @@ const AppContent: React.FC = () => {
 
   const deleteExpense = async (id: string) => {
     if (!user) return;
-
     try {
       const { error } = await supabase.from('expenses').delete().eq('id', id);
       if (error) {
@@ -239,6 +252,54 @@ const AppContent: React.FC = () => {
       setExpenses(prev => prev.filter(e => e.id !== id));
     } catch (err: any) {
       alert('Erro inesperado ao excluir.');
+    }
+  };
+
+  const addGoal = async (title: string, target: number, deadline?: string, icon?: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('savings_goals')
+        .insert({
+          user_id: user.id,
+          title,
+          target_value: target,
+          deadline: deadline || null,
+          icon: icon || '💰',
+          current_value: 0,
+          is_completed: false
+        })
+        .select()
+        .single();
+      if (error) alert('Erro ao criar meta: ' + error.message);
+      else if (data) setGoals(prev => [data, ...prev]);
+    } catch (err) {
+      alert('Erro inesperado ao criar meta.');
+    }
+  };
+
+  const updateGoal = async (id: string, current: number, completed: boolean) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('savings_goals')
+        .update({ current_value: current, is_completed: completed })
+        .eq('id', id);
+      if (error) alert('Erro ao atualizar meta: ' + error.message);
+      else setGoals(prev => prev.map(g => g.id === id ? { ...g, current_value: current, is_completed: completed } : g));
+    } catch (err) {
+      alert('Erro inesperado ao atualizar meta.');
+    }
+  };
+
+  const deleteGoal = async (id: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase.from('savings_goals').delete().eq('id', id);
+      if (error) alert('Erro ao deletar meta: ' + error.message);
+      else setGoals(prev => prev.filter(g => g.id !== id));
+    } catch (err) {
+      alert('Erro inesperado.');
     }
   };
 
@@ -362,6 +423,7 @@ const AppContent: React.FC = () => {
               <NavItem active={currentTab === 'common'} onClick={() => setCurrentTab('common')} label="Proporcional" />
               <NavItem active={currentTab === 'equal'} onClick={() => setCurrentTab('equal')} label="50%/50%" />
               <NavItem active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} label="Reembolsos" />
+              <NavItem active={currentTab === 'goals'} onClick={() => setCurrentTab('goals')} label="Metas" />
               <NavItem active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} label={`Carteira ${coupleInfo.person1Name.split(' ')[0]}`} />
               <NavItem active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
             </div>
@@ -378,6 +440,14 @@ const AppContent: React.FC = () => {
               monthKey={selectedMonth}
               onUpdateSalary1={handleUpdateSalary1}
               onUpdateSalary2={handleUpdateSalary2}
+            />
+          )}
+          {currentTab === 'goals' && (
+            <SavingsGoals
+              goals={goals}
+              onAddGoal={addGoal}
+              onUpdateGoal={updateGoal}
+              onDeleteGoal={deleteGoal}
             />
           )}
           {currentTab === 'wallet1' && (
@@ -420,6 +490,7 @@ const AppContent: React.FC = () => {
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t flex items-center p-2 z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] overflow-x-auto no-scrollbar scroll-smooth">
         <div className="flex min-w-max space-x-1 px-2">
           <MobileTab active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" label="Início" />
+          <MobileTab active={currentTab === 'goals'} onClick={() => setCurrentTab('goals')} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" label="Metas" />
           <MobileTab active={currentTab === 'fixed'} onClick={() => setCurrentTab('fixed')} icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" label="Fixos" />
           <MobileTab active={currentTab === 'common'} onClick={() => setCurrentTab('common')} icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" label="Prop." />
           <MobileTab active={currentTab === 'equal'} onClick={() => setCurrentTab('equal')} icon="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" label="50%/50%" />
