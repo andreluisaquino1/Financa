@@ -8,7 +8,15 @@ interface Props {
   onClose: () => void;
   onDeleteAccount: () => void;
   coupleInfo: CoupleInfo;
-  onUpdateSettings: (n1: string, n2: string, s1: number, s2: number, cats?: string[]) => void;
+  onUpdateSettings: (
+    n1: string,
+    n2: string,
+    s1: number,
+    s2: number,
+    cats?: string[],
+    mode?: 'proportional' | 'fixed',
+    mPerc1?: number
+  ) => void;
   userEmail?: string;
   onSignOut?: () => void;
 }
@@ -21,14 +29,17 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
   const [categories, setCategories] = useState<string[]>(coupleInfo.categories || []);
   const [newCategory, setNewCategory] = useState('');
 
+  const [splitMode, setSplitMode] = useState<'proportional' | 'fixed'>(coupleInfo.customSplitMode || 'proportional');
+  const [manualPerc1, setManualPerc1] = useState(coupleInfo.manualPercentage1 !== undefined ? coupleInfo.manualPercentage1 : 50);
+
   const handleSave = () => {
-    onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2));
+    onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2), categories, splitMode, manualPerc1);
     onClose();
   };
 
   const handleUpdateCategories = (updatedCats: string[]) => {
     setCategories(updatedCats);
-    onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2), updatedCats);
+    onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2), updatedCats, splitMode, manualPerc1);
   };
 
   const addCategory = () => {
@@ -68,8 +79,9 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
         </div>
 
         <div className="p-8 space-y-8">
+          {/* Sessão Pessoas */}
           <div className="space-y-4">
-            <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Pessoas</h3>
+            <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Pessoas e Renda</h3>
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-3 p-4 bg-gray-50 rounded-2xl border border-gray-100">
                 <TextInput label={`Nome (${coupleInfo.person1Name})`} value={n1} onChange={setN1} />
@@ -82,8 +94,56 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
             </div>
           </div>
 
+          {/* Sessão Modo de Divisão */}
+          <div className="space-y-4 pt-4 border-t border-gray-50">
+            <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Modo de Divisão</h3>
+            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSplitMode('proportional')}
+                  className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase transition-all ${splitMode === 'proportional' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400 hover:text-gray-600'}`}
+                >
+                  Salário
+                </button>
+                <button
+                  onClick={() => setSplitMode('fixed')}
+                  className={`flex-1 py-2 px-3 rounded-xl text-[10px] font-black uppercase transition-all ${splitMode === 'fixed' ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400 hover:text-gray-600'}`}
+                >
+                  Manual %
+                </button>
+              </div>
+
+              {splitMode === 'fixed' && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[10px] font-black text-gray-400 uppercase">{n1}</span>
+                    <span className="text-sm font-black text-blue-600">{manualPerc1}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={manualPerc1}
+                    onChange={(e) => setManualPerc1(Number(e.target.value))}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-[10px] font-black text-gray-400 uppercase">{n2}</span>
+                    <span className="text-sm font-black text-pink-500">{100 - manualPerc1}%</span>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[9px] text-gray-400 font-bold leading-relaxed">
+                {splitMode === 'proportional'
+                  ? "As contas são divididas proporcionalmente ao salário de cada um."
+                  : "As contas são divididas seguindo a porcentagem fixa definida acima."}
+              </p>
+            </div>
+          </div>
+
           <button onClick={handleSave} className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-100 active:scale-95 transition">
-            Salvar Nomes e Salários
+            Salvar Configurações
           </button>
 
           <div className="space-y-4 pt-4 border-t border-gray-50">
@@ -105,7 +165,7 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
                 {categories.map((cat, idx) => (
                   <div key={cat} className="group flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100 hover:border-blue-200 transition">
                     <span className="text-xs font-bold text-gray-700">{cat}</span>

@@ -44,12 +44,20 @@ export const calculateSummary = (
   coupleInfo: CoupleInfo,
   monthKey: string
 ): MonthlySummary => {
-  const { salary1, salary2 } = coupleInfo;
+  const { salary1, salary2, customSplitMode, manualPercentage1 } = coupleInfo;
   const totalSalary = salary1 + salary2;
 
-  // Manter proporção com precisão alta para o cálculo, mas arredondar o resultado final do gasto
-  const ratio1 = totalSalary > 0 ? salary1 / totalSalary : 0.5;
-  const ratio2 = totalSalary > 0 ? salary2 / totalSalary : 0.5;
+  // Determinar a proporção baseada na configuração
+  let ratio1 = 0.5;
+  let ratio2 = 0.5;
+
+  if (customSplitMode === 'fixed' && manualPercentage1 !== undefined) {
+    ratio1 = manualPercentage1 / 100;
+    ratio2 = 1 - ratio1;
+  } else {
+    ratio1 = totalSalary > 0 ? salary1 / totalSalary : 0.5;
+    ratio2 = totalSalary > 0 ? salary2 / totalSalary : 0.5;
+  }
 
   let totalFixed = 0;
   let totalCommon = 0;

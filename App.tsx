@@ -96,14 +96,24 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleUpdateSettings = (n1: string, n2: string, s1: number, s2: number, cats?: string[]) => {
+  const handleUpdateSettings = (
+    n1: string,
+    n2: string,
+    s1: number,
+    s2: number,
+    cats?: string[],
+    customMode?: 'proportional' | 'fixed',
+    manualPerc?: number
+  ) => {
     saveCoupleInfo({
       ...coupleInfo,
       person1Name: n1,
       person2Name: n2,
       salary1: s1,
       salary2: s2,
-      categories: cats || coupleInfo.categories
+      categories: cats || coupleInfo.categories,
+      customSplitMode: customMode || coupleInfo.customSplitMode,
+      manualPercentage1: manualPerc !== undefined ? manualPerc : coupleInfo.manualPercentage1
     });
   };
 

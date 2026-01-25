@@ -14,6 +14,8 @@ export interface CoupleInfo {
   salary1: number;
   salary2: number;
   categories?: string[];
+  customSplitMode?: 'proportional' | 'fixed';
+  manualPercentage1?: number; // percentage for person1 (0-100)
 }
 
 export interface UserAccount {
