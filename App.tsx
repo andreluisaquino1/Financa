@@ -308,12 +308,10 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="bg-blue-600 p-4 rounded-3xl shadow-lg inline-block mb-4 shadow-blue-200 animate-pulse">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="mb-4 animate-pulse">
+            <img src="/logo.png" alt="Carregando..." className="h-20 mx-auto object-contain" />
           </div>
-          <p className="text-gray-500 font-bold">Carregando...</p>
+          <p className="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em]">Sincronizando Dados</p>
         </div>
       </div>
     );
