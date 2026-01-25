@@ -27,9 +27,9 @@ const Dashboard: React.FC<Props> = ({
   const p2Left = coupleInfo.salary2 - summary.person2Responsibility - summary.person2PersonalTotal;
 
   return (
-    <div className="space-y-6 md:space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20 lg:pb-8">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20 lg:pb-8">
 
-      {/* Cards de Salário - Minimalistas */}
+      {/* Topo: Salários e Proporção Integrada */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <SalaryCard
           name={coupleInfo.person1Name}
@@ -45,82 +45,61 @@ const Dashboard: React.FC<Props> = ({
         />
       </div>
 
-      {/* Barra de Proporção - Design Limpo */}
-      <div className="bg-white/60 backdrop-blur-xl p-6 md:p-8 rounded-[2rem] border border-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
-        <div className="flex justify-between items-end mb-6">
-          <div>
-            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Distribuição de Custo</h3>
-            <p className="text-sm font-bold text-slate-600">Proporção baseada na renda</p>
-          </div>
-          <div className="text-right">
-            <span className="text-2xl font-black text-blue-600 tracking-tighter">{p1Ratio.toFixed(0)}%</span>
-            <span className="mx-2 text-slate-200 font-light">/</span>
-            <span className="text-2xl font-black text-pink-500 tracking-tighter">{p2Ratio.toFixed(0)}%</span>
-          </div>
+      {/* Barra de Proporção Compacta */}
+      <div className="bg-white/40 backdrop-blur-sm px-6 py-4 rounded-[1.5rem] border border-slate-100/50 shadow-sm flex items-center gap-6">
+        <div className="shrink-0">
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Divisão</h3>
         </div>
-        <div className="h-3 w-full bg-slate-100/50 rounded-full overflow-hidden flex p-0.5 border border-slate-200/50">
-          <div style={{ width: `${p1Ratio}%` }} className="bg-gradient-to-r from-blue-500 to-blue-400 h-full rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(59,130,246,0.3)]"></div>
-          <div style={{ width: `${p2Ratio}%` }} className="bg-gradient-to-r from-pink-400 to-pink-500 h-full rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(236,72,153,0.3)]"></div>
+        <div className="flex-1 h-1 bg-slate-100/50 rounded-full overflow-hidden flex border border-slate-200/50">
+          <div style={{ width: `${p1Ratio}%` }} className="bg-blue-500 h-full rounded-full transition-all duration-1000"></div>
+          <div style={{ width: `${p2Ratio}%` }} className="bg-pink-400 h-full rounded-full transition-all duration-1000"></div>
+        </div>
+        <div className="shrink-0 flex gap-3 text-[10px] font-black tracking-tighter">
+          <span className="text-blue-600">{p1Ratio.toFixed(0)}%</span>
+          <span className="text-slate-300">/</span>
+          <span className="text-pink-500">{p2Ratio.toFixed(0)}%</span>
         </div>
       </div>
 
-      {/* Destaque do Acerto - Versão Light Premium */}
-      <div className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.03)] relative overflow-hidden">
-        {/* Elemento de Fundo Suave */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-50"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-pink-50 rounded-full -ml-10 -mb-10 blur-3xl opacity-50"></div>
+      {/* Destaque do Acerto - Compacto Premium */}
+      <div className="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-100 shadow-[0_15px_40px_rgba(0,0,0,0.02)] relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-10 -mt-10 blur-3xl opacity-40"></div>
 
-        <h3 className="font-black text-slate-300 uppercase tracking-[0.3em] text-[10px] mb-10 flex items-center gap-3 relative z-10">
-          <div className="h-px w-8 bg-slate-200"></div>
-          Resumo do Fechamento
-        </h3>
-
-        {summary.whoTransfers !== 'none' ? (
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-center relative z-10">
-            <div className={`md:col-span-2 p-8 rounded-[2rem] text-center ${summary.whoTransfers === 'person1' ? 'bg-blue-50/40 border border-blue-100' : 'bg-pink-50/40 border border-pink-100'}`}>
-              <p className="font-black uppercase text-[10px] tracking-widest mb-3 text-slate-400">Origem do PIX</p>
-              <p className={`text-4xl font-black tracking-tighter ${summary.whoTransfers === 'person1' ? 'text-blue-600' : 'text-pink-600'}`}>
-                {summary.whoTransfers === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name}
-              </p>
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-lg shadow-inner">💰</div>
+            <div>
+              <h3 className="font-black text-slate-300 uppercase tracking-widest text-[9px] mb-0.5">Acerto do Mês</h3>
+              <p className="text-sm font-bold text-slate-600">Fechamento das contas</p>
             </div>
+          </div>
 
-            <div className="hidden md:flex justify-center">
-              <div className="w-12 h-12 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shadow-sm">
-                <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+          {summary.whoTransfers !== 'none' ? (
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className={`flex-1 md:flex-none px-4 py-2 rounded-xl text-xs font-black uppercase tracking-tight text-center ${summary.whoTransfers === 'person1' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
+                {summary.whoTransfers === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name} paga
+              </div>
+              <div className="bg-slate-900 px-6 py-3 rounded-2xl shadow-lg transform transition-transform">
+                <p className="text-white text-xl font-black tracking-tighter text-center">{formatCurrency(summary.transferAmount)}</p>
               </div>
             </div>
-
-            <div className="md:col-span-2 p-8 rounded-[2rem] bg-slate-50 border border-slate-100 text-center group transition-all hover:bg-white hover:shadow-xl hover:border-transparent">
-              <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest mb-3 text-center">Valor do Acerto</p>
-              <p className="text-4xl font-black text-slate-900 tracking-tighter">{formatCurrency(summary.transferAmount)}</p>
+          ) : (
+            <div className="flex items-center gap-2 text-emerald-600 font-black text-sm">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+              Tudo equilibrado!
             </div>
-          </div>
-        ) : (
-          <div className="bg-emerald-50/50 text-emerald-600 p-12 rounded-[2rem] text-center border border-emerald-100 relative z-10">
-            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-emerald-100 flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-            </div>
-            <p className="text-xl font-black tracking-tight">Equilíbrio Perfeito! 🎉</p>
-            <p className="text-sm font-bold opacity-70 mt-1">As contas estão batendo centavo por centavo.</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Grid de Métricas Secundárias */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
 
         {/* Card de Gastos Detalhados */}
         <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="p-6 md:p-8 flex justify-between items-center border-b border-slate-50">
-            <div>
-              <h3 className="font-black text-slate-400 uppercase tracking-widest text-[10px] mb-1">Fluxo Mensal</h3>
-              <p className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement)}</p>
-            </div>
-            <div className="flex gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-              <div className="w-1.5 h-1.5 rounded-full bg-pink-400"></div>
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-200"></div>
-            </div>
+          <div className="px-6 py-5 flex justify-between items-center border-b border-slate-50">
+            <h3 className="font-black text-slate-400 uppercase tracking-widest text-[10px]">Fluxo Mensal</h3>
+            <span className="text-lg font-black text-slate-900 tracking-tighter">{formatCurrency(summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement)}</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-50">
             <StatSmall label="Fixos" value={summary.totalFixed} />
@@ -131,28 +110,16 @@ const Dashboard: React.FC<Props> = ({
         </div>
 
         {/* Quem Desembolsou */}
-        <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-sm flex flex-col">
-          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Saída Efetiva</h4>
-          <div className="space-y-8">
+        <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm flex flex-col justify-center">
+          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Saída Efetiva</h4>
+          <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span className="text-sm font-bold text-slate-600">{coupleInfo.person1Name}</span>
-              </div>
-              <span className="font-black text-slate-900">{formatCurrency(summary.person1Paid)}</span>
+              <span className="text-xs font-bold text-slate-500">{coupleInfo.person1Name}</span>
+              <span className="text-sm font-black text-slate-900">{formatCurrency(summary.person1Paid)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-pink-400"></div>
-                <span className="text-sm font-bold text-slate-600">{coupleInfo.person2Name}</span>
-              </div>
-              <span className="font-black text-slate-900">{formatCurrency(summary.person2Paid)}</span>
-            </div>
-          </div>
-          <div className="mt-auto pt-6">
-            <div className="h-1.5 w-full bg-slate-50 rounded-full flex overflow-hidden">
-              <div style={{ width: `${(summary.person1Paid / (summary.person1Paid + summary.person2Paid || 1)) * 100}%` }} className="bg-blue-500/80 h-full"></div>
-              <div style={{ width: `${(summary.person2Paid / (summary.person1Paid + summary.person2Paid || 1)) * 100}%` }} className="bg-pink-400/80 h-full"></div>
+              <span className="text-xs font-bold text-slate-500">{coupleInfo.person2Name}</span>
+              <span className="text-sm font-black text-slate-900">{formatCurrency(summary.person2Paid)}</span>
             </div>
           </div>
         </div>
