@@ -48,10 +48,8 @@ const Auth: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-gray-900 font-sans">
       <div className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-blue-100 border border-white animate-in fade-in duration-500">
         <div className="mb-10 text-center">
-          <div className="bg-blue-600 p-4 rounded-3xl shadow-lg inline-block mb-6 shadow-blue-200">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div className="mb-6">
+            <img src="/logo.png" alt="Finanças em Casal" className="h-20 mx-auto object-contain" />
           </div>
           <h1 className="text-4xl font-black tracking-tighter text-gray-900">
             {isForgot ? 'Redefinir Senha' : 'Finanças em Casal'}
