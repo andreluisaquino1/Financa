@@ -21,23 +21,15 @@ const Auth: React.FC = () => {
     try {
       if (isForgot) {
         const { error } = await resetPassword(email);
-        if (error) {
-          setError(error.message);
-        } else {
-          setMessage('Email enviado! Verifique sua caixa de entrada para redefinir a senha.');
-        }
+        if (error) setError(error.message);
+        else setMessage('Email enviado! Verifique sua caixa de entrada.');
       } else if (isNew) {
         const { error } = await signUp(email, password);
-        if (error) {
-          setError(error.message);
-        } else {
-          setMessage('Conta criada! Verifique seu email para confirmar o cadastro.');
-        }
+        if (error) setError(error.message);
+        else setMessage('Conta criada! Verifique seu email para confirmar.');
       } else {
         const { error } = await signIn(email, password);
-        if (error) {
-          setError(error.message);
-        }
+        if (error) setError(error.message);
       }
     } finally {
       setLoading(false);
@@ -45,100 +37,130 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-gray-900 font-sans">
-      <div className="max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-2xl shadow-blue-100 border border-white animate-in fade-in duration-500">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 text-white font-sans overflow-hidden relative">
+      {/* Dynamic Background Elements */}
+      <div className="absolute top-0 -left-20 w-80 h-80 bg-blue-600 rounded-full blur-[120px] opacity-30 animate-pulse"></div>
+      <div className="absolute bottom-0 -right-20 w-80 h-80 bg-pink-600 rounded-full blur-[120px] opacity-20 animate-pulse [animation-delay:2s]"></div>
+
+      <div className="max-w-md w-full glass-dark p-10 rounded-[3rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] border border-white/10 animate-in fade-in slide-in-from-bottom-4 duration-700 relative z-10">
         <div className="mb-10 text-center">
-          <div className="mb-6">
-            <img src="/logo.png" alt="Finanças em Casal" className="h-20 mx-auto object-contain" />
+          <div className="mb-8 relative inline-block group">
+            <div className="absolute inset-0 bg-blue-500 rounded-3xl blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+            <img src="/logo.png" alt="Logo" className="h-24 w-24 mx-auto object-contain relative transition-transform duration-500 group-hover:scale-110" />
+            <div className="absolute -bottom-2 -right-2 bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg border-2 border-slate-900 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform">PRO</div>
           </div>
-          <h1 className="text-4xl font-black tracking-tighter text-gray-900">
-            {isForgot ? 'Redefinir Senha' : 'Finanças em Casal'}
+
+          <h1 className="text-4xl font-black tracking-tighter text-white mb-2">
+            {isForgot ? 'Recuperar Acesso' : isNew ? 'Criar Conta' : 'Boas-vindas'}
           </h1>
-          {isForgot && <p className="mt-2 text-sm text-gray-400 font-bold">Enviaremos um link de acesso ao seu e-mail</p>}
+          <p className="text-slate-400 text-sm font-medium">
+            {isForgot ? 'Insira seu email para continuar' : 'Sua vida financeira a dois mais leve'}
+          </p>
         </div>
 
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm font-medium">
+          <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-400 px-5 py-4 rounded-2xl text-xs font-bold flex items-center gap-3 animate-in shake">
+            <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
             {error}
           </div>
         )}
 
         {message && (
-          <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl text-sm font-medium">
+          <div className="mb-6 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-5 py-4 rounded-2xl text-xs font-bold flex items-center gap-3">
+            <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
             {message}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-1">
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest px-1">E-mail</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white text-black border-2 border-gray-100 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-600 outline-none transition-all duration-300"
-              placeholder="seu@email.com"
-            />
+          <div className="space-y-2">
+            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">E-mail</label>
+            <div className="relative">
+              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" /></svg>
+              </span>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-[1.25rem] pl-14 pr-5 py-4.5 focus:ring-4 focus:ring-blue-600/20 focus:bg-white/10 focus:border-blue-500 outline-none transition-all duration-300 font-bold text-white placeholder-slate-600"
+                placeholder="nome@exemplo.com"
+              />
+            </div>
           </div>
 
           {!isForgot && (
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className="flex justify-between px-1">
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest">Senha</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">Senha</label>
                 {!isNew && (
                   <button
                     type="button"
                     onClick={() => { setIsForgot(true); setError(null); setMessage(null); }}
-                    className="text-[10px] font-bold text-blue-600 hover:underline transition uppercase tracking-tighter"
+                    className="text-[10px] font-black text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest"
                   >
-                    Esqueceu a senha?
+                    Esqueceu?
                   </button>
                 )}
               </div>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white text-black border-2 border-gray-100 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-600 outline-none transition-all duration-300"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                </span>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-[1.25rem] pl-14 pr-5 py-4.5 focus:ring-4 focus:ring-blue-600/20 focus:bg-white/10 focus:border-blue-500 outline-none transition-all duration-300 font-bold text-white placeholder-slate-600"
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-black py-4 rounded-2xl transition shadow-xl shadow-blue-100 active:scale-[0.98] transform"
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 text-white font-black py-4.5 rounded-[1.5rem] transition-all shadow-[0_10px_40px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_50px_rgba(37,99,235,0.5)] active:scale-[0.98] disabled:scale-100 disabled:shadow-none flex items-center justify-center gap-3 group overflow-hidden relative"
           >
-            {loading ? 'Aguarde...' : isForgot ? 'Enviar link de recuperação' : isNew ? 'Criar minha conta' : 'Entrar'}
+            <span className="relative z-10">
+              {loading ? 'Sincronizando...' : isForgot ? 'Recuperar Acesso' : isNew ? 'Começar Jornada' : 'Entrar na Conta'}
+            </span>
+            {!loading && (
+              <svg className="w-5 h-5 relative z-10 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           </button>
         </form>
 
-        <div className="mt-10 pt-8 border-t border-gray-100 text-center space-y-4">
+        <div className="mt-12 pt-8 border-t border-white/5 text-center flex flex-col items-center gap-5">
           <button
             onClick={() => { setIsForgot(false); setIsNew(!isNew); setError(null); setMessage(null); }}
-            className="block w-full text-sm font-bold text-blue-600 hover:underline transition underline-offset-4"
+            className="text-sm font-bold text-slate-300 hover:text-white transition-colors flex items-center gap-2 group"
           >
-            {isNew ? 'Já possui uma conta? Acesse aqui' : 'Não tem acesso? Crie sua conta'}
+            {isNew ? 'Já tem uma conta?' : 'Novo por aqui?'}
+            <span className="text-blue-400 group-hover:underline underline-offset-4 decoration-2">
+              {isNew ? 'Acesse o Painel' : 'Crie sua conta agora'}
+            </span>
           </button>
 
           {isForgot && (
             <button
               onClick={() => { setIsForgot(false); setError(null); setMessage(null); }}
-              className="text-xs font-bold text-gray-400 hover:text-gray-600 transition uppercase tracking-widest"
+              className="text-[10px] font-black text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-[0.2em]"
             >
-              Voltar ao login
+              Voltar ao Início
             </button>
           )}
         </div>
       </div>
 
-      <p className="mt-8 text-xs text-gray-400 font-medium">
-        &copy; 2025 Finanças em Casal - Gestão Financeira Segura
-      </p>
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center">
+        <p className="text-[10px] text-slate-600 font-black uppercase tracking-[0.4em]">Finança em Casal &copy; 2026</p>
+      </div>
     </div>
   );
 };
