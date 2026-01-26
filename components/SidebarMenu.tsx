@@ -19,9 +19,13 @@ interface Props {
   ) => void;
   userEmail?: string;
   onSignOut?: () => void;
+  onNavigateToHelp?: () => void;
+  onShowHouseholdLink?: () => void;
+  householdId?: string | null;
+  userId?: string;
 }
 
-const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, coupleInfo, onUpdateSettings, userEmail, onSignOut }) => {
+const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, coupleInfo, onUpdateSettings, userEmail, onSignOut, onNavigateToHelp, onShowHouseholdLink, householdId, userId }) => {
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
   const [s1, setS1] = useState(coupleInfo.salary1 ? formatAsBRL((coupleInfo.salary1 * 100).toString()) : '');
@@ -146,6 +150,47 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
             Salvar Configurações
           </button>
 
+          {/* Seção Conectar Parceiro */}
+          <div className="space-y-4 pt-4 border-t border-gray-50">
+            <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Conectar Parceiro</h3>
+            <div className="bg-blue-50 p-6 rounded-[2rem] border border-blue-100 space-y-4">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Seu Código de Convite</p>
+                <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-blue-200">
+                  <code className="text-xs font-mono font-bold text-gray-600 truncate mr-2">{userId}</code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(userId || '');
+                      alert('Código copiado!');
+                    }}
+                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition active:scale-90"
+                    title="Copiar código"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (onShowHouseholdLink) {
+                    onShowHouseholdLink();
+                    onClose();
+                  }
+                }}
+                className="w-full py-3 px-4 bg-white border-2 border-blue-200 text-blue-600 font-black text-[10px] uppercase rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all active:scale-95"
+              >
+                Inserir código do parceiro
+              </button>
+
+              <p className="text-[9px] text-blue-400 font-bold leading-relaxed text-center italic">
+                {householdId !== userId && householdId
+                  ? "Você já está em um painel compartilhado! ✅"
+                  : "Envie seu código para o parceiro ou insira o dele para sincronizar os dados."}
+              </p>
+            </div>
+          </div>
+
           <div className="space-y-4 pt-4 border-t border-gray-50">
             <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs">Categorias de Gasto</h3>
             <div className="space-y-3">
@@ -198,6 +243,19 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
           </div>
 
           <hr className="border-gray-100" />
+
+          {onNavigateToHelp && (
+            <button
+              onClick={() => {
+                onNavigateToHelp();
+                onClose();
+              }}
+              className="w-full flex items-center space-x-3 text-blue-600 font-bold p-3 rounded-xl hover:bg-blue-50 transition"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>Ajuda & Suporte</span>
+            </button>
+          )}
 
           {onSignOut && (
             <button onClick={onSignOut} className="w-full flex items-center space-x-3 text-gray-600 font-bold p-3 rounded-xl hover:bg-gray-50 transition">

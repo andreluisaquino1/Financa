@@ -7,6 +7,8 @@ import ExpenseTabs from './components/ExpenseTabs';
 import PersonalWallet from './components/PersonalWallet';
 import SavingsGoals from './components/SavingsGoals';
 import Auth from './components/Auth';
+import HelpSupport from './components/HelpSupport';
+import HouseholdLink from './components/HouseholdLink';
 import { AuthProvider, useAuth } from './AuthContext';
 import { supabase } from './supabaseClient';
 import { getMonthYearKey } from './utils';
@@ -26,9 +28,11 @@ const AppContent: React.FC = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals'>('summary');
+  const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'help'>('summary');
   const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
   const [dataLoading, setDataLoading] = useState(true);
+  const [householdId, setHouseholdId] = useState<string | null>(null);
+  const [showHouseholdLink, setShowHouseholdLink] = useState(false);
 
   // Carregar dados do Supabase quando usuário está logado
   useEffect(() => {
@@ -40,30 +44,50 @@ const AppContent: React.FC = () => {
     const loadData = async () => {
       setDataLoading(true);
 
-      // Carregar perfil do usuário
-      const { data: profile } = await supabase
+      // 1. Carregar perfil do usuário e household_id
+      let { data: profile, error: profileError } = await supabase
         .from('user_profiles')
-        .select('couple_info')
+        .select('*')
         .eq('id', user.id)
         .single();
 
-      if (profile?.couple_info) {
-        // Garantir retrocompatibilidade ou limpeza de dados antigos
-        const info = profile.couple_info as any;
-        setCoupleInfo({
-          person1Name: info.person1Name || 'André',
-          person2Name: info.person2Name || 'Luciana',
-          salary1: Number(info.salary1) || 0,
-          salary2: Number(info.salary2) || 0,
-          categories: info.categories || ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']
-        });
+      // Se não existir perfil, criar um inicial
+      if (profileError && profileError.code === 'PGRST116') {
+        const initialProfile = {
+          id: user.id,
+          household_id: user.id,
+          couple_info: coupleInfo,
+          updated_at: new Date().toISOString()
+        };
+        await supabase.from('user_profiles').insert(initialProfile);
+        profile = initialProfile;
       }
 
-      // Carregar gastos
+      if (profile) {
+        setHouseholdId(profile.household_id || profile.id);
+
+        // Se o household_id ainda for nulo ou igual ao user_id mas o usuário nunca viu o link de convite, 
+        // poderíamos mostrar a opção (vamos habilitar via menu Ajustes para não ser intrusivo agora)
+
+        if (profile.couple_info) {
+          const info = profile.couple_info as any;
+          setCoupleInfo({
+            person1Name: info.person1Name || 'André',
+            person2Name: info.person2Name || 'Luciana',
+            salary1: Number(info.salary1) || 0,
+            salary2: Number(info.salary2) || 0,
+            categories: info.categories || ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']
+          });
+        }
+      }
+
+      const activeHouseholdId = profile?.household_id || user.id;
+
+      // 2. Carregar gastos filtrando por household_id
       const { data: expensesData } = await supabase
         .from('expenses')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('household_id', activeHouseholdId)
         .order('created_at', { ascending: false });
 
       if (expensesData) {
@@ -78,15 +102,16 @@ const AppContent: React.FC = () => {
           paidBy: e.paid_by as 'person1' | 'person2',
           createdAt: e.created_at,
           metadata: e.metadata,
+          household_id: e.household_id,
           splitMethod: e.split_method as 'proportional' | 'equal'
         })));
       }
 
-      // Carregar metas
+      // 3. Carregar metas filtrando por household_id
       const { data: goalsData } = await supabase
         .from('savings_goals')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('household_id', activeHouseholdId)
         .order('created_at', { ascending: false });
 
       if (goalsData) {
@@ -99,14 +124,14 @@ const AppContent: React.FC = () => {
     loadData();
   }, [user]);
 
-  // Salvar coupleInfo no Supabase
+  // Salvar coupleInfo no Supabase usando household_id
   const saveCoupleInfo = async (newInfo: CoupleInfo) => {
     setCoupleInfo(newInfo);
-    if (user) {
+    if (user && householdId) {
       await supabase
         .from('user_profiles')
         .update({ couple_info: newInfo, updated_at: new Date().toISOString() })
-        .eq('id', user.id);
+        .eq('id', householdId); // Atualiza o perfil "pai" do casal
     }
   };
 
@@ -153,6 +178,7 @@ const AppContent: React.FC = () => {
         .from('expenses')
         .insert({
           user_id: user.id,
+          household_id: householdId || user.id,
           date: exp.date,
           type: exp.type,
           category: exp.category,
@@ -262,6 +288,7 @@ const AppContent: React.FC = () => {
         .from('savings_goals')
         .insert({
           user_id: user.id,
+          household_id: householdId || user.id,
           title,
           target_value: target,
           monthly_contribution: monthly,
@@ -329,7 +356,7 @@ const AppContent: React.FC = () => {
       const { error: expError } = await supabase
         .from('expenses')
         .delete()
-        .eq('user_id', user.id);
+        .eq('household_id', householdId || user.id);
 
       if (expError) throw expError;
 
@@ -348,7 +375,7 @@ const AppContent: React.FC = () => {
           couple_info: defaultInfo,
           updated_at: new Date().toISOString()
         })
-        .eq('id', user.id);
+        .eq('id', householdId || user.id);
 
       if (profError) throw profError;
 
@@ -395,6 +422,19 @@ const AppContent: React.FC = () => {
     return <Auth />;
   }
 
+  if (showHouseholdLink) {
+    return (
+      <HouseholdLink
+        onLinked={(id) => {
+          setHouseholdId(id);
+          setShowHouseholdLink(false);
+          window.location.reload();
+        }}
+        onSkip={() => setShowHouseholdLink(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans text-gray-900 selection:bg-blue-100 pb-20 lg:pb-0">
       <header className="bg-white border-b sticky top-0 z-30 shadow-sm backdrop-blur-md">
@@ -438,6 +478,7 @@ const AppContent: React.FC = () => {
               <NavItem active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} label={`Carteira ${coupleInfo.person1Name.split(' ')[0]}`} />
               <NavItem active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
               <NavItem active={currentTab === 'goals'} onClick={() => setCurrentTab('goals')} label="Metas" />
+              <NavItem active={currentTab === 'help'} onClick={() => setCurrentTab('help')} label="Ajuda" />
             </div>
           </nav>
         </div>
@@ -453,6 +494,9 @@ const AppContent: React.FC = () => {
               onUpdateSalary1={handleUpdateSalary1}
               onUpdateSalary2={handleUpdateSalary2}
             />
+          )}
+          {currentTab === 'help' && (
+            <HelpSupport />
           )}
           {currentTab === 'goals' && (
             <SavingsGoals
@@ -509,6 +553,7 @@ const AppContent: React.FC = () => {
           <MobileTab active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={`Cart. ${coupleInfo.person1Name.slice(0, 3)}`} />
           <MobileTab active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} icon="M20 7a4 4 0 11-8 0 4 4 0 018 0zM16 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={`Cart. ${coupleInfo.person2Name.slice(0, 3)}`} />
           <MobileTab active={currentTab === 'goals'} onClick={() => setCurrentTab('goals')} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" label="Metas" />
+          <MobileTab active={currentTab === 'help'} onClick={() => setCurrentTab('help')} icon="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Ajuda" />
         </div>
       </nav>
 
@@ -520,6 +565,10 @@ const AppContent: React.FC = () => {
         onUpdateSettings={handleUpdateSettings}
         userEmail={user.email}
         onSignOut={handleSignOut}
+        onNavigateToHelp={() => setCurrentTab('help')}
+        onShowHouseholdLink={() => setShowHouseholdLink(true)}
+        householdId={householdId}
+        userId={user.id}
       />
     </div>
   );

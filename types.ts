@@ -21,6 +21,7 @@ export interface CoupleInfo {
 export interface UserAccount {
   email: string;
   coupleInfo: CoupleInfo;
+  household_id?: string;
 }
 
 export interface Expense {
@@ -33,6 +34,7 @@ export interface Expense {
   installments: number;
   paidBy: 'person1' | 'person2';
   createdAt: string;
+  household_id?: string;
   splitMethod?: 'proportional' | 'equal';
   metadata?: {
     overrides?: Record<string, number>;
