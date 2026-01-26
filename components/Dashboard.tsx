@@ -9,6 +9,7 @@ interface Props {
   monthKey: string;
   onUpdateSalary1: (val: number) => void;
   onUpdateSalary2: (val: number) => void;
+  summary: MonthlySummary;
 }
 
 const Dashboard: React.FC<Props> = ({
@@ -16,9 +17,10 @@ const Dashboard: React.FC<Props> = ({
   expenses,
   monthKey,
   onUpdateSalary1,
-  onUpdateSalary2
+  onUpdateSalary2,
+  summary
 }) => {
-  const summary = calculateSummary(expenses, coupleInfo, monthKey);
+  // O resumo agora vem via props (otimizado com useMemo no App.tsx)
   const totalSalary = coupleInfo.salary1 + coupleInfo.salary2;
   const p1Ratio = totalSalary > 0 ? (coupleInfo.salary1 / totalSalary) * 100 : 50;
   const p2Ratio = totalSalary > 0 ? (coupleInfo.salary2 / totalSalary) * 100 : 50;
