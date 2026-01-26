@@ -5,13 +5,14 @@ import { formatCurrency } from '../utils';
 import SalaryCard from './dashboard/SalaryCard';
 import BalanceCard from './dashboard/BalanceCard';
 import StatSmall from './dashboard/StatSmall';
+import ClosingBreakdown from './dashboard/ClosingBreakdown';
 
 interface Props {
   coupleInfo: CoupleInfo;
   expenses: Expense[];
   monthKey: string;
-  onUpdateSalary1: (val: number) => void;
-  onUpdateSalary2: (val: number) => void;
+  onUpdateSalary1: (val: number, isGlobal?: boolean) => void;
+  onUpdateSalary2: (val: number, isGlobal?: boolean) => void;
   summary: MonthlySummary;
 }
 
@@ -21,6 +22,8 @@ const Dashboard: React.FC<Props> = ({
   onUpdateSalary2,
   summary
 }) => {
+  const [showBreakdown, setShowBreakdown] = React.useState(false);
+
   const totalSalary = coupleInfo.salary1 + coupleInfo.salary2;
   const p1Ratio = totalSalary > 0 ? (coupleInfo.salary1 / totalSalary) * 100 : 50;
   const p2Ratio = totalSalary > 0 ? (coupleInfo.salary2 / totalSalary) * 100 : 50;
@@ -36,13 +39,13 @@ const Dashboard: React.FC<Props> = ({
         <SalaryCard
           name={coupleInfo.person1Name}
           value={coupleInfo.salary1}
-          onChange={onUpdateSalary1}
+          onChange={(v, global) => onUpdateSalary1(v, global)}
           color="blue"
         />
         <SalaryCard
           name={coupleInfo.person2Name}
           value={coupleInfo.salary2}
-          onChange={onUpdateSalary2}
+          onChange={(v, global) => onUpdateSalary2(v, global)}
           color="pink"
         />
       </div>
@@ -50,8 +53,8 @@ const Dashboard: React.FC<Props> = ({
       {/* Barra de Proporção Integrada */}
       <div className="bg-white/60 backdrop-blur-xl px-8 py-5 rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-center gap-6">
         <div className="shrink-0 flex items-center gap-3">
-          <div className="w-1.5 h-1.5 bg-slate-300 rounded-full"></div>
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Divisão de Custos</h3>
+          <div className="w-1.5 h-1.5 bg-slate-100 rounded-full"></div>
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Regra de Divisão</h3>
         </div>
         <div className="flex-1 w-full h-3 bg-slate-100 rounded-full overflow-hidden flex p-0.5 border border-slate-200/50 shadow-inner">
           <div style={{ width: `${p1Ratio}%` }} className="bg-blue-600 h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(37,99,235,0.4)]"></div>
@@ -70,36 +73,53 @@ const Dashboard: React.FC<Props> = ({
       </div>
 
       {/* Destaque do Acerto - Premium Glass */}
-      <div className="bg-slate-900 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full -mr-32 -mt-32 blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500 rounded-full -ml-32 -mb-32 blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity"></div>
+      <div className="space-y-4">
+        <div className="bg-slate-900 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500 rounded-full -mr-32 -mt-32 blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-pink-500 rounded-full -ml-32 -mb-32 blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity"></div>
 
-        <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
-          <div className="flex items-center gap-6">
-            <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-2xl shadow-2xl">✨</div>
-            <div>
-              <h3 className="font-black text-white/40 uppercase tracking-[0.3em] text-[10px] mb-1">Acerto Financeiro</h3>
-              <p className="text-lg font-bold text-white tracking-tight">Fechamento do Mês</p>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+            <div className="flex items-center gap-6">
+              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-2xl shadow-2xl">✨</div>
+              <div>
+                <h3 className="font-black text-white/40 uppercase tracking-[0.3em] text-[10px] mb-1">Acerto Financeiro</h3>
+                <p className="text-lg font-bold text-white tracking-tight">Fechamento do Mês</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+              {summary.whoTransfers !== 'none' ? (
+                <>
+                  <div className={`px-5 py-2.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest text-center border ${summary.whoTransfers === 'person1' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-pink-500/10 border-pink-500/20 text-pink-400'}`}>
+                    {summary.whoTransfers === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name} deve transferir
+                  </div>
+                  <div className="bg-white px-8 py-5 rounded-[1.5rem] shadow-[0_0_50px_rgba(255,255,255,0.1)] transform hover:scale-105 transition-transform duration-500">
+                    <p className="text-slate-950 text-3xl font-black tracking-tighter text-center">{formatCurrency(summary.transferAmount)}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-6 py-4 rounded-2xl text-emerald-400 font-black text-sm uppercase tracking-widest">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                  Contas Equilibradas
+                </div>
+              )}
+
+              <button
+                onClick={() => setShowBreakdown(!showBreakdown)}
+                className="p-3 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+                title="Ver detalhes do cálculo"
+              >
+                <svg className={`w-6 h-6 transition-transform ${showBreakdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
             </div>
           </div>
-
-          {summary.whoTransfers !== 'none' ? (
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-              <div className={`px-5 py-2.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest text-center border ${summary.whoTransfers === 'person1' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-pink-500/10 border-pink-500/20 text-pink-400'}`}>
-                {summary.whoTransfers === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name} deve transferir
-              </div>
-              <div className="bg-white px-8 py-5 rounded-[1.5rem] shadow-[0_0_50px_rgba(255,255,255,0.1)] transform hover:scale-105 transition-transform duration-500">
-                <p className="text-slate-950 text-3xl font-black tracking-tighter text-center">{formatCurrency(summary.transferAmount)}</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-6 py-4 rounded-2xl text-emerald-400 font-black text-sm uppercase tracking-widest">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-              Contas Equilibradas
-            </div>
-          )}
         </div>
+
+        {showBreakdown && (
+          <ClosingBreakdown coupleInfo={coupleInfo} summary={summary} />
+        )}
       </div>
+
 
       {/* Grid de Métricas Secundárias */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

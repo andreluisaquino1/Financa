@@ -145,17 +145,21 @@ export const useAppData = () => {
         return calculateSummary(expenses, coupleInfo, selectedMonth);
     }, [expenses, coupleInfo, selectedMonth]);
 
-    const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo) => {
+    const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo, updateGlobal = false) => {
         setCoupleInfo(newInfo);
         if (user && householdId) {
-            await supabase
-                .from('user_profiles')
-                .update({
-                    couple_info: newInfo,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', householdId);
+            // Se for pra atualizar global, salva no perfil
+            if (updateGlobal) {
+                await supabase
+                    .from('user_profiles')
+                    .update({
+                        couple_info: newInfo,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', householdId);
+            }
 
+            // Salva sempre no config mensal
             await supabase
                 .from('monthly_configs')
                 .upsert({

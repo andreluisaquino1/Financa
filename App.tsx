@@ -62,8 +62,8 @@ const AppContent: React.FC = () => {
     });
   };
 
-  const handleUpdateSalary1 = (val: number) => saveCoupleInfo({ ...coupleInfo, salary1: val });
-  const handleUpdateSalary2 = (val: number) => saveCoupleInfo({ ...coupleInfo, salary2: val });
+  const handleUpdateSalary1 = (val: number, isGlobal?: boolean) => saveCoupleInfo({ ...coupleInfo, salary1: val }, isGlobal);
+  const handleUpdateSalary2 = (val: number, isGlobal?: boolean) => saveCoupleInfo({ ...coupleInfo, salary2: val }, isGlobal);
 
   const navigateMonth = (direction: number) => {
     const [year, month] = selectedMonth.split('-').map(Number);
@@ -256,8 +256,8 @@ const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }>
   <button
     onClick={onClick}
     className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${active
-        ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200/50'
-        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
+      ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200/50'
+      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
       }`}
   >
     {label}
