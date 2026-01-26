@@ -25,11 +25,11 @@ const HouseholdLink: React.FC<Props> = ({ onLinked, onSkip }) => {
             // O código de convite é simplesmente o ID do parceiro
             const targetId = inviteCode.trim();
 
-            // 1. Verificar se esse perfil existe
+            // 1. Verificar se esse perfil existe usando o código de convite
             const { data: profile, error: profileError } = await supabase
                 .from('user_profiles')
                 .select('household_id, id')
-                .eq('id', targetId)
+                .eq('invite_code', targetId)
                 .single();
 
             if (profileError || !profile) {

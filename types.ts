@@ -22,6 +22,7 @@ export interface UserAccount {
   email: string;
   coupleInfo: CoupleInfo;
   household_id?: string;
+  invite_code?: string;
 }
 
 export interface Expense {

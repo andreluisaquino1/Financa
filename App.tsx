@@ -32,6 +32,7 @@ const AppContent: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
   const [dataLoading, setDataLoading] = useState(true);
   const [householdId, setHouseholdId] = useState<string | null>(null);
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
 
   // Carregar dados do Supabase quando usuário está logado
@@ -65,9 +66,14 @@ const AppContent: React.FC = () => {
 
       if (profile) {
         setHouseholdId(profile.household_id || profile.id);
+        setInviteCode(profile.invite_code);
 
-        // Se o household_id ainda for nulo ou igual ao user_id mas o usuário nunca viu o link de convite, 
-        // poderíamos mostrar a opção (vamos habilitar via menu Ajustes para não ser intrusivo agora)
+        // Se o usuário não tem código de convite (usuário antigo ou erro), gerar um
+        if (!profile.invite_code) {
+          const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+          await supabase.from('user_profiles').update({ invite_code: newCode }).eq('id', user.id);
+          setInviteCode(newCode);
+        }
 
         if (profile.couple_info) {
           const info = profile.couple_info as any;
@@ -571,6 +577,7 @@ const AppContent: React.FC = () => {
         onShowHouseholdLink={() => setShowHouseholdLink(true)}
         householdId={householdId}
         userId={user.id}
+        inviteCode={inviteCode}
       />
     </div>
   );

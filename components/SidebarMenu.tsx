@@ -23,9 +23,10 @@ interface Props {
   onShowHouseholdLink?: () => void;
   householdId?: string | null;
   userId?: string;
+  inviteCode?: string | null;
 }
 
-const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, coupleInfo, onUpdateSettings, userEmail, onSignOut, onNavigateToHelp, onShowHouseholdLink, householdId, userId }) => {
+const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, coupleInfo, onUpdateSettings, userEmail, onSignOut, onNavigateToHelp, onShowHouseholdLink, householdId, userId, inviteCode }) => {
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
   const [s1, setS1] = useState(coupleInfo.salary1 ? formatAsBRL((coupleInfo.salary1 * 100).toString()) : '');
@@ -157,10 +158,10 @@ const SidebarMenu: React.FC<Props> = ({ isOpen, onClose, onDeleteAccount, couple
               <div className="space-y-1">
                 <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Seu Código de Convite</p>
                 <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-blue-200">
-                  <code className="text-xs font-mono font-bold text-gray-600 truncate mr-2">{userId}</code>
+                  <code className="text-xs font-mono font-bold text-gray-600 truncate mr-2">{inviteCode || userId}</code>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(userId || '');
+                      navigator.clipboard.writeText(inviteCode || userId || '');
                       alert('Código copiado!');
                     }}
                     className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition active:scale-90"
