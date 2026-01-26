@@ -1,287 +1,269 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apresentação - Finanças em Casal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #f8fafc;
-        }
-
-        .slide {
-            min-height: 100vh;
-            padding: 4rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            page-break-after: always;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
-        h1,
-        h2,
-        h3 {
-            letter-spacing: -0.05em;
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #2563eb, #db2777);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        @media print {
-            .no-print {
-                display: none;
-            }
-
-            .slide {
-                min-height: 100vh;
-                height: 100vh;
-                overflow: hidden;
-                padding: 2rem;
-            }
-        }
-    </style>
-</head>
-
-<body class="text-slate-900">
-
-    <!-- CAPA -->
-    <section class="slide bg-white relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-1/2 h-full opacity-10">
-            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <path fill="#2563eb"
-                    d="M44.7,-76.4C58.2,-69.3,69.7,-57.4,77.3,-43.8C84.9,-30.2,88.6,-15.1,87.4,-0.7C86.2,13.7,80,27.5,72,40.4C64,53.3,54.1,65.3,41.4,72.4C28.7,79.5,13.3,81.7,-1.5,84.1C-16.2,86.6,-32.4,89.4,-46.1,83.3C-59.8,77.2,-71.1,62.2,-78.9,46.4C-86.7,30.6,-91.1,13.9,-89.2,-2.1C-87.3,-18.2,-79.1,-33.6,-68.8,-46.4C-58.5,-59.2,-46.1,-69.4,-32.8,-76.6C-19.5,-83.8,-5.3,-88,9.7,-84.3C24.7,-80.6,31.2,-83.5,44.7,-76.4Z"
-                    transform="translate(100 100)" />
-            </svg>
-        </div>
-
-        <div class="max-w-4xl relative z-10">
-            <div class="mb-8">
-                <img src="public/logo.png" alt="Finanças em Casal Icon" class="h-24 md:h-32 object-contain">
-            </div>
-            <div
-                class="inline-block px-4 py-2 bg-blue-50 text-blue-600 rounded-2xl text-xs font-black uppercase tracking-widest mb-8">
-                Gestão Inteligente & Colaborativa</div>
-            <h1 class="text-7xl font-black mb-6 leading-none">Finanças em <br><span class="gradient-text">Casal</span>
-            </h1>
-            <p class="text-xl text-slate-500 font-medium mb-12 max-w-xl leading-relaxed">
-                A plataforma definitiva para organizar gastos compartilhados,
-                equilibrar contas e planejar o futuro financeiro do casal com transparência e elegância.
-            </p>
-            <div class="flex items-center gap-6">
-                <div class="flex -space-x-4">
-                    <div
-                        class="w-12 h-12 rounded-full bg-blue-600 border-4 border-white shadow-xl flex items-center justify-center text-white font-black">
-                        A</div>
-                    <div
-                        class="w-12 h-12 rounded-full bg-pink-500 border-4 border-white shadow-xl flex items-center justify-center text-white font-black">
-                        L</div>
-                </div>
-                <div class="text-sm font-bold text-slate-400 uppercase tracking-widest">Simplificando a Vida a Dois
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- O PROBLEMA E A SOLUÇÃO -->
-    <section class="slide bg-slate-50">
-        <h2 class="text-5xl font-black mb-16 px-4 border-l-8 border-blue-600">Por que usar?</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div class="p-10 bg-white shadow-xl rounded-[3rem] border border-slate-100">
-                <h3 class="text-2xl font-black mb-6 text-slate-400">O Problema</h3>
-                <ul class="space-y-4 font-bold text-slate-600">
-                    <li class="flex gap-4 items-start italic"><span class="text-red-500">✕</span> Planilhas manuais
-                        complexas</li>
-                    <li class="flex gap-4 items-start italic"><span class="text-red-500">✕</span> Confusão sobre quem
-                        pagou o quê</li>
-                    <li class="flex gap-4 items-start italic"><span class="text-red-500">✕</span> Dificuldade em
-                        calcular divisões por renda</li>
-                    <li class="flex gap-4 items-start italic"><span class="text-red-500">✕</span> Falta de visão sobre
-                        "quanto sobra" individualmente</li>
-                </ul>
-            </div>
-            <div class="p-10 bg-blue-600 shadow-2xl rounded-[3rem] text-white">
-                <h3 class="text-2xl font-black mb-6 opacity-60">A Solução</h3>
-                <ul class="space-y-4 font-bold">
-                    <li class="flex gap-4 items-start"><span class="text-blue-300">✓</span> Acerto de contas automático
-                        em um clique</li>
-                    <li class="flex gap-4 items-start"><span class="text-blue-300">✓</span> Categorização inteligente de
-                        gastos</li>
-                    <li class="flex gap-4 items-start"><span class="text-blue-300">✓</span> Divisão proporcional ou
-                        manual configurável</li>
-                    <li class="flex gap-4 items-start"><span class="text-blue-300">✓</span> Carteira pessoal integrada e
-                        segura</li>
-                </ul>
-            </div>
-        </div>
-    </section>
-
-    <!-- FUNCIONALIDADE 1: DASHBOARD -->
-    <section class="slide bg-white">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div>
-                <span class="text-blue-600 font-black text-xs uppercase tracking-widest mb-4 block">Visualização
-                    360°</span>
-                <h2 class="text-5xl font-black mb-8 leading-tight text-slate-900">Painel de Resumo Inteligente</h2>
-                <p class="text-lg font-medium text-slate-500 mb-8 leading-relaxed">
-                    Um dashboard minimalista que mostra exatamente o que você precisa saber hoje.
-                    Sem ruído, apenas os dados vitais.
-                </p>
-                <div class="space-y-6">
-                    <div class="flex gap-4 items-center p-4 bg-slate-50 rounded-2xl">
-                        <div class="w-10 h-10 bg-white shadow-sm rounded-xl flex items-center justify-center">💰</div>
-                        <p class="text-sm font-bold text-slate-600">Cálculo de PIX imediato entre o casal</p>
-                    </div>
-                    <div class="flex gap-4 items-center p-4 bg-slate-50 rounded-2xl">
-                        <div class="w-10 h-10 bg-white shadow-sm rounded-xl flex items-center justify-center">📈</div>
-                        <p class="text-sm font-bold text-slate-600">Gráfico de gastos acumulados por categoria</p>
-                    </div>
-                </div>
-            </div>
-            <div class="relative">
-                <div
-                    class="w-full h-80 bg-gradient-to-br from-blue-500 to-blue-700 rounded-[3rem] shadow-2xl p-8 flex flex-col justify-center items-center text-white">
-                    <p class="text-xs uppercase tracking-widest opacity-60 mb-2">Quem faz o PIX</p>
-                    <p class="text-4xl font-black mb-4">André</p>
-                    <div class="px-6 py-4 bg-white/20 backdrop-blur rounded-2xl">
-                        <p class="text-2xl font-black">R$ 7.316,41</p>
-                    </div>
-                </div>
-                <!-- Mini cards decorativos -->
-                <div
-                    class="absolute -bottom-8 -right-8 w-48 p-4 bg-white shadow-xl rounded-2xl border border-slate-100 animate-bounce">
-                    <p class="text-[9px] font-black text-slate-400 uppercase">Gasto Pessoal</p>
-                    <p class="text-lg font-black text-pink-500">R$ 1.200,00</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FUNCIONALIDADE 2: FLEXIBILIDADE -->
-    <section class="slide bg-slate-900 text-white">
-        <h2 class="text-5xl font-black mb-16 text-center">Divisão sem Conflitos</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="p-8 bg-slate-800 rounded-[2.5rem] border border-slate-700">
-                <div class="text-4xl mb-6">⚖️</div>
-                <h4 class="text-xl font-black mb-4">Proporcional</h4>
-                <p class="text-slate-400 text-sm font-medium">As contas são divididas baseadas no salário de cada um.
-                    Quem ganha mais contribui mais.</p>
-            </div>
-            <div class="p-8 bg-slate-800 rounded-[2.5rem] border border-slate-700">
-                <div class="text-4xl mb-6">📊</div>
-                <h4 class="text-xl font-black mb-4">Manual %</h4>
-                <p class="text-slate-400 text-sm font-medium">Defina você mesmo a porcentagem de divisão (ex: 50/50 ou
-                    60/40) independentemente da renda.</p>
-            </div>
-            <div class="p-8 bg-slate-800 rounded-[2.5rem] border border-slate-700">
-                <div class="text-4xl mb-6">🔄</div>
-                <h4 class="text-xl font-black mb-4">Reembolsos</h4>
-                <p class="text-slate-400 text-sm font-medium">Gastos feitos por um que devem ser inteiramente pagos pelo
-                    outro? O sistema calcula em segundos.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- EXEMPLO DE USO -->
-    <section class="slide bg-white">
-        <h2 class="text-5xl font-black mb-16 px-4 border-l-8 border-pink-500">Como funciona na prática?</h2>
-        <div class="space-y-12">
-            <div class="flex gap-8 items-center group">
-                <div
-                    class="w-16 h-16 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center font-black text-2xl shrink-0 group-hover:bg-pink-500 group-hover:text-white transition-colors">
-                    1</div>
-                <div>
-                    <h4 class="text-xl font-black mb-2 uppercase tracking-tight">Cadastro Simples</h4>
-                    <p class="text-slate-500 font-medium italic">André e Luciana cadastram seus salários mensais nas
-                        configurações.</p>
-                </div>
-            </div>
-            <div class="flex gap-8 items-center group">
-                <div
-                    class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-black text-2xl shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    2</div>
-                <div>
-                    <h4 class="text-xl font-black mb-2 uppercase tracking-tight">Lançamento de Gastos</h4>
-                    <p class="text-slate-500 font-medium italic">Durante o mês, eles lançam contas como Aluguel (Fixo),
-                        Mercado (Proporcional) ou aquela Janta (50/50).</p>
-                </div>
-            </div>
-            <div class="flex gap-8 items-center group">
-                <div
-                    class="w-16 h-16 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center font-black text-2xl shrink-0 group-hover:bg-pink-500 group-hover:text-white transition-colors">
-                    3</div>
-                <div>
-                    <h4 class="text-xl font-black mb-2 uppercase tracking-tight">Acerto Semanal/Mensal</h4>
-                    <p class="text-slate-500 font-medium italic">O Dashboard mostra: "Luciana pagou mais contas do que
-                        sua parte. André deve transferir R$ 450,00".</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SEGURANÇA -->
-    <section class="slide bg-blue-50">
-        <div class="max-w-4xl mx-auto text-center">
-            <div
-                class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-xl shadow-blue-200">
-                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-            </div>
-            <h2 class="text-5xl font-black mb-8">Segurança de Dados</h2>
-            <p class="text-xl font-medium text-slate-500 mb-12">Privacidade é a nossa prioridade. Utilizamos tecnologias
-                de ponta para garantir que só você e seu parceiro vejam seus números.</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
-                <div class="glass p-8 rounded-3xl">
-                    <h4 class="font-black text-blue-600 mb-2">Row Level Security (RLS)</h4>
-                    <p class="text-sm text-slate-600 font-medium">Cada gasto é blindado no banco de dados. Nenhum outro
-                        usuário da plataforma consegue acessar seus históricos.</p>
-                </div>
-                <div class="glass p-8 rounded-3xl">
-                    <h4 class="font-black text-blue-600 mb-2">Autenticação Segura</h4>
-                    <p class="text-sm text-slate-600 font-medium">Acesso criptografado via Supabase Auth, com opção de
-                        recuperação de senha rápida e segura.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ENCERRAMENTO -->
-    <section class="slide bg-white flex items-center justify-center text-center">
-        <div class="max-w-2xl">
-            <h2 class="text-6xl font-black mb-8 gradient-text">Pronto para começar?</h2>
-            <p class="text-xl font-bold text-slate-400 mb-12 uppercase tracking-[0.2em]">Sua jornada para a paz
-                financeira começa aqui.</p>
-            <div
-                class="inline-block px-12 py-6 bg-slate-900 text-white rounded-full font-black text-2xl shadow-2xl active:scale-95 transition cursor-pointer">
-                financacasais.app
-            </div>
-        </div>
-    </section>
-
-    <div class="no-print fixed bottom-8 right-8 flex gap-4">
-        <button onclick="window.print()"
-            class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-2xl hover:bg-blue-700 transition">
-            Exportar como PDF
-        </button>
+<div class="presentation-wrapper">
+  
+  <!-- Slide 1: Capa -->
+  <section class="slide hero">
+    <div class="content">
+      <div class="logo-container">
+        <img src="/logo.png" alt="Finanças em Casal" class="logo">
+      </div>
+      <span class="badge">GESTÃO INTELIGENTE & COLABORATIVA</span>
+      <h1>Finanças em <span class="gradient-text">Casal</span></h1>
+      <p>A plataforma definitiva para organizar gastos compartilhados, equilibrar contas e planejar o futuro financeiro a dois.</p>
+      <div class="footer-minimal">
+        <span class="auth-initials">A | L</span>
+        <span class="tagline">SIMPLIFICANDO A VIDA A DOIS</span>
+      </div>
     </div>
+  </section>
 
-</body>
+  <!-- Slide 2: O Problema e a Solução -->
+  <section class="slide">
+    <div class="content grid-cols-2">
+      <div class="card problem">
+        <div class="card-icon">✕</div>
+        <h3>O Problema</h3>
+        <ul>
+          <li>Planilhas manuais complexas</li>
+          <li>Confusão sobre quem pagou o quê</li>
+          <li>Dificuldade em calcular divisões por renda</li>
+          <li>Falta de visão sobre o saldo individual</li>
+        </ul>
+      </div>
+      <div class="card solution">
+        <div class="card-icon">✓</div>
+        <h3>A Solução</h3>
+        <ul>
+          <li>Acerto de contas automático</li>
+          <li>Divisão Proporcional Inteligente</li>
+          <li>Carteiras Pessoais integradas</li>
+          <li>Sincronização em tempo real</li>
+        </ul>
+      </div>
+    </div>
+  </section>
 
-</html>
+  <!-- Slide 3: Funcionalidade - Conexão de Parceiro -->
+  <section class="slide">
+    <div class="content">
+      <span class="badge">NOVIDADE</span>
+      <h2>Conexão de <span class="gradient-text">Parceiro</span></h2>
+      <div class="feature-layout">
+        <div class="text">
+          <p>Cada parceiro com seu próprio login, compartilhando o mesmo painel financeiro.</p>
+          <div class="steps">
+            <div class="step">1. Gere um código curto de 6 dígitos</div>
+            <div class="step">2. O parceiro insere o código no app dele</div>
+            <div class="step">3. Dados sincronizados instantaneamente</div>
+          </div>
+        </div>
+        <div class="feature-visual">
+          <div class="invite-code-mock">X7Y2A3</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 4: Funcionalidade - Visão 360° -->
+  <section class="slide">
+    <div class="content">
+      <h2>Painel de Resumo <span class="gradient-text">Inteligente</span></h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="icon">💰</span>
+          <h4>Cálculo de PIX</h4>
+          <p>Saiba exatamente quem precisa transferir para quem no final do mês.</p>
+        </div>
+        <div class="stat-item">
+          <span class="icon">📊</span>
+          <h4>Gastos por Categoria</h4>
+          <p>Visualize para onde o dinheiro está indo com gráficos claros.</p>
+        </div>
+        <div class="stat-item">
+          <span class="icon">🎯</span>
+          <h4>Metas de Poupança</h4>
+          <p>Planeje sonhos juntos com projeções de juros compostos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 5: Central de Ajuda -->
+  <section class="slide">
+    <div class="content text-center">
+      <h2>Suporte <span class="gradient-text">Sempre Ativo</span></h2>
+      <p>Nova Central de Ajuda integrada para tirar dúvidas e reportar erros.</p>
+      <div class="help-visual">
+        <div class="faq-mock">FAQ Interativo</div>
+        <div class="email-mock">E-mail de Suporte Direto</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 6: Encerramento -->
+  <section class="slide final">
+    <div class="content">
+      <h3>Sua jornada para a paz financeira começa aqui.</h3>
+      <a href="https://financacasais.app" class="btn-primary">financacasais.app</a>
+    </div>
+  </section>
+
+</div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --bg: #f8fafc;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--slate-900);
+}
+
+.presentation-wrapper {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  height: 100vh;
+}
+
+.slide {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+}
+
+.content {
+  max-width: 1100px;
+  width: 100%;
+}
+
+h1 { font-size: 5rem; font-weight: 900; letter-spacing: -0.05em; margin-bottom: 1rem; }
+h2 { font-size: 3.5rem; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 2rem; }
+h3 { font-size: 2rem; font-weight: 900; margin-bottom: 1.5rem; }
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.badge {
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.slide.hero::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  right: -10%;
+  width: 600px;
+  height: 600px;
+  background: var(--primary);
+  opacity: 0.05;
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+.logo { height: 80px; margin-bottom: 2rem; }
+
+.grid-cols-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.card {
+  background: white;
+  padding: 3rem;
+  border-radius: 3rem;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+}
+
+.card.problem { border-left: 8px solid #ef4444; }
+.card.solution { border-left: 8px solid var(--primary); }
+
+.card-icon {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  font-weight: 900;
+}
+
+.problem .card-icon { background: #fef2f2; color: #ef4444; }
+.solution .card-icon { background: #eff6ff; color: var(--primary); }
+
+ul { list-style: none; padding: 0; }
+li { margin-bottom: 1rem; font-weight: 600; color: #64748b; position: relative; padding-left: 1.5rem; }
+li::before { content: '•'; position: absolute; left: 0; color: var(--primary); }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.stat-item {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 2.5rem;
+  text-align: center;
+}
+
+.stat-item .icon { font-size: 2.5rem; display: block; margin-bottom: 1rem; }
+
+.invite-code-mock {
+  background: var(--slate-900);
+  color: white;
+  font-family: monospace;
+  font-size: 3rem;
+  padding: 2rem 4rem;
+  border-radius: 2rem;
+  letter-spacing: 0.2em;
+}
+
+.btn-primary {
+  background: white;
+  color: var(--slate-900);
+  padding: 1.5rem 4rem;
+  border-radius: 2rem;
+  text-decoration: none;
+  font-weight: 900;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  font-size: 1.5rem;
+}
+
+.help-visual {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.faq-mock, .email-mock {
+  background: white;
+  padding: 2rem;
+  border-radius: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  min-width: 250px;
+}
+</style>
