@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Expense, CoupleInfo } from './types';
+import { Expense, CoupleInfo, ExpenseType } from './types';
 import Dashboard from './components/Dashboard';
 import SidebarMenu from './components/SidebarMenu';
 import ExpenseTabs from './components/ExpenseTabs';
@@ -9,6 +9,7 @@ import SavingsGoals from './components/SavingsGoals';
 import Auth from './components/Auth';
 import HelpSupport from './components/HelpSupport';
 import HouseholdLink from './components/HouseholdLink';
+import AddExpenseModal from './components/AddExpenseModal';
 import { AuthProvider } from './AuthContext';
 import { getMonthYearKey } from './utils';
 import { useAppData } from './hooks/useAppData';
@@ -39,14 +40,12 @@ const AppContent: React.FC = () => {
 
   // Aplicar Tema e Cores
   React.useEffect(() => {
-    // Tema
     if (coupleInfo.theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
 
-    // Cores
     if (coupleInfo.person1Color) {
       document.documentElement.style.setProperty('--p1-color', coupleInfo.person1Color);
     }
@@ -59,17 +58,22 @@ const AppContent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'help'>('summary');
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
 
+  // Global Modal State
+  const [isGlobalModalOpen, setIsGlobalModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<ExpenseType>(ExpenseType.COMMON);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+  const openAddExpense = (type: ExpenseType, exp: Expense | null = null) => {
+    setModalType(type);
+    setEditingExpense(exp);
+    setIsGlobalModalOpen(true);
+  };
+
   const handleUpdateSettings = (
-    n1: string,
-    n2: string,
-    s1: number,
-    s2: number,
-    cats?: string[],
-    customMode?: 'proportional' | 'fixed',
-    manualPerc?: number,
-    theme?: 'light' | 'dark',
-    p1Color?: string,
-    p2Color?: string
+    n1: string, n2: string, s1: number, s2: number,
+    cats?: string[], customMode?: 'proportional' | 'fixed',
+    manualPerc?: number, theme?: 'light' | 'dark',
+    p1Color?: string, p2Color?: string
   ) => {
     saveCoupleInfo({
       ...coupleInfo,
@@ -83,7 +87,7 @@ const AppContent: React.FC = () => {
       theme: theme || coupleInfo.theme,
       person1Color: p1Color || coupleInfo.person1Color,
       person2Color: p2Color || coupleInfo.person2Color
-    }, true); // Always global for metadata settings
+    }, true);
   };
 
   const handleUpdateSalary1 = (val: number, isGlobal?: boolean) => saveCoupleInfo({ ...coupleInfo, salary1: val }, isGlobal);
@@ -139,7 +143,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 selection:bg-p1/20 pb-20 lg:pb-0">
-      <header className="bg-white/80 dark:bg-slate-900/80 border-b dark:border-white/5 sticky top-0 z-30 shadow-sm backdrop-blur-xl">
+      <header className="bg-white/80 dark:bg-slate-900/80 border-b dark:border-white/5 sticky top-0 z-[100] shadow-sm backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between py-3 md:py-4 gap-4">
             <div className="flex items-center space-x-3 shrink-0">
@@ -215,8 +219,8 @@ const AppContent: React.FC = () => {
               coupleInfo={coupleInfo}
               expenses={expenses}
               monthKey={selectedMonth}
-              onAddExpense={addExpense}
-              onUpdateExpense={updateExpense}
+              onAddExpense={(exp) => openAddExpense(ExpenseType.PERSONAL_P1)}
+              onUpdateExpense={(id, exp) => openAddExpense(ExpenseType.PERSONAL_P1, { ...exp, id } as Expense)}
               onDeleteExpense={deleteExpense}
             />
           )}
@@ -226,8 +230,8 @@ const AppContent: React.FC = () => {
               coupleInfo={coupleInfo}
               expenses={expenses}
               monthKey={selectedMonth}
-              onAddExpense={addExpense}
-              onUpdateExpense={updateExpense}
+              onAddExpense={(exp) => openAddExpense(ExpenseType.PERSONAL_P2)}
+              onUpdateExpense={(id, exp) => openAddExpense(ExpenseType.PERSONAL_P2, { ...exp, id } as Expense)}
               onDeleteExpense={deleteExpense}
             />
           )}
@@ -237,8 +241,13 @@ const AppContent: React.FC = () => {
               expenses={expenses}
               monthKey={selectedMonth}
               coupleInfo={coupleInfo}
-              onAddExpense={addExpense}
-              onUpdateExpense={updateExpense}
+              onAddExpense={(exp) => openAddExpense({
+                'fixed': ExpenseType.FIXED,
+                'common': ExpenseType.COMMON,
+                'equal': ExpenseType.EQUAL,
+                'reimbursement': ExpenseType.REIMBURSEMENT
+              }[currentTab as 'fixed' | 'common' | 'equal' | 'reimbursement'])}
+              onUpdateExpense={(id, exp) => openAddExpense(exp.type, { ...exp, id } as Expense)}
               onDeleteExpense={deleteExpense}
             />
           )}
@@ -272,6 +281,21 @@ const AppContent: React.FC = () => {
         userId={user.id}
         inviteCode={inviteCode}
       />
+
+      {/* Global Modal - Outside of scaling/scrolling main content to ensure visibility */}
+      {isGlobalModalOpen && (
+        <AddExpenseModal
+          type={modalType}
+          coupleInfo={coupleInfo}
+          initialData={editingExpense}
+          onClose={() => { setIsGlobalModalOpen(false); setEditingExpense(null); }}
+          onAdd={(exp) => {
+            if (editingExpense) updateExpense(editingExpense.id, exp);
+            else addExpense(exp);
+            setIsGlobalModalOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 };

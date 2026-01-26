@@ -64,7 +64,6 @@ const SidebarMenu: React.FC<Props> = ({
 
   const handleUpdateCategories = (updatedCats: string[]) => {
     setCategories(updatedCats);
-    onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2), updatedCats, splitMode, manualPerc1, theme, p1Color, p2Color);
   };
 
   const addCategory = () => {
@@ -75,19 +74,9 @@ const SidebarMenu: React.FC<Props> = ({
     }
   };
 
-  const moveCategory = (index: number, direction: 'up' | 'down') => {
-    const newCats = [...categories];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex >= 0 && targetIndex < newCats.length) {
-      [newCats[index], newCats[targetIndex]] = [newCats[targetIndex], newCats[index]];
-      handleUpdateCategories(newCats);
-    }
-  };
-
   const removeCategory = (cat: string) => {
-    if (confirm(`Deseja remover a categoria "${cat}"?`)) {
-      const updated = categories.filter(c => c !== cat);
-      handleUpdateCategories(updated);
+    if (confirm(`Remover "${cat}"?`)) {
+      handleUpdateCategories(categories.filter(c => c !== cat));
     }
   };
 
@@ -100,135 +89,132 @@ const SidebarMenu: React.FC<Props> = ({
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-20"></div>
           <div className="relative z-10 text-white">
             <h2 className="text-2xl font-black tracking-tighter">Ajustes</h2>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Sua Conta & App</p>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Conta & Preferências</p>
             {userEmail && (
-              <div className="mt-4 flex items-center gap-2 bg-white/5 border border-white/10 p-2 rounded-xl">
-                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-[10px] font-black">{userEmail.slice(0, 2).toUpperCase()}</div>
-                <p className="text-[10px] font-bold opacity-60 truncate">{userEmail}</p>
+              <div className="mt-4 flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
+                <div className="w-8 h-8 rounded-lg bg-p1 flex items-center justify-center text-[10px] font-black">{userEmail.slice(0, 2).toUpperCase()}</div>
+                <p className="text-[9px] font-bold opacity-60 truncate">{userEmail}</p>
               </div>
             )}
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
-          {/* Sessão Pessoas */}
+          {/* 1. Perfil */}
           <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[10px] flex items-center gap-2">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
               Perfil & Renda
             </h3>
-            <div className="space-y-6">
-              <div className="space-y-4 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-slate-800 transition-all group">
-                <TextInput label={`Nome (${coupleInfo.person1Name})`} value={n1} onChange={setN1} />
-                <MoneyInput label="Renda Mensal" value={s1} onChange={setS1} />
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-3">
+                <TextInput label={`Pessoa 1`} value={n1} onChange={setN1} />
+                <MoneyInput label="Renda Base" value={s1} onChange={setS1} />
               </div>
-              <div className="space-y-4 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-slate-800 transition-all group">
-                <TextInput label={`Nome (${coupleInfo.person2Name})`} value={n2} onChange={setN2} />
-                <MoneyInput label="Renda Mensal" value={s2} onChange={setS2} />
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-3">
+                <TextInput label={`Pessoa 2`} value={n2} onChange={setN2} />
+                <MoneyInput label="Renda Base" value={s2} onChange={setS2} />
               </div>
             </div>
           </section>
 
-          {/* Sessão Modo de Divisão */}
+          {/* 2. Categorias - Moved Up & Optimized */}
           <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[10px] flex items-center gap-2">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Cálculo de Divisão
-            </h3>
-            <div className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-[2rem] border border-slate-100 dark:border-white/5 space-y-6">
-              <div className="flex gap-2 bg-white dark:bg-slate-900 p-1 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
-                <button
-                  onClick={() => setSplitMode('proportional')}
-                  className={`flex-1 py-1.5 px-3 rounded-xl text-[10px] font-black uppercase transition-all ${splitMode === 'proportional' ? 'bg-slate-900 text-white dark:bg-p1 shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
-                >Proporcional</button>
-                <button
-                  onClick={() => setSplitMode('fixed')}
-                  className={`flex-1 py-1.5 px-3 rounded-xl text-[10px] font-black uppercase transition-all ${splitMode === 'fixed' ? 'bg-slate-900 text-white dark:bg-p1 shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
-                >Fixo (%)</button>
-              </div>
-
-              {splitMode === 'fixed' && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="flex justify-between items-center px-1">
-                    <span className="text-[10px] font-black uppercase text-p1">{n1.split(' ')[0]} {manualPerc1}%</span>
-                    <span className="text-[10px] font-black uppercase text-p2">{n2.split(' ')[0]} {100 - manualPerc1}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={manualPerc1}
-                    onChange={(e) => setManualPerc1(Number(e.target.value))}
-                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-p1"
-                  />
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Sincronização */}
-          <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[10px] flex items-center gap-2">
-              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Sincronização
-            </h3>
-            <button
-              onClick={() => { if (onShowHouseholdLink) { onShowHouseholdLink(); onClose(); } }}
-              className="w-full p-4 bg-p1 text-white rounded-3xl shadow-lg shadow-p1/20 flex flex-col items-start gap-1 group"
-            >
-              <span className="text-[11px] font-black uppercase tracking-widest">Conectar Parceiro</span>
-              <span className="text-[9px] opacity-70 font-bold">Link: {inviteCode || userId?.slice(0, 8)}</span>
-            </button>
-          </section>
-
-          {/* Categorias */}
-          <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[10px] flex items-center gap-2">
-              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Categorias
+              Categorias de Gasto
             </h3>
             <div className="space-y-3">
               <div className="flex gap-2">
                 <input
                   type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)}
-                  placeholder="Nova..."
-                  className="flex-1 bg-slate-50 dark:bg-slate-800/50 border-none rounded-2xl px-4 py-2 text-sm font-bold outline-none dark:text-slate-100"
+                  placeholder="Ex: Pets, Farmácia..."
+                  className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-4 py-2.5 text-xs font-bold outline-none dark:text-slate-100"
                 />
-                <button onClick={addCategory} className="bg-slate-900 dark:bg-slate-800 text-white p-2 rounded-xl"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg></button>
+                <button onClick={addCategory} className="bg-slate-900 border border-transparent dark:border-white/10 text-white px-4 rounded-xl font-black text-[10px] uppercase">Add</button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {categories.map((cat) => (
-                  <div key={cat} className="group flex items-center gap-2 bg-white dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-100 dark:border-white/5">
-                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{cat}</span>
-                    <button onClick={() => removeCategory(cat)} className="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">×</button>
+                  <div key={cat} className="group flex items-center gap-2 bg-white dark:bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-white/5 shadow-sm transition-all hover:border-red-200 dark:hover:border-red-900/50">
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{cat}</span>
+                    <button onClick={() => removeCategory(cat)} className="text-slate-300 hover:text-red-500 font-bold transition-colors">×</button>
                   </div>
                 ))}
               </div>
             </div>
           </section>
 
-          {/* Visual Compacto */}
+          {/* 3. Divisão */}
           <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[10px] flex items-center gap-2">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Personalização
+              Modo de Divisão
             </h3>
-            <div className="bg-slate-100/50 dark:bg-slate-800/20 p-4 rounded-[2rem] flex items-center justify-between">
-              <div className="flex gap-1.5 bg-white dark:bg-slate-900 p-1 rounded-xl shadow-inner border border-slate-200/50 dark:border-white/5">
-                <button onClick={() => setTheme('light')} className={`p-2 rounded-lg transition-all ${theme === 'light' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-5">
+              <div className="flex gap-2 bg-white dark:bg-slate-900 p-1 rounded-xl shadow-sm border border-slate-100 dark:border-white/5">
+                <button
+                  onClick={() => setSplitMode('proportional')}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${splitMode === 'proportional' ? 'bg-slate-900 text-white dark:bg-p1' : 'text-slate-400'}`}
+                >Proporcional</button>
+                <button
+                  onClick={() => setSplitMode('fixed')}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${splitMode === 'fixed' ? 'bg-slate-900 text-white dark:bg-p1' : 'text-slate-400'}`}
+                >Fixo (%)</button>
+              </div>
+
+              {splitMode === 'fixed' && (
+                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 px-1">
+                  <div className="flex justify-between items-center text-[9px] font-black uppercase">
+                    <span className="text-p1">{n1.split(' ')[0]} {manualPerc1}%</span>
+                    <span className="text-p2">{n2.split(' ')[0]} {100 - manualPerc1}%</span>
+                  </div>
+                  <input
+                    type="range" min="0" max="100" value={manualPerc1}
+                    onChange={(e) => setManualPerc1(Number(e.target.value))}
+                    className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-p1"
+                  />
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* 4. Sincronização */}
+          <section className="space-y-4">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
+              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
+              Sincronização
+            </h3>
+            <button
+              onClick={() => { if (onShowHouseholdLink) { onShowHouseholdLink(); onClose(); } }}
+              className="w-full p-4 bg-p1 text-white rounded-2xl shadow-lg shadow-p1/10 flex flex-col items-start gap-1 hover:brightness-110 active:scale-[0.98] transition-all"
+            >
+              <span className="text-[10px] font-black uppercase tracking-widest">Conectar Parceiro</span>
+              <span className="text-[8px] opacity-70 font-bold">CÓDIGO: {inviteCode || userId?.slice(0, 8)}</span>
+            </button>
+          </section>
+
+          {/* 5. Personalização Visual */}
+          <section className="space-y-4">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
+              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
+              Aparência
+            </h3>
+            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-[1.5rem] flex items-center justify-between border border-slate-100 dark:border-white/5">
+              <div className="flex gap-1 bg-white dark:bg-slate-900 p-1 rounded-xl shadow-inner border border-slate-100 dark:border-white/5">
+                <button onClick={() => setTheme('light')} className={`p-1.5 rounded-lg transition-all ${theme === 'light' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </button>
-                <button onClick={() => setTheme('dark')} className={`p-2 rounded-lg transition-all ${theme === 'dark' ? 'bg-p1 text-white' : 'text-slate-400'}`}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <button onClick={() => setTheme('dark')} className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-p1 text-white' : 'text-slate-400'}`}>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 </button>
               </div>
               <div className="flex items-center gap-2">
                 <div className="relative group">
-                  <input type="color" value={p1Color} onChange={(e) => setP1Color(e.target.value)} className="w-7 h-7 rounded-lg overflow-hidden bg-transparent border-none cursor-pointer" />
+                  <input type="color" value={p1Color} onChange={(e) => setP1Color(e.target.value)} className="w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none cursor-pointer" />
                   <div className="absolute inset-0 rounded-lg pointer-events-none border-2 border-white dark:border-slate-800 shadow-sm" style={{ backgroundColor: p1Color }}></div>
                 </div>
                 <div className="relative group">
-                  <input type="color" value={p2Color} onChange={(e) => setP2Color(e.target.value)} className="w-7 h-7 rounded-lg overflow-hidden bg-transparent border-none cursor-pointer" />
+                  <input type="color" value={p2Color} onChange={(e) => setP2Color(e.target.value)} className="w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none cursor-pointer" />
                   <div className="absolute inset-0 rounded-lg pointer-events-none border-2 border-white dark:border-slate-800 shadow-sm" style={{ backgroundColor: p2Color }}></div>
                 </div>
               </div>
@@ -237,15 +223,15 @@ const SidebarMenu: React.FC<Props> = ({
 
           {/* Footer Actions */}
           <div className="space-y-1 pt-6 border-t border-slate-100 dark:border-white/5 pb-10">
-            <SidebarBtn icon="?" label="Ajuda" onClick={() => { onNavigateToHelp?.(); onClose(); }} />
-            <SidebarBtn icon="↩" label="Sair" onClick={onSignOut} />
-            <SidebarBtn icon="×" label="Apagar Dados" onClick={onDeleteAccount} variant="danger" />
+            <SidebarBtn icon="?" label="Central de Ajuda" onClick={() => { onNavigateToHelp?.(); onClose(); }} />
+            <SidebarBtn icon="↩" label="Sair da Conta" onClick={onSignOut} />
+            <SidebarBtn icon="×" label="Apagar Todos os Dados" onClick={onDeleteAccount} variant="danger" />
           </div>
         </div>
 
         <div className="p-8 border-t border-slate-50 dark:border-white/5 bg-white dark:bg-slate-900 shrink-0">
-          <button onClick={handleSave} className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:scale-[1.02] transition-all">
-            Salvar Tudo
+          <button onClick={handleSave} className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4.5 rounded-[1.25rem] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+            Salvar Alterações
           </button>
         </div>
       </div>
@@ -255,20 +241,20 @@ const SidebarMenu: React.FC<Props> = ({
 
 const SidebarBtn: React.FC<{ icon: string, label: string, onClick?: () => void, variant?: 'default' | 'danger' }> = ({ icon, label, onClick, variant = 'default' }) => (
   <button onClick={onClick} className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all group ${variant === 'danger' ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
-    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${variant === 'danger' ? 'bg-red-100 dark:bg-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{icon}</div>
-    <span className="text-[11px] font-black uppercase tracking-tight">{label}</span>
+    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${variant === 'danger' ? 'bg-red-100 dark:bg-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:text-p1'}`}>{icon}</div>
+    <span className="text-[10px] font-black uppercase tracking-tight">{label}</span>
   </button>
 );
 
 const MoneyInput: React.FC<{ label: string, value: string, onChange: (v: string) => void }> = ({ label, value, onChange }) => (
   <div className="space-y-1">
-    <label className="block text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] px-1">{label}</label>
+    <label className="block text-[8px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest px-1">{label}</label>
     <div className="relative group/input">
-      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs transition-colors group-focus-within/input:text-p1">R$</span>
+      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[10px] transition-colors group-focus-within/input:text-p1">R$</span>
       <input
         type="text" inputMode="decimal" value={value}
         onChange={e => onChange(formatAsBRL(e.target.value))}
-        className="w-full bg-slate-100/50 dark:bg-slate-900/50 border-none focus:bg-white dark:focus:bg-slate-950 rounded-2xl pl-10 pr-4 py-3 outline-none transition-all font-bold text-xs text-slate-800 dark:text-slate-200"
+        className="w-full bg-slate-100 dark:bg-slate-800/50 border-none focus:bg-white dark:focus:bg-slate-950 rounded-xl pl-8 pr-4 py-2.5 outline-none transition-all font-bold text-xs text-slate-800 dark:text-slate-200"
         placeholder="0,00"
       />
     </div>
@@ -277,10 +263,10 @@ const MoneyInput: React.FC<{ label: string, value: string, onChange: (v: string)
 
 const TextInput: React.FC<{ label: string, value: string, onChange: (v: string) => void }> = ({ label, value, onChange }) => (
   <div className="space-y-1">
-    <label className="block text-[9px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em] px-1">{label}</label>
+    <label className="block text-[8px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest px-1">{label}</label>
     <input
       type="text" value={value} onChange={e => onChange(e.target.value)}
-      className="w-full bg-slate-100/50 dark:bg-slate-900/50 border-none focus:bg-white dark:focus:bg-slate-950 rounded-2xl px-5 py-3 outline-none transition-all font-bold text-xs text-slate-800 dark:text-slate-200"
+      className="w-full bg-slate-100 dark:bg-slate-800/50 border-none focus:bg-white dark:focus:bg-slate-950 rounded-xl px-3.5 py-2.5 outline-none transition-all font-bold text-xs text-slate-800 dark:text-slate-200"
       placeholder="Nome"
     />
   </div>
