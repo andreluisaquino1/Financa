@@ -451,16 +451,18 @@ const AppContent: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-1 shadow-inner shrink-0">
+            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-2xl p-1 shadow-inner shrink-0 h-10">
               <button onClick={() => navigateMonth(-1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-gray-500 transition-all active:scale-90">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
               </button>
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent text-gray-800 font-black px-2 py-1 text-sm focus:outline-none cursor-pointer uppercase tracking-tight"
-              />
+              <div className="relative flex items-center px-1">
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="bg-transparent text-gray-800 font-black px-1 py-1 text-sm focus:outline-none cursor-pointer uppercase tracking-tight text-center w-[130px]"
+                />
+              </div>
               <button onClick={() => navigateMonth(1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-gray-500 transition-all active:scale-90">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
               </button>
