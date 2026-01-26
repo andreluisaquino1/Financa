@@ -47,7 +47,7 @@ const HelpSupport: React.FC = () => {
         // Simulação de envio
         const subject = encodeURIComponent('Relato de Erro - Finanças em Casal');
         const body = encodeURIComponent('Descreva o erro aqui...\n\n---\nEnviado via App Help Section');
-        window.location.href = `mailto:suporte@financaemcasal.vercel.app?subject=${subject}&body=${body}`;
+        window.location.href = `mailto:suportefinancaemcasal@gmail.com?subject=${subject}&body=${body}`;
 
         setTimeout(() => {
             setEmailStatus('success');
@@ -112,8 +112,8 @@ const HelpSupport: React.FC = () => {
                     <button
                         onClick={handleReportError}
                         className={`inline-flex items-center space-x-3 px-8 py-4 rounded-2xl font-black transition-all active:scale-95 ${emailStatus === 'success'
-                                ? 'bg-green-500 text-white'
-                                : 'bg-white text-slate-900 hover:bg-blue-50'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-white text-slate-900 hover:bg-blue-50'
                             }`}
                     >
                         {emailStatus === 'sending' ? (
