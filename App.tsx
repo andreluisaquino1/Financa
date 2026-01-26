@@ -124,20 +124,64 @@ const AppContent: React.FC = () => {
         setGoals(goalsData);
       }
 
+      // 4. Carregar configuração salarial do mês específico
+      const { data: monthConfig } = await supabase
+        .from('monthly_configs')
+        .select('*')
+        .eq('household_id', activeHouseholdId)
+        .eq('month_key', selectedMonth)
+        .single();
+
+      if (monthConfig) {
+        setCoupleInfo(prev => ({
+          ...prev,
+          salary1: Number(monthConfig.salary1),
+          salary2: Number(monthConfig.salary2)
+        }));
+      } else {
+        // Se não existir, tenta buscar do perfil geral como fallback inicial
+        if (profile?.couple_info) {
+          const info = profile.couple_info as any;
+          setCoupleInfo(prev => ({
+            ...prev,
+            salary1: Number(info.salary1) || 0,
+            salary2: Number(info.salary2) || 0
+          }));
+        }
+      }
+
       setDataLoading(false);
     };
 
     loadData();
-  }, [user]);
+  }, [user, selectedMonth]); // Adicionado selectedMonth como dependência
 
   // Salvar coupleInfo no Supabase usando household_id
   const saveCoupleInfo = async (newInfo: CoupleInfo) => {
     setCoupleInfo(newInfo);
     if (user && householdId) {
+      // 1. Atualiza perfil global (nomes e categorias)
       await supabase
         .from('user_profiles')
-        .update({ couple_info: newInfo, updated_at: new Date().toISOString() })
-        .eq('id', householdId); // Atualiza o perfil "pai" do casal
+        .update({
+          couple_info: {
+            ...newInfo,
+            // Não precisamos salvar salários "vivos" no JSON global se agora são mensais,
+            // mas mantemos por compatibilidade
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', householdId);
+
+      // 2. Salva o salário no mês específico
+      await supabase
+        .from('monthly_configs')
+        .upsert({
+          household_id: householdId,
+          month_key: selectedMonth,
+          salary1: newInfo.salary1,
+          salary2: newInfo.salary2
+        }, { onConflict: 'household_id, month_key' });
     }
   };
 
