@@ -68,7 +68,10 @@ export const useAppData = () => {
                         person2Name: info.person2Name || 'Luciana',
                         categories: info.categories || prev.categories,
                         customSplitMode: info.customSplitMode,
-                        manualPercentage1: info.manualPercentage1
+                        manualPercentage1: info.manualPercentage1,
+                        theme: info.theme || 'light',
+                        person1Color: info.person1Color || '#2563eb',
+                        person2Color: info.person2Color || '#ec4899'
                     }));
                 }
 

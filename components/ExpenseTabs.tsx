@@ -54,71 +54,71 @@ const ExpenseTabs: React.FC<Props> = ({
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+          <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
             {activeTab === 'fixed' ? 'Contas Fixas' :
               activeTab === 'common' ? 'Gastos Proporcionais' :
                 activeTab === 'equal' ? 'Divisão 50/50' : 'Reembolsos'}
           </h2>
-          <p className="text-slate-500 text-sm font-medium">
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
             {activeTab === 'fixed' ? 'Despesas que se repetem mensalmente' : 'Lançamentos para este mês'}
           </p>
         </div>
         <button
           onClick={() => { setEditingExpense(null); setIsModalOpen(true); }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-blue-100 flex items-center gap-2 transition-all active:scale-95"
+          className="bg-p1 hover:brightness-110 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-p1/10 flex items-center gap-2 transition-all active:scale-95"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
           <span className="hidden sm:inline">Adicionar</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-800/40 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Data</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center sm:text-left">Descrição</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:table-cell">Categoria</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hidden md:table-cell">Pago por</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Valor</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest"></th>
+              <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5">
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Data</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center sm:text-left">Descrição</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:table-cell">Categoria</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell">Pago por</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className="divide-y divide-slate-50 dark:divide-white/5">
               {filteredExpenses.map(exp => {
                 const value = (exp.type === ExpenseType.FIXED && exp.metadata?.overrides?.[monthKey])
                   ? exp.metadata.overrides[monthKey]
                   : exp.totalValue;
 
                 return (
-                  <tr key={exp.id} className="group hover:bg-slate-50/50 transition-colors">
+                  <tr key={exp.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-5 whitespace-nowrap">
-                      <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded-lg">
                         {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                       </span>
                     </td>
                     <td className="px-6 py-5">
-                      <p className="font-bold text-slate-800 text-sm">{exp.description}</p>
-                      <p className="sm:hidden text-[10px] font-bold text-slate-400 uppercase mt-0.5">{exp.category}</p>
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
+                      <p className="sm:hidden text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5">{exp.category}</p>
                     </td>
                     <td className="px-6 py-5 hidden sm:table-cell">
-                      <span className="text-xs font-bold text-slate-600 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-xl">{exp.category}</span>
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/5 px-3 py-1.5 rounded-xl">{exp.category}</span>
                     </td>
                     <td className="px-6 py-5 hidden md:table-cell">
-                      <span className={`text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl ${exp.paidBy === 'person1' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
+                      <span className={`text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
                         {exp.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right whitespace-nowrap">
-                      <span className="font-black text-slate-900 text-sm">{formatCurrency(value)}</span>
+                      <span className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(value)}</span>
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEdit(exp)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                        <button onClick={() => handleEdit(exp)} className="p-2 text-slate-400 hover:text-p1 hover:bg-p1/5 rounded-xl transition-all">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </button>
-                        <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                        <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </div>
@@ -131,8 +131,8 @@ const ExpenseTabs: React.FC<Props> = ({
                 <tr>
                   <td colSpan={6} className="px-6 py-20 text-center">
                     <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center text-2xl mb-4 grayscale opacity-50">💸</div>
-                      <p className="text-slate-400 font-bold">Nenhum gasto encontrado</p>
+                      <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center text-2xl mb-4 grayscale opacity-50">💸</div>
+                      <p className="text-slate-400 dark:text-slate-600 font-bold">Nenhum gasto encontrado</p>
                     </div>
                   </td>
                 </tr>

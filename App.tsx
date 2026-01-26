@@ -37,6 +37,24 @@ const AppContent: React.FC = () => {
     signOut
   } = useAppData();
 
+  // Aplicar Tema e Cores
+  React.useEffect(() => {
+    // Tema
+    if (coupleInfo.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    // Cores
+    if (coupleInfo.person1Color) {
+      document.documentElement.style.setProperty('--p1-color', coupleInfo.person1Color);
+    }
+    if (coupleInfo.person2Color) {
+      document.documentElement.style.setProperty('--p2-color', coupleInfo.person2Color);
+    }
+  }, [coupleInfo.theme, coupleInfo.person1Color, coupleInfo.person2Color]);
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'help'>('summary');
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
@@ -48,7 +66,10 @@ const AppContent: React.FC = () => {
     s2: number,
     cats?: string[],
     customMode?: 'proportional' | 'fixed',
-    manualPerc?: number
+    manualPerc?: number,
+    theme?: 'light' | 'dark',
+    p1Color?: string,
+    p2Color?: string
   ) => {
     saveCoupleInfo({
       ...coupleInfo,
@@ -58,8 +79,11 @@ const AppContent: React.FC = () => {
       salary2: s2,
       categories: cats || coupleInfo.categories,
       customSplitMode: customMode || coupleInfo.customSplitMode,
-      manualPercentage1: manualPerc !== undefined ? manualPerc : coupleInfo.manualPercentage1
-    });
+      manualPercentage1: manualPerc !== undefined ? manualPerc : coupleInfo.manualPercentage1,
+      theme: theme || coupleInfo.theme,
+      person1Color: p1Color || coupleInfo.person1Color,
+      person2Color: p2Color || coupleInfo.person2Color
+    }, true); // Always global for metadata settings
   };
 
   const handleUpdateSalary1 = (val: number, isGlobal?: boolean) => saveCoupleInfo({ ...coupleInfo, salary1: val }, isGlobal);
@@ -78,20 +102,20 @@ const AppContent: React.FC = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
         <div className="flex flex-col items-center">
           <div className="relative mb-8">
-            <div className="w-24 h-24 rounded-3xl bg-white shadow-xl flex items-center justify-center animate-pulse border border-slate-100">
+            <div className="w-24 h-24 rounded-3xl bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center animate-pulse border border-slate-100 dark:border-white/5">
               <img src="/logo.png" alt="Loading" className="h-14 w-14 object-contain opacity-50" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-500 rounded-full border-4 border-white animate-bounce shadow-lg"></div>
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-p1 rounded-full border-4 border-white dark:border-slate-800 animate-bounce shadow-lg"></div>
           </div>
           <div className="text-center space-y-2">
-            <h2 className="text-slate-800 font-black text-xl tracking-tight">Preparando tudo</h2>
+            <h2 className="text-slate-800 dark:text-slate-200 font-black text-xl tracking-tight">Preparando tudo</h2>
             <div className="flex items-center justify-center space-x-1.5">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div>
+              <div className="w-1.5 h-1.5 bg-p1 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+              <div className="w-1.5 h-1.5 bg-p1 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div className="w-1.5 h-1.5 bg-p1 rounded-full animate-bounce"></div>
             </div>
           </div>
         </div>
@@ -114,24 +138,24 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-blue-100 pb-20 lg:pb-0">
-      <header className="bg-white/80 border-b sticky top-0 z-30 shadow-sm backdrop-blur-xl">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 selection:bg-p1/20 pb-20 lg:pb-0">
+      <header className="bg-white/80 dark:bg-slate-900/80 border-b dark:border-white/5 sticky top-0 z-30 shadow-sm backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between py-3 md:py-4 gap-4">
             <div className="flex items-center space-x-3 shrink-0">
-              <button onClick={() => setIsMenuOpen(true)} className="p-2.5 hover:bg-slate-100 rounded-2xl transition-all active:scale-95 group">
-                <svg className="w-6 h-6 text-slate-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button onClick={() => setIsMenuOpen(true)} className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all active:scale-95 group">
+                <svg className="w-6 h-6 text-slate-600 dark:text-slate-400 group-hover:text-p1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               <div className="flex items-center space-x-2.5">
-                <img src="/logo.png" alt="Logo" className="h-9 w-auto object-contain" />
-                <h1 className="text-xl font-black tracking-tighter text-slate-800 hidden sm:block">Finanças em Casal</h1>
+                <img src="/logo.png" alt="Logo" className="h-9 w-auto object-contain dark:brightness-110" />
+                <h1 className="text-xl font-black tracking-tighter text-slate-800 dark:text-slate-100 hidden sm:block">Finanças em Casal</h1>
               </div>
             </div>
 
-            <div className="flex items-center bg-slate-100/80 border border-slate-200 rounded-2xl p-1 shadow-inner shrink-0 h-11">
-              <button onClick={() => navigateMonth(-1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-slate-500 transition-all active:scale-90">
+            <div className="flex items-center bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-white/5 rounded-2xl p-1 shadow-inner shrink-0 h-11">
+              <button onClick={() => navigateMonth(-1)} className="p-2 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-xl text-slate-500 dark:text-slate-400 transition-all active:scale-90">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div className="relative flex items-center px-2">
@@ -139,17 +163,17 @@ const AppContent: React.FC = () => {
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-slate-800 font-bold px-1 py-1 text-sm focus:outline-none cursor-pointer uppercase tracking-tight text-center w-[120px]"
+                  className="bg-transparent text-slate-800 dark:text-slate-100 font-bold px-1 py-1 text-sm focus:outline-none cursor-pointer uppercase tracking-tight text-center w-[120px]"
                 />
               </div>
-              <button onClick={() => navigateMonth(1)} className="p-2 hover:bg-white hover:shadow-sm rounded-xl text-slate-500 transition-all active:scale-90">
+              <button onClick={() => navigateMonth(1)} className="p-2 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-xl text-slate-500 dark:text-slate-400 transition-all active:scale-90">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
               </button>
             </div>
           </div>
 
           <nav className="hidden lg:flex items-center pb-3 overflow-x-auto no-scrollbar scroll-smooth">
-            <div className="flex items-center bg-slate-100/50 p-1 rounded-2xl min-w-max border border-slate-100">
+            <div className="flex items-center bg-slate-100/50 dark:bg-slate-800/40 p-1 rounded-2xl min-w-max border border-slate-100 dark:border-white/5">
               <NavItem active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} label="Resumo" />
               <NavItem active={currentTab === 'fixed'} onClick={() => setCurrentTab('fixed')} label="Fixos" />
               <NavItem active={currentTab === 'common'} onClick={() => setCurrentTab('common')} label="Proporcional" />
@@ -221,7 +245,7 @@ const AppContent: React.FC = () => {
         </div>
       </main>
 
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-2xl border-t border-slate-200/60 flex items-center p-2 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar scroll-smooth">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl border-t dark:border-white/5 flex items-center p-2 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar scroll-smooth">
         <div className="flex min-w-max space-x-1 px-2 mx-auto">
           <MobileTab active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" label="Início" />
           <MobileTab active={currentTab === 'fixed'} onClick={() => setCurrentTab('fixed')} icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" label="Fixos" />
@@ -256,8 +280,8 @@ const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }>
   <button
     onClick={onClick}
     className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${active
-      ? 'bg-white text-blue-600 shadow-sm ring-1 ring-slate-200/50'
-      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
+      ? 'bg-white dark:bg-p1 text-p1 dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10'
+      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800'
       }`}
   >
     {label}
@@ -265,8 +289,8 @@ const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }>
 );
 
 const MobileTab: React.FC<{ active: boolean, onClick: () => void, icon: string, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex flex-col items-center px-3.5 py-1 transition-all ${active ? 'text-blue-600' : 'text-slate-400'}`}>
-    <div className={`p-1.5 rounded-xl transition-colors ${active ? 'bg-blue-50' : ''}`}>
+  <button onClick={onClick} className={`flex flex-col items-center px-3.5 py-1 transition-all ${active ? 'text-p1' : 'text-slate-400 dark:text-slate-600'}`}>
+    <div className={`p-1.5 rounded-xl transition-colors ${active ? 'bg-p1/10' : ''}`}>
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={icon} /></svg>
     </div>
     <span className="text-[10px] mt-1 font-bold uppercase tracking-tighter whitespace-nowrap">{label}</span>

@@ -16,6 +16,9 @@ export interface CoupleInfo {
   categories?: string[];
   customSplitMode?: 'proportional' | 'fixed';
   manualPercentage1?: number; // percentage for person1 (0-100)
+  theme?: 'light' | 'dark';
+  person1Color?: string; // hex code
+  person2Color?: string; // hex code
 }
 
 export interface UserAccount {
