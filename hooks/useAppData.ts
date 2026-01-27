@@ -216,8 +216,14 @@ export const useAppData = () => {
     }, [user, householdId, selectedMonth]);
 
     const addExpense = useCallback(async (exp: Omit<Expense, 'id' | 'createdAt'>) => {
-        if (!user) return;
+        console.log('🚀 addExpense INICIADO', { exp, user: !!user, householdId });
+
+        if (!user) {
+            console.log('❌ addExpense: user é null, abortando');
+            return;
+        }
         const activeHouseholdId = householdId || user.id;
+        console.log('📍 activeHouseholdId:', activeHouseholdId);
 
         const tempId = 'temp-' + Date.now();
         const optimisticExp: Expense = {
@@ -228,9 +234,10 @@ export const useAppData = () => {
         };
 
         setExpenses(prev => [optimisticExp, ...prev]);
+        console.log('✅ Expense adicionado otimisticamente:', tempId);
 
         try {
-            // SIMPLIFICADO: NUNCA envia reminder_day para evitar erros de coluna
+            console.log('📤 Enviando para Supabase...');
             const { data, error } = await supabase
                 .from('expenses')
                 .insert({
@@ -249,6 +256,8 @@ export const useAppData = () => {
                 .select()
                 .single();
 
+            console.log('📥 Resposta do Supabase:', { data, error });
+
             if (error) throw error;
 
             if (data) {
@@ -265,13 +274,14 @@ export const useAppData = () => {
                     metadata: data.metadata,
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'equal',
-                    reminderDay: undefined // Desativado por agora
+                    reminderDay: undefined
                 };
 
                 setExpenses(prev => prev.map(e => e.id === tempId ? newExp : e));
+                console.log('✅ Expense salvo com sucesso! ID real:', data.id);
             }
         } catch (err: any) {
-            console.error('Error adding expense:', err);
+            console.error('❌ ERRO ao salvar expense:', err);
             setExpenses(prev => prev.filter(e => e.id !== tempId));
             alert('Erro ao salvar gasto: ' + err.message);
         }
