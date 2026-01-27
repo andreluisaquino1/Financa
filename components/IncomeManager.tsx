@@ -358,6 +358,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                         value={value}
                                         onChange={e => setValue(formatAsBRL(e.target.value))}
                                         placeholder="0,00"
+                                        onFocus={e => e.target.select()}
                                         className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-black text-2xl text-slate-900 dark:text-slate-100 outline-none transition-all"
                                     />
                                 </div>

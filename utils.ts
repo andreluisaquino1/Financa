@@ -13,8 +13,10 @@ export const getMonthYearKey = (date: Date): string => {
 };
 
 export const formatAsBRL = (val: string): string => {
+  if (!val) return '';
   const clean = val.replace(/\D/g, '');
-  const numberValue = parseInt(clean || '0') / 100;
+  if (!clean) return '';
+  const numberValue = parseInt(clean) / 100;
   return new Intl.NumberFormat('pt-BR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
