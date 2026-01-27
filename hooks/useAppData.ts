@@ -22,6 +22,7 @@ export const useAppData = () => {
     const [dataLoading, setDataLoading] = useState(true);
     const [householdId, setHouseholdId] = useState<string | null>(null);
     const [inviteCode, setInviteCode] = useState<string | null>(null);
+    const [isPremium, setIsPremium] = useState(false);
 
     const loadData = useCallback(async () => {
         if (!user) {
@@ -53,6 +54,7 @@ export const useAppData = () => {
                 const activeHouseholdId = profile.household_id || profile.id;
                 setHouseholdId(activeHouseholdId);
                 setInviteCode(profile.invite_code);
+                setIsPremium(!!profile.is_premium);
 
                 if (!profile.invite_code) {
                     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -369,6 +371,8 @@ export const useAppData = () => {
         setSelectedMonth,
         householdId,
         inviteCode,
+        isPremium,
+        setIsPremium,
         summary,
         saveCoupleInfo,
         addExpense,

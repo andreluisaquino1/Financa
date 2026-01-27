@@ -6,6 +6,7 @@ import SalaryCard from './dashboard/SalaryCard';
 import BalanceCard from './dashboard/BalanceCard';
 import StatSmall from './dashboard/StatSmall';
 import ClosingBreakdown from './dashboard/ClosingBreakdown';
+import AdBanner from './AdBanner';
 
 interface Props {
   coupleInfo: CoupleInfo;
@@ -14,13 +15,15 @@ interface Props {
   onUpdateSalary1: (val: number, isGlobal?: boolean) => void;
   onUpdateSalary2: (val: number, isGlobal?: boolean) => void;
   summary: MonthlySummary;
+  isPremium?: boolean;
 }
 
 const Dashboard: React.FC<Props> = ({
   coupleInfo,
   onUpdateSalary1,
   onUpdateSalary2,
-  summary
+  summary,
+  isPremium
 }) => {
   const [showBreakdown, setShowBreakdown] = React.useState(false);
 
@@ -165,6 +168,8 @@ const Dashboard: React.FC<Props> = ({
           color="p2"
         />
       </div>
+
+      <AdBanner isPremium={isPremium} position="dashboard" />
 
       {/* Gastos por Categoria */}
       <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] p-8 md:p-12 border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none">

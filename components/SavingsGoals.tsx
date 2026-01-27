@@ -8,9 +8,10 @@ interface Props {
     onAddGoal: (title: string, target: number, monthly: number, rate: number, deadline?: string, icon?: string) => void;
     onUpdateGoal: (id: string, updates: Partial<SavingsGoal>) => void;
     onDeleteGoal: (id: string) => void;
+    isPremium?: boolean;
 }
 
-const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDeleteGoal }) => {
+const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDeleteGoal, isPremium }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [title, setTitle] = useState('');
     const [target, setTarget] = useState('');
@@ -22,6 +23,12 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!title || !target) return;
+
+        if (!isPremium && goals.length >= 2) {
+            alert('Você atingiu o limite de 2 metas no plano gratuito. Seja PRO para planejar todos os seus sonhos!');
+            return;
+        }
+
         onAddGoal(
             title,
             parseBRL(target),

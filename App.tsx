@@ -10,6 +10,7 @@ import Auth from './components/Auth';
 import HelpSupport from './components/HelpSupport';
 import HouseholdLink from './components/HouseholdLink';
 import AddExpenseModal from './components/AddExpenseModal';
+import PremiumModal from './components/PremiumModal';
 import { AuthProvider } from './AuthContext';
 import { getMonthYearKey } from './utils';
 import { useAppData } from './hooks/useAppData';
@@ -26,6 +27,7 @@ const AppContent: React.FC = () => {
     setSelectedMonth,
     householdId,
     inviteCode,
+    isPremium,
     summary,
     saveCoupleInfo,
     addExpense,
@@ -57,6 +59,7 @@ const AppContent: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'help'>('summary');
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
+  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
   // Global Modal State
   const [isGlobalModalOpen, setIsGlobalModalOpen] = useState(false);
@@ -202,6 +205,7 @@ const AppContent: React.FC = () => {
               onUpdateSalary1={handleUpdateSalary1}
               onUpdateSalary2={handleUpdateSalary2}
               summary={summary}
+              isPremium={isPremium}
             />
           )}
           {currentTab === 'help' && <HelpSupport />}
@@ -211,6 +215,7 @@ const AppContent: React.FC = () => {
               onAddGoal={addGoal}
               onUpdateGoal={updateGoal}
               onDeleteGoal={deleteGoal}
+              isPremium={isPremium}
             />
           )}
           {currentTab === 'wallet1' && (
@@ -277,9 +282,11 @@ const AppContent: React.FC = () => {
         onSignOut={handleSignOut}
         onNavigateToHelp={() => setCurrentTab('help')}
         onShowHouseholdLink={() => setShowHouseholdLink(true)}
+        onShowPremium={() => setIsPremiumModalOpen(true)}
         householdId={householdId}
         userId={user.id}
         inviteCode={inviteCode}
+        isPremium={isPremium}
       />
 
       {/* Global Modal - Outside of scaling/scrolling main content to ensure visibility */}
@@ -296,6 +303,12 @@ const AppContent: React.FC = () => {
           }}
         />
       )}
+
+      {/* Premium Sales Modal */}
+      <PremiumModal
+        isOpen={isPremiumModalOpen}
+        onClose={() => setIsPremiumModalOpen(false)}
+      />
     </div>
   );
 };
