@@ -362,19 +362,35 @@ export const useAppData = () => {
 
     const deleteAllData = useCallback(async () => {
         if (!user) return;
+        const activeHouseholdId = householdId || user.id;
+
+        const proceed = confirm("ATENÇÃO: Isso apagará permanentemente TODO o seu histórico (gastos, metas e configurações). Deseja continuar?");
+        if (!proceed) return;
+
         setDataLoading(true);
         try {
-            await supabase.from('expenses').delete().eq('household_id', householdId || user.id);
+            await supabase.from('expenses').delete().eq('household_id', activeHouseholdId);
+            await supabase.from('savings_goals').delete().eq('household_id', activeHouseholdId);
+            await supabase.from('monthly_configs').delete().eq('household_id', activeHouseholdId);
+
             const defaultInfo: CoupleInfo = {
                 person1Name: 'André',
                 person2Name: 'Luciana',
                 salary1: 5000,
                 salary2: 5000,
-                categories: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']
+                categories: ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros'],
+                theme: 'light'
             };
-            await supabase.from('user_profiles').update({ couple_info: defaultInfo }).eq('id', householdId || user.id);
+
+            await supabase.from('user_profiles').update({
+                couple_info: defaultInfo,
+                updated_at: new Date().toISOString()
+            }).eq('id', user.id);
+
             setExpenses([]);
+            setGoals([]);
             setCoupleInfo(defaultInfo);
+            alert('Todos os dados foram limpos com sucesso! 🧹');
         } catch (err: any) {
             alert('Erro ao apagar dados: ' + err.message);
         } finally {
@@ -384,17 +400,17 @@ export const useAppData = () => {
 
     const deleteMonthData = useCallback(async (monthKey: string) => {
         if (!user) return;
+        const activeHouseholdId = householdId || user.id;
+
         setDataLoading(true);
         try {
-            // Delete expenses where date starts with 'YYYY-MM'
             const { error } = await supabase
                 .from('expenses')
                 .delete()
-                .eq('household_id', householdId || user.id)
-                .like('date', `${monthKey}% `);
+                .eq('household_id', activeHouseholdId)
+                .like('date', `${monthKey}%`);
 
             if (error) throw error;
-
             setExpenses(prev => prev.filter(e => !e.date.startsWith(monthKey)));
         } catch (err: any) {
             alert('Erro ao apagar dados do mês: ' + err.message);

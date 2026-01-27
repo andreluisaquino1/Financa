@@ -285,7 +285,9 @@ const SidebarMenu: React.FC<Props> = ({
 
           {/* Footer Actions */}
           <div className="space-y-1 pt-6 border-t border-slate-100 dark:border-white/5 pb-10">
-            {!isPremium && <SidebarBtn icon="🔄" label="Restaurar Assinatura" onClick={onRestorePurchases} />}
+            {(!isPremium && (window as any).Capacitor?.isNative) && (
+              <SidebarBtn icon="🔄" label="Restaurar Assinatura" onClick={onRestorePurchases} />
+            )}
             <SidebarBtn icon="?" label="Central de Ajuda" onClick={() => { onNavigateToHelp?.(); onClose(); }} />
             <SidebarBtn icon="↩" label="Sair da Conta" onClick={onSignOut} />
 
@@ -293,6 +295,11 @@ const SidebarMenu: React.FC<Props> = ({
               icon="📅"
               label={`Limpar Mês (${selectedMonth})`}
               onClick={() => {
+                if (!isPremium) {
+                  alert('A limpeza de dados mensal é um recurso exclusivo para usuários PRO.');
+                  onShowPremium?.();
+                  return;
+                }
                 if (confirm(`Isso apagará TODAS as despesas de ${selectedMonth}. Continuar?`)) {
                   onDeleteMonthData?.();
                   onClose();
@@ -306,7 +313,7 @@ const SidebarMenu: React.FC<Props> = ({
               label="Apagar Todos os Dados"
               onClick={() => {
                 if (!isPremium) {
-                  alert('A opção de apagar TODO o histórico de uma vez é exclusiva para usuários PRO. No plano gratuito você pode apagar mês a mês.');
+                  alert('A opção de resetar todos os dados do app é um recurso exclusivo para usuários PRO.');
                   onShowPremium?.();
                   return;
                 }
