@@ -104,10 +104,21 @@ const SidebarMenu: React.FC<Props> = ({
     }
   };
 
+  const moveCategory = (index: number, direction: 'up' | 'down') => {
+    if (!isPremium) return;
+    const newCats = [...categories];
+    if (direction === 'up' && index > 0) {
+      [newCats[index], newCats[index - 1]] = [newCats[index - 1], newCats[index]];
+    } else if (direction === 'down' && index < newCats.length - 1) {
+      [newCats[index], newCats[index + 1]] = [newCats[index + 1], newCats[index]];
+    }
+    handleUpdateCategories(newCats);
+  };
+
   return (
     <>
       <div className={`fixed inset-0 bg-slate-900/60 z-[9998] transition-opacity backdrop-blur-sm ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
-      <div className={`fixed top-0 left-0 bottom-0 w-85 bg-white dark:bg-slate-900 z-[9999] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed top-0 left-0 bottom-0 w-80 md:w-96 max-w-[85vw] bg-white dark:bg-slate-900 z-[9999] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
         <div className="p-8 bg-slate-900 text-white rounded-br-[4rem] relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-20"></div>
@@ -178,12 +189,26 @@ const SidebarMenu: React.FC<Props> = ({
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-2">
-                {categories.map((cat) => (
-                  <div key={cat} className="group flex items-center gap-2 bg-white dark:bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-white/5 shadow-sm transition-all">
+              <div className="flex flex-col gap-2">
+                {categories.map((cat, index) => (
+                  <div key={cat} className="group flex items-center justify-between bg-white dark:bg-slate-800/60 px-3 py-2 rounded-lg border border-slate-100 dark:border-white/5 shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-800">
                     <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{cat}</span>
                     {isPremium && (
-                      <button onClick={() => removeCategory(cat)} className="text-slate-300 hover:text-red-500 font-bold transition-colors">×</button>
+                      <div className="flex items-center gap-1">
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            onClick={() => moveCategory(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                          >▲</button>
+                          <button
+                            onClick={() => moveCategory(index, 'down')}
+                            disabled={index === categories.length - 1}
+                            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                          >▼</button>
+                        </div>
+                        <button onClick={() => removeCategory(cat)} className="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded font-bold transition-all ml-1">×</button>
+                      </div>
                     )}
                   </div>
                 ))}
