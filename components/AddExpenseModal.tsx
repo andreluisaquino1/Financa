@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Expense, ExpenseType, CoupleInfo } from '../types';
 import { formatAsBRL, parseBRL } from '../utils';
 
@@ -14,7 +13,7 @@ interface AddExpenseModalProps {
 }
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
-    type,
+    type: initialType,
     coupleInfo,
     initialData,
     onClose,
@@ -22,6 +21,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     isPremium,
     onShowPremium
 }) => {
+    // Estado local para o tipo, permitindo trocar entre FIXO e VARIÁVEL no modal
+    const [currentType, setCurrentType] = useState<ExpenseType>(initialType);
+
     const [description, setDescription] = useState(initialData?.description || '');
     const [value, setValue] = useState(initialData?.totalValue ? formatAsBRL((initialData.totalValue * 100).toString()) : '');
     const [category, setCategory] = useState(initialData?.category || (coupleInfo.categories?.[0] || 'Outros'));
@@ -34,25 +36,29 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const [onlyThisMonth, setOnlyThisMonth] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const isPersonalType = type === ExpenseType.PERSONAL_P1 || type === ExpenseType.PERSONAL_P2;
+    // Ajustar splitMethod se o tipo inicial for EQUAL
+    useEffect(() => {
+        if (initialType === ExpenseType.EQUAL) setSplitMethod('equal');
+    }, [initialType]);
+
+    const isPersonalType = currentType === ExpenseType.PERSONAL_P1 || currentType === ExpenseType.PERSONAL_P2;
+    const isReimbursement = currentType === ExpenseType.REIMBURSEMENT;
+    const isJoint = !isPersonalType && !isReimbursement;
 
     const handleFinalSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSubmitting) return;
 
-        console.log('🎯 handleFinalSubmit INICIADO');
         setIsSubmitting(true);
 
         try {
             const finalValue = parseBRL(value);
-            console.log('💰 Valor parseado:', finalValue, 'do input:', value);
-
             const monthKey = date.substring(0, 7);
 
             let finalMetadata = initialData?.metadata || {};
             let finalTotalValue = finalValue;
 
-            if (type === ExpenseType.FIXED && initialData && onlyThisMonth) {
+            if (currentType === ExpenseType.FIXED && initialData && onlyThisMonth) {
                 finalTotalValue = initialData.totalValue;
                 finalMetadata = {
                     ...finalMetadata,
@@ -61,35 +67,33 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         [monthKey]: finalValue
                     }
                 };
-            } else if (type === ExpenseType.FIXED && initialData && !onlyThisMonth) {
+            } else if (currentType === ExpenseType.FIXED && initialData && !onlyThisMonth) {
                 if (finalMetadata.overrides) {
                     const { [monthKey]: _, ...rest } = finalMetadata.overrides;
                     finalMetadata = { ...finalMetadata, overrides: rest };
                 }
             }
 
+            // Normalizar o tipo antes de enviar: se for variável, usa COMMON ou EQUAL baseado no splitMethod
+            let finalType = currentType;
+            if (isJoint && currentType !== ExpenseType.FIXED) {
+                finalType = splitMethod === 'equal' ? ExpenseType.EQUAL : ExpenseType.COMMON;
+            }
+
             const expenseData = {
-                type,
+                type: finalType,
                 description,
                 totalValue: finalTotalValue,
                 category,
-                paidBy: type === ExpenseType.PERSONAL_P1 ? 'person1' : (type === ExpenseType.PERSONAL_P2 ? 'person2' : paidBy),
+                paidBy: currentType === ExpenseType.PERSONAL_P1 ? 'person1' : (currentType === ExpenseType.PERSONAL_P2 ? 'person2' : paidBy),
                 date,
-                installments: type === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
-                splitMethod: type === ExpenseType.FIXED ? splitMethod : (type === ExpenseType.COMMON ? 'proportional' : (type === ExpenseType.EQUAL ? 'equal' : undefined)),
+                installments: currentType === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
+                splitMethod: currentType === ExpenseType.FIXED ? splitMethod : (finalType === ExpenseType.COMMON ? 'proportional' : (finalType === ExpenseType.EQUAL ? 'equal' : undefined)),
                 metadata: finalMetadata,
                 reminderDay: reminderDay ? parseInt(reminderDay) : undefined
             };
 
-            console.log('📦 Dados do gasto a enviar:', expenseData);
-            console.log('📞 Chamando onAdd...');
-
             await onAdd(expenseData);
-
-            console.log('✅ onAdd finalizado com sucesso');
-            // O modal é fechado pelo componente pai (App.tsx) via trigger do onAdd
-            // Mas caso o onAdd não feche o modal por algum motivo, poderíamos chamar onClose() aqui.
-            // No App.tsx atual, onAdd chama setIsGlobalModalOpen(false).
         } catch (err) {
             console.error('❌ Erro no envio:', err);
             alert('Erro ao salvar lançamento. Tente novamente.');
@@ -114,10 +118,10 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     {initialData ? 'Editar Gasto' : 'Novo Gasto'}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-6">
-                    {type === ExpenseType.FIXED ? 'Gasto fixo (repete todo mês)' : 'Lançamento pontual'}
+                    {isJoint ? 'Lançamento compartilhado' : (isReimbursement ? 'Solicitação de reembolso' : 'Gasto individual')}
                 </p>
 
-                {type === ExpenseType.FIXED && initialData && (
+                {currentType === ExpenseType.FIXED && initialData && (
                     <div className="mb-6 flex items-center gap-3 bg-p1/5 p-4 rounded-2xl border border-p1/10">
                         <input
                             type="checkbox"
@@ -133,24 +137,46 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 )}
 
                 <form onSubmit={handleFinalSubmit} className="space-y-5">
-                    {type === ExpenseType.FIXED && (
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Método de Divisão</label>
-                            <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
-                                <button
-                                    type="button"
-                                    onClick={() => setSplitMethod('proportional')}
-                                    className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'proportional' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                >
-                                    Proporcional
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setSplitMethod('equal')}
-                                    className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'equal' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                >
-                                    50%/50%
-                                </button>
+                    {isJoint && (
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Periodicidade</label>
+                                <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentType(ExpenseType.COMMON)}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${currentType !== ExpenseType.FIXED ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Variável
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentType(ExpenseType.FIXED)}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${currentType === ExpenseType.FIXED ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Fixo (Mensal)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Método de Divisão</label>
+                                <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSplitMethod('proportional')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'proportional' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Proporcional
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSplitMethod('equal')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'equal' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        50% / 50%
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -224,7 +250,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 ))}
                             </select>
                         </div>
-                        {type !== ExpenseType.FIXED && (
+                        {isJoint && currentType !== ExpenseType.FIXED && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Parcelas</label>
                                 <input

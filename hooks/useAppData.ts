@@ -23,7 +23,7 @@ export const useAppData = () => {
     const [dataLoading, setDataLoading] = useState(true);
     const [householdId, setHouseholdId] = useState<string | null>(null);
     const [inviteCode, setInviteCode] = useState<string | null>(null);
-    const [isPremium, setIsPremium] = useState<boolean>(true); // SEMPRE PREMIUM - desativado lógica PRO/grátis
+    const [isPremium, setIsPremium] = useState<boolean>(false);
 
     const loadData = useCallback(async () => {
         if (!user) {
@@ -55,9 +55,7 @@ export const useAppData = () => {
                 const activeHouseholdId = profile.household_id || profile.id;
                 setHouseholdId(activeHouseholdId);
                 setInviteCode(profile.invite_code);
-
-                // DESATIVADO: Lógica PRO/grátis - todos são Premium agora
-                // isPremium já é true por padrão
+                setIsPremium(profile.is_premium || false);
 
                 if (!profile.invite_code) {
                     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -176,8 +174,8 @@ export const useAppData = () => {
     }, [loadData]);
 
     const summary = useMemo(() => {
-        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth);
-    }, [expenses, incomes, coupleInfo, selectedMonth]);
+        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, isPremium);
+    }, [expenses, incomes, coupleInfo, selectedMonth, isPremium]);
 
     const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo, updateGlobal = false) => {
         setCoupleInfo(newInfo);
@@ -216,14 +214,8 @@ export const useAppData = () => {
     }, [user, householdId, selectedMonth]);
 
     const addExpense = useCallback(async (exp: Omit<Expense, 'id' | 'createdAt'>) => {
-        console.log('🚀 addExpense INICIADO', { exp, user: !!user, householdId });
-
-        if (!user) {
-            console.log('❌ addExpense: user é null, abortando');
-            return;
-        }
+        if (!user) return;
         const activeHouseholdId = householdId || user.id;
-        console.log('📍 activeHouseholdId:', activeHouseholdId);
 
         const tempId = 'temp-' + Date.now();
         const optimisticExp: Expense = {
@@ -234,10 +226,8 @@ export const useAppData = () => {
         };
 
         setExpenses(prev => [optimisticExp, ...prev]);
-        console.log('✅ Expense adicionado otimisticamente:', tempId);
 
         try {
-            console.log('📤 Enviando para Supabase...');
             const { data, error } = await supabase
                 .from('expenses')
                 .insert({
@@ -257,8 +247,6 @@ export const useAppData = () => {
                 .select()
                 .single();
 
-            console.log('📥 Resposta do Supabase:', { data, error });
-
             if (error) throw error;
 
             if (data) {
@@ -275,14 +263,12 @@ export const useAppData = () => {
                     metadata: data.metadata,
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'equal',
-                    reminderDay: undefined
+                    reminderDay: data.reminder_day
                 };
 
                 setExpenses(prev => prev.map(e => e.id === tempId ? newExp : e));
-                console.log('✅ Expense salvo com sucesso! ID real:', data.id);
             }
         } catch (err: any) {
-            console.error('❌ ERRO ao salvar expense:', err);
             setExpenses(prev => prev.filter(e => e.id !== tempId));
             alert('Erro ao salvar gasto: ' + err.message);
         }
@@ -291,7 +277,6 @@ export const useAppData = () => {
     const updateExpense = useCallback(async (id: string, updates: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
         try {
-            // SIMPLIFICADO: NUNCA envia reminder_day
             const { data, error } = await supabase
                 .from('expenses')
                 .update({
@@ -406,16 +391,9 @@ export const useAppData = () => {
 
         setDataLoading(true);
         try {
-            // 1. Delete all expenses
             await supabase.from('expenses').delete().eq('household_id', activeHouseholdId);
-
-            // 2. Delete all incomes
             await supabase.from('incomes').delete().eq('household_id', activeHouseholdId);
-
-            // 3. Delete all goals
             await supabase.from('savings_goals').delete().eq('household_id', activeHouseholdId);
-
-            // 4. Delete all monthly config
             await supabase.from('monthly_configs').delete().eq('household_id', activeHouseholdId);
 
             const defaultInfo: CoupleInfo = {
@@ -460,7 +438,7 @@ export const useAppData = () => {
         } finally {
             setDataLoading(false);
         }
-    }, [user, householdId, loadData]);
+    }, [user, householdId]);
 
     const addIncome = useCallback(async (inc: Omit<Income, 'id' | 'createdAt'>) => {
         if (!user) return;
@@ -548,10 +526,19 @@ export const useAppData = () => {
         }
     }, [user]);
 
-    // DESATIVADO: Lógica PRO/grátis - todos são Premium agora
-    const updatePremiumStatus = useCallback(async (_status: boolean) => {
-        // No-op: premium sempre true
-    }, []);
+    const updatePremiumStatus = useCallback(async (status: boolean) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase
+                .from('user_profiles')
+                .update({ is_premium: status })
+                .eq('id', user.id);
+            if (error) throw error;
+            setIsPremium(status);
+        } catch (err: any) {
+            console.error('Error updating premium status:', err);
+        }
+    }, [user]);
 
     return {
         user,
