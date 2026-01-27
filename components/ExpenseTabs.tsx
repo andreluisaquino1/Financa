@@ -120,6 +120,10 @@ const ExpenseTabs: React.FC<Props> = ({
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right min-w-[120px]">Valor</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria - Parcelas</th>
+                {activeTab === 'expenses' && (
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell text-center">Divisão</th>
+                )}
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Pago por</th>
                 <th className="px-6 py-4"></th>
               </tr>
             </thead>
@@ -144,21 +148,9 @@ const ExpenseTabs: React.FC<Props> = ({
                       </div>
                     </td>
 
-                    {/* 2. Descrição (Com Info Extra) */}
+                    {/* 2. Descrição */}
                     <td className="px-6 py-5">
-                      <div className="space-y-1.5">
-                        <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded-md ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
-                            {exp.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
-                          </span>
-                          {activeTab === 'expenses' && (
-                            <span className="text-[8px] font-black uppercase text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-md">
-                              {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Prop.'}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
                     </td>
 
                     {/* 3. Valor */}
@@ -176,6 +168,22 @@ const ExpenseTabs: React.FC<Props> = ({
                           </span>
                         )}
                       </div>
+                    </td>
+
+                    {/* Divisão */}
+                    {activeTab === 'expenses' && (
+                      <td className="px-6 py-5 hidden md:table-cell text-center">
+                        <span className="text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200/50 dark:border-white/5 inline-flex items-center gap-1">
+                          {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Prop.'}
+                        </span>
+                      </td>
+                    )}
+
+                    {/* Pago Por */}
+                    <td className="px-6 py-5 text-center">
+                      <span className={`text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
+                        {exp.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
+                      </span>
                     </td>
 
                     <td className="px-6 py-5 text-right">
