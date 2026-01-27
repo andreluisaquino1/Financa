@@ -12,6 +12,7 @@ const Dashboard = lazy(() => import('./components/Dashboard'));
 const ExpenseTabs = lazy(() => import('./components/ExpenseTabs'));
 const PersonalWallet = lazy(() => import('./components/PersonalWallet'));
 const SavingsGoals = lazy(() => import('./components/SavingsGoals'));
+const TripManager = lazy(() => import('./components/TripManager'));
 const HelpSupport = lazy(() => import('./components/HelpSupport'));
 const IncomeManager = lazy(() => import('./components/IncomeManager').then(m => ({ default: m.IncomeManager })));
 
@@ -115,7 +116,7 @@ const AppContent: React.FC = () => {
   };
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'summary' | 'incomes' | 'expenses' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'help'>('summary');
+  const [currentTab, setCurrentTab] = useState<'summary' | 'incomes' | 'expenses' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'trip' | 'help'>('summary');
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
@@ -297,6 +298,7 @@ const AppContent: React.FC = () => {
               <NavItem active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} label={`Carteira ${coupleInfo.person1Name.split(' ')[0]}`} />
               <NavItem active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
               <NavItem active={currentTab === 'goals'} onClick={() => setCurrentTab('goals')} label="Metas" />
+              <NavItem active={currentTab === 'trip'} onClick={() => setCurrentTab('trip')} label="Viagem" />
               <NavItem active={currentTab === 'help'} onClick={() => setCurrentTab('help')} label="Ajuda" />
             </div>
           </nav>
@@ -337,6 +339,12 @@ const AppContent: React.FC = () => {
                 onUpdateGoal={updateGoal}
                 onDeleteGoal={deleteGoal}
                 isPremium={isPremium}
+              />
+            )}
+            {currentTab === 'trip' && (
+              <TripManager
+                coupleInfo={coupleInfo}
+                onUpdateTrips={(newTrips) => saveCoupleInfo({ ...coupleInfo, trips: newTrips }, true)}
               />
             )}
             {currentTab === 'wallet1' && (
@@ -384,6 +392,7 @@ const AppContent: React.FC = () => {
           <MobileTab active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} icon="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" label="Reemb" />
           <MobileTab active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person1Name.slice(0, 5)} />
           <MobileTab active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person2Name.slice(0, 5)} />
+          <MobileTab active={currentTab === 'trip'} onClick={() => setCurrentTab('trip')} icon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Viagem" />
         </div>
       </nav>
 

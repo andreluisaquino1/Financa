@@ -78,7 +78,8 @@ export const useAppData = () => {
                         salary1Description: info.salary1Description,
                         salary2Description: info.salary2Description,
                         person1RecurringIncomes: info.person1RecurringIncomes || [],
-                        person2RecurringIncomes: info.person2RecurringIncomes || []
+                        person2RecurringIncomes: info.person2RecurringIncomes || [],
+                        trips: info.trips || []
                     }));
                 }
 

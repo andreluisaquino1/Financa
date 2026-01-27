@@ -14,6 +14,35 @@ export interface RecurringIncome {
   value: number;
 }
 
+export interface TripDeposit {
+  id: string;
+  person: 'person1' | 'person2';
+  value: number;
+  date: string;
+  description: string;
+}
+
+export interface TripExpense {
+  id: string;
+  description: string;
+  value: number;
+  paidBy: 'person1' | 'person2';
+  date: string;
+  category: string;
+}
+
+export interface Trip {
+  id: string;
+  name: string;
+  startDate?: string;
+  endDate?: string;
+  budget?: number;
+  proportionType: 'proportional' | 'custom' | 'equal';
+  customPercentage1?: number;
+  deposits: TripDeposit[];
+  expenses: TripExpense[];
+}
+
 export interface CoupleInfo {
   person1Name: string;
   person2Name: string;
@@ -27,6 +56,7 @@ export interface CoupleInfo {
   salary2Description?: string;
   person1RecurringIncomes?: RecurringIncome[];
   person2RecurringIncomes?: RecurringIncome[];
+  trips?: Trip[];
 }
 
 export interface UserAccount {
