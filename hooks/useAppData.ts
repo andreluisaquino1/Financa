@@ -192,9 +192,19 @@ export const useAppData = () => {
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', householdId);
+
+                // Propagate salary to future months
+                await supabase
+                    .from('monthly_configs')
+                    .update({
+                        salary1: newInfo.salary1,
+                        salary2: newInfo.salary2
+                    })
+                    .eq('household_id', householdId)
+                    .gt('month_key', selectedMonth);
             }
 
-            // Salva sempre no config mensal
+            // Save for current month
             await supabase
                 .from('monthly_configs')
                 .upsert({
@@ -234,7 +244,8 @@ export const useAppData = () => {
                     installments: exp.installments,
                     paid_by: exp.paidBy,
                     metadata: exp.metadata || {},
-                    split_method: exp.splitMethod
+                    split_method: exp.splitMethod || null,
+                    reminder_day: exp.reminderDay || null
                 })
                 .select()
                 .single();
@@ -289,7 +300,8 @@ export const useAppData = () => {
                     installments: updates.installments,
                     paid_by: updates.paidBy,
                     metadata: updates.metadata || {},
-                    split_method: updates.splitMethod
+                    split_method: updates.splitMethod || null,
+                    reminder_day: updates.reminderDay || null
                 })
                 .eq('id', id)
                 .select()
