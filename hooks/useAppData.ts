@@ -290,9 +290,64 @@ export const useAppData = () => {
                 loadData();
             }
         } catch (err: any) {
+            // Fallback: Se o erro for de coluna inexistente (migração falhou), tenta salvar SEM o lembrete
+            // Erro comum: column "reminder_day" of relation "expenses" does not exist
+            if (err.message && (err.message.includes('reminder_day') || err.message.includes('column'))) {
+                try {
+                    const { data: fallbackData, error: fallbackError } = await supabase
+                        .from('expenses')
+                        .insert({
+                            user_id: user.id,
+                            household_id: activeHouseholdId,
+                            date: exp.date,
+                            type: exp.type,
+                            category: exp.category,
+                            description: exp.description,
+                            total_value: exp.totalValue,
+                            installments: exp.installments,
+                            paid_by: exp.paidBy,
+                            metadata: exp.metadata || {},
+                            split_method: exp.splitMethod || null
+                            // REMOVED reminder_day
+                        })
+                        .select()
+                        .single();
+
+                    if (fallbackError) throw fallbackError;
+
+                    if (fallbackData) {
+                        const fallbackExp: Expense = {
+                            id: fallbackData.id,
+                            date: fallbackData.date,
+                            type: fallbackData.type as ExpenseType,
+                            category: fallbackData.category,
+                            description: fallbackData.description,
+                            totalValue: Number(fallbackData.total_value),
+                            installments: fallbackData.installments,
+                            paidBy: fallbackData.paid_by as 'person1' | 'person2',
+                            createdAt: fallbackData.created_at,
+                            metadata: fallbackData.metadata,
+                            household_id: fallbackData.household_id,
+                            splitMethod: fallbackData.split_method as 'proportional' | 'equal',
+                            reminderDay: undefined
+                        };
+                        setExpenses(prev => prev.map(e => e.id === tempId ? fallbackExp : e));
+                        loadData();
+                        alert('Gasto salvo! (Aviso: Lembrete não salvo pois o banco de dados ainda está atualizando)');
+                        return;
+                    }
+                } catch (fallbackErr) {
+                    console.error('Fallback failed:', fallbackErr);
+                }
+            }
+
             console.error('Error adding expense:', err);
             setExpenses(prev => prev.filter(e => e.id !== tempId));
-            alert('Erro ao salvar gasto: ' + err.message);
+
+            // Translate common error for user
+            let msg = err.message;
+            if (msg.includes('reminder_day')) msg = 'Erro de atualização do banco de dados (coluna faltando).';
+            alert('Erro ao salvar gasto: ' + msg);
         }
     }, [user, householdId, loadData]);
 
