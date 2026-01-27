@@ -216,7 +216,9 @@ const AppContent: React.FC = () => {
     window.location.reload();
   };
 
-  if (authLoading || dataLoading) {
+  // Só mostra o loader de tela cheia se estiver carregando E ainda não tivermos os dados do usuário (householdId)
+  // Isso evita que a tela "pisque" ou feche modais quando o usuário troca de aba (background refresh)
+  if (authLoading || (dataLoading && !householdId)) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6">
         <div className="flex flex-col items-center">
