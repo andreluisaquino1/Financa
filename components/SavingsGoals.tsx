@@ -60,7 +60,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             </div>
 
             {isAdding && (
-                <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800/40 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-xl space-y-8 animate-in zoom-in-95 duration-300">
+                <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-md space-y-6 animate-in zoom-in-95 duration-300">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">O que vocês querem?</label>
@@ -107,7 +107,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                     />
                 ))}
                 {goals.length === 0 && !isAdding && (
-                    <div className="col-span-full py-24 bg-white dark:bg-slate-800/20 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-[3rem] text-center">
+                    <div className="col-span-full py-16 bg-white dark:bg-slate-800/40 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-2xl text-center">
                         <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl opacity-50">🔭</div>
                         <p className="text-slate-400 dark:text-slate-600 font-black uppercase tracking-widest text-xs">Nenhum sonho planejado ainda</p>
                         <p className="text-slate-300 dark:text-slate-700 font-medium mt-2">Clique em "+ Nova Meta" para começar o planejamento.</p>
@@ -172,7 +172,7 @@ const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, updates: Pa
     const months = monthsRemaining % 12;
 
     return (
-        <div className={`bg-white dark:bg-slate-800/40 rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden transition-all hover:shadow-xl dark:shadow-none group flex flex-col ${goal.is_completed ? 'bg-emerald-50/20 dark:bg-emerald-500/5 ring-2 ring-emerald-100 dark:ring-emerald-500/20' : ''}`}>
+        <div className={`bg-white dark:bg-slate-800/60 rounded-2xl p-6 border border-slate-100 dark:border-white/5 shadow-sm relative overflow-hidden transition-all hover:shadow-md group flex flex-col ${goal.is_completed ? 'bg-emerald-50/20 dark:bg-emerald-500/5 ring-2 ring-emerald-100 dark:ring-emerald-500/20' : ''}`}>
             <div className="flex justify-between items-start mb-8">
                 <div className="flex gap-5 items-center">
                     <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-4xl shadow-inner dark:shadow-none group-hover:scale-110 transition-transform duration-500">

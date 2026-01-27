@@ -142,18 +142,34 @@ export const calculateSummary = (
         if (exp.type === ExpenseType.FIXED) totalFixed = roundMoney(totalFixed + monthlyValue);
         else totalCommon = roundMoney(totalCommon + monthlyValue);
 
-        // Lógica de Divisão Individual
+        // Lógica de Divisão Individual com Partes Específicas
+        const spec1Total = exp.specificValueP1 || 0;
+        const spec2Total = exp.specificValueP2 || 0;
+
+        // Calcular proporção do valor específico em relação ao total
+        const specRatio1 = exp.totalValue > 0 ? spec1Total / exp.totalValue : 0;
+        const specRatio2 = exp.totalValue > 0 ? spec2Total / exp.totalValue : 0;
+
+        const monthlySpec1 = roundMoney(monthlyValue * specRatio1);
+        const monthlySpec2 = roundMoney(monthlyValue * specRatio2);
+        const sharedValue = roundMoney(monthlyValue - monthlySpec1 - monthlySpec2);
+
+        // Adiciona partes específicas diretamente à responsabilidade
+        p1Target = roundMoney(p1Target + monthlySpec1);
+        p2Target = roundMoney(p2Target + monthlySpec2);
+
+        // Divide o restante (sharedValue)
         if (exp.splitMethod === 'custom') {
           const perc1 = (exp.splitPercentage1 !== undefined) ? exp.splitPercentage1 : 50;
           const r1 = perc1 / 100;
           const r2 = 1 - r1;
-          p1Target = roundMoney(p1Target + (monthlyValue * r1));
-          p2Target = roundMoney(p2Target + (monthlyValue * r2));
-          if (perc1 === 50) totalEqual = roundMoney(totalEqual + monthlyValue);
+          p1Target = roundMoney(p1Target + (sharedValue * r1));
+          p2Target = roundMoney(p2Target + (sharedValue * r2));
+          if (perc1 === 50 && spec1Total === 0 && spec2Total === 0) totalEqual = roundMoney(totalEqual + monthlyValue);
         } else {
           // Default: Proporcional ao Salário
-          p1Target = roundMoney(p1Target + (monthlyValue * salaryRatio1));
-          p2Target = roundMoney(p2Target + (monthlyValue * salaryRatio2));
+          p1Target = roundMoney(p1Target + (sharedValue * salaryRatio1));
+          p2Target = roundMoney(p2Target + (sharedValue * salaryRatio2));
         }
         break;
 

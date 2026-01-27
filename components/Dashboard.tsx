@@ -63,7 +63,7 @@ const Dashboard: React.FC<Props> = ({
       </div>
 
       {/* Barra de Proporção de Rendas */}
-      <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl px-8 py-5 rounded-[2.5rem] border border-white dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col md:flex-row items-center gap-6">
+      <div className="bg-white dark:bg-slate-800/60 px-6 py-4 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none flex flex-col md:flex-row items-center gap-4">
         <div className="shrink-0 flex items-center gap-3">
           <div className="w-1.5 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full"></div>
           <div className="flex flex-col">
@@ -91,9 +91,9 @@ const Dashboard: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Destaque do Acerto - Premium Glass */}
+      {/* Destaque do Acerto - Card Simples */}
       <div className="space-y-4">
-        <div className="bg-slate-900 dark:bg-slate-950 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden group border border-white/5">
+        <div className="bg-slate-900 dark:bg-slate-950 rounded-2xl p-6 md:p-8 shadow-lg relative overflow-hidden group border border-slate-800 dark:border-white/5">
           <div className="absolute top-0 right-0 w-64 h-64 bg-p1 rounded-full -mr-32 -mt-32 blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-p2 rounded-full -ml-32 -mb-32 blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity"></div>
 
@@ -112,7 +112,7 @@ const Dashboard: React.FC<Props> = ({
                   <div className={`px-5 py-2.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest text-center border ${summary.whoTransfers === 'person1' ? 'bg-p1/20 border-p1/20 text-p1' : 'bg-p2/20 border-p2/20 text-p2'}`}>
                     {summary.whoTransfers === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]} deve transferir
                   </div>
-                  <div className="bg-white dark:bg-slate-100 px-8 py-5 rounded-[1.5rem] shadow-[0_0_50px_rgba(255,255,255,0.1)] transform hover:scale-105 transition-transform duration-500">
+                  <div className="bg-white dark:bg-slate-100 px-6 py-4 rounded-xl shadow-md">
                     <p className="text-slate-950 text-3xl font-black tracking-tighter text-center">{formatCurrency(summary.transferAmount)}</p>
                   </div>
                 </>
@@ -153,8 +153,8 @@ const Dashboard: React.FC<Props> = ({
       </div>
 
       {/* Grid de Métricas Secundárias */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white dark:bg-slate-800/40 dark:backdrop-blur-md rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none overflow-hidden flex flex-col">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none overflow-hidden flex flex-col">
           <div className="px-8 py-6 flex justify-between items-center border-b border-slate-50 dark:border-white/5">
             <h3 className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[10px]">Gastos do Mês</h3>
             <span className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tighter">{formatCurrency(totalExpenses)}</span>
@@ -167,7 +167,7 @@ const Dashboard: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800/40 dark:backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none flex flex-col justify-center">
+        <div className="bg-white dark:bg-slate-800/60 rounded-2xl p-6 border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none flex flex-col justify-center">
           <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 text-center">Desembolso (Pago no Mês)</h4>
           <div className="space-y-4">
             <div className="flex flex-col gap-1">
@@ -211,7 +211,7 @@ const Dashboard: React.FC<Props> = ({
       <AdBanner isPremium={isPremium} position="dashboard" />
 
       {/* Gastos por Categoria */}
-      <div className="bg-white dark:bg-slate-800/50 rounded-[2.5rem] p-8 md:p-12 border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none">
+      <div className="bg-white dark:bg-slate-800/60 rounded-2xl p-6 md:p-8 border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none">
         <div className="flex items-center justify-between mb-10">
           <div className="space-y-1">
             <h3 className="font-black text-slate-900 dark:text-slate-100 text-xl tracking-tight">Categorias</h3>
@@ -224,7 +224,7 @@ const Dashboard: React.FC<Props> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
           {sortedCategories.map(([category, total]) => (
-            <div key={category} className="flex items-center justify-between p-5 bg-slate-50/50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl dark:hover:shadow-none group">
+            <div key={category} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md group">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm group-hover:bg-p1 group-hover:text-white transition-colors">
                   <span className="text-xs font-bold">#</span>

@@ -199,17 +199,17 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-6 rounded-[2.5rem] shadow-sm">
+                <div className="bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 p-5 rounded-2xl shadow-sm">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Renda Total {coupleInfo.person1Name}</p>
                     <p className="text-2xl font-black text-p1">{formatCurrency(totalP1)}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-6 rounded-[2.5rem] shadow-sm">
+                <div className="bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 p-5 rounded-2xl shadow-sm">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Renda Total {coupleInfo.person2Name}</p>
                     <p className="text-2xl font-black text-p2">{formatCurrency(totalP2)}</p>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-sm">
+            <div className="bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
                 <table className="w-full border-collapse text-left">
                     <thead>
                         <tr className="border-b border-slate-50 dark:border-white/5">
@@ -275,7 +275,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                    <div className="relative bg-white dark:bg-slate-800/60 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-lg animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
                         <div className="mb-6">
                             <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
                                 {editingIncome ? 'Editar Entrada' : 'Nova Entrada de Renda'}

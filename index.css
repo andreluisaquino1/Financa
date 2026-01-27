@@ -1,16 +1,46 @@
+/* ========================================
+   DESIGN TOKENS & VARIABLES
+   ======================================== */
 :root {
+  /* Person Colors - Blue & Pink */
   --p1-color: #2563eb;
-  /* default blue-600 */
   --p2-color: #ec4899;
-  /* default pink-500 */
+  
+  /* Spacing Scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  
+  /* Border Radius - Standard Values */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  
+  /* Shadows - Light Mode */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 .dark {
   color-scheme: dark;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
 }
 
-/* Small utilities missing from Tailwind CDN defaults (used by the app) */
+/* ========================================
+   BASE STYLES
+   ======================================== */
+* {
+  box-sizing: border-box;
+}
 
+/* Scrollbar Hiding */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -20,110 +50,96 @@
   scrollbar-width: none;
 }
 
-/* Animation duration utilities */
-.duration-300 {
-  animation-duration: 300ms;
-}
+/* ========================================
+   ANIMATION UTILITIES
+   ======================================== */
+.duration-300 { animation-duration: 300ms; }
+.duration-500 { animation-duration: 500ms; }
+.duration-700 { animation-duration: 700ms; }
 
-.duration-500 {
-  animation-duration: 500ms;
-}
-
-.duration-700 {
-  animation-duration: 700ms;
-}
-
-/* Simple enter animations (fallbacks) */
 .animate-in {
   animation-fill-mode: both;
-  animation-duration: 500ms;
-  /* default duration */
+  animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fade-in {
-  animation-name: fc-fade-in;
-}
-
-.slide-in-from-bottom {
-  animation-name: fc-slide-in-bottom;
-}
-
-.slide-in-from-bottom-4 {
-  animation-name: fc-slide-in-bottom-4;
-}
-
-.slide-in-from-right {
-  animation-name: fc-slide-in-right;
-}
+.fade-in { animation-name: fc-fade-in; }
+.slide-in-from-bottom { animation-name: fc-slide-in-bottom; }
+.slide-in-from-bottom-4 { animation-name: fc-slide-in-bottom-4; }
+.slide-in-from-right { animation-name: fc-slide-in-right; }
+.slide-in-from-top-2 { animation-name: fc-slide-in-top-2; }
+.zoom-in-95 { animation-name: fc-zoom-in-95; }
 
 @keyframes fc-fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes fc-slide-in-bottom {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fc-slide-in-bottom-4 {
-  from {
-    opacity: 0;
-    transform: translateY(1rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(1rem); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fc-slide-in-right {
-  from {
-    opacity: 0;
-    transform: translateX(16px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
-/* Glassmorphism utility */
+@keyframes fc-slide-in-top-2 {
+  from { opacity: 0; transform: translateY(-0.5rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fc-zoom-in-95 {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ========================================
+   GLASSMORPHISM
+   ======================================== */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .glass-dark {
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Custom transitions */
-.transition-slow {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+/* ========================================
+   FORM ELEMENTS
+   ======================================== */
+input,
+select,
+textarea {
+  transition: all 0.2s ease-in-out;
 }
 
-/* Cleanup for Month Input native appearance */
+button:active {
+  transform: scale(0.97);
+}
+
+/* Fix input height consistency */
+input[type="date"],
+input[type="number"],
+input[type="text"],
+select {
+  min-height: 48px;
+  box-sizing: border-box;
+}
+
+/* Month input cleanup */
 input[type="month"]::-webkit-calendar-picker-indicator {
   display: none !important;
   -webkit-appearance: none;
@@ -141,37 +157,19 @@ input[type="month"] {
   -moz-appearance: textfield;
 }
 
-/* Form inputs premium */
-input,
-select,
-textarea {
-  transition: all 0.2s ease-in-out;
-}
-
-button:active {
-  transform: scale(0.96);
-}
-
-/* Fix date input height consistency */
-input[type="date"],
-input[type="number"],
-input[type="text"],
-select {
-  min-height: 52px;
-  box-sizing: border-box;
-}
-
-/* Ensure date picker icon is visible */
+/* Date picker icon visibility */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: pointer;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
+  opacity: 0.8;
 }
 
-/* Grid alignment fix */
+/* ========================================
+   LAYOUT HELPERS
+   ======================================== */
 .grid > div {
   display: flex;
   flex-direction: column;
@@ -180,4 +178,46 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 .grid > div > input,
 .grid > div > select {
   flex: 1;
+}
+
+/* ========================================
+   CARD STANDARDIZATION
+   ======================================== */
+.card {
+  background: white;
+  border-radius: var(--radius-xl);
+  border: 1px solid #f1f5f9;
+  box-shadow: var(--shadow-sm);
+}
+
+.dark .card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+/* ========================================
+   MOBILE OPTIMIZATIONS
+   ======================================== */
+@media (max-width: 640px) {
+  /* Reduce padding on mobile */
+  .mobile-compact {
+    padding: 1rem !important;
+  }
+  
+  /* Smaller border-radius on mobile for more space */
+  .mobile-radius {
+    border-radius: 1.25rem !important;
+  }
+  
+  /* Stack elements vertically */
+  .mobile-stack {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  /* Full width buttons on mobile */
+  .mobile-full {
+    width: 100%;
+  }
 }

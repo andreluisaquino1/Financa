@@ -33,6 +33,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     // Novo Estado de Divisão
     const [splitMethod, setSplitMethod] = useState<'proportional' | 'custom'>(initialData?.splitMethod || 'proportional');
     const [splitPercentage1, setSplitPercentage1] = useState<number>(initialData?.splitPercentage1 !== undefined ? initialData.splitPercentage1 : 50);
+    const [specValue1, setSpecValue1] = useState(initialData?.specificValueP1 ? formatAsBRL((initialData.specificValueP1 * 100).toString()) : '');
+    const [specValue2, setSpecValue2] = useState(initialData?.specificValueP2 ? formatAsBRL((initialData.specificValueP2 * 100).toString()) : '');
+    const [showAdvancedSplit, setShowAdvancedSplit] = useState(!!(initialData?.specificValueP1 || initialData?.specificValueP2));
 
     const [reminderDay, setReminderDay] = useState<string>(initialData?.reminderDay?.toString() || '');
     const [onlyThisMonth, setOnlyThisMonth] = useState(false);
@@ -81,6 +84,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 installments: currentType === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
                 splitMethod: isJoint ? splitMethod : undefined,
                 splitPercentage1: (isJoint && splitMethod === 'custom') ? splitPercentage1 : undefined,
+                specificValueP1: isJoint ? parseBRL(specValue1) : undefined,
+                specificValueP2: isJoint ? parseBRL(specValue2) : undefined,
                 metadata: finalMetadata,
                 reminderDay: reminderDay ? parseInt(reminderDay) : undefined
             };
@@ -95,8 +100,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/80 flex justify-center items-start sm:items-center z-[9999] p-4 backdrop-blur-sm animate-in fade-in transition-all overflow-y-auto">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] p-6 sm:p-8 shadow-2xl animate-in slide-in-from-bottom duration-300 relative my-auto border border-white/5">
+        <div className="fixed inset-0 bg-slate-900/70 flex justify-center items-start sm:items-center z-[9999] p-4 backdrop-blur-sm animate-in fade-in transition-all overflow-y-auto">
+            <div className="bg-white dark:bg-slate-800/95 w-full max-w-md rounded-2xl p-5 sm:p-6 shadow-lg animate-in slide-in-from-bottom duration-300 relative my-auto border border-slate-100 dark:border-white/5">
                 <button
                     onClick={onClose}
                     className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
@@ -195,6 +200,58 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                             )}
                         </div>
                     )}
+
+                    {isJoint && (
+                        <div className="space-y-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowAdvancedSplit(!showAdvancedSplit)}
+                                className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 hover:text-p1 transition-colors px-1"
+                            >
+                                <svg className={`w-3 h-3 transition-transform ${showAdvancedSplit ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                                </svg>
+                                {showAdvancedSplit ? 'Ocultar partes específicas' : 'Adicionar partes específicas'}
+                            </button>
+
+                            {showAdvancedSplit && (
+                                <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-100 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-p1 uppercase tracking-wider px-1">Parte de {coupleInfo.person1Name.split(' ')[0]}</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold">R$</span>
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={specValue1}
+                                                onChange={e => setSpecValue1(formatAsBRL(e.target.value))}
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 focus:border-p1 rounded-xl pl-8 pr-3 py-2.5 font-bold text-xs text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                                placeholder="0,00"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-p2 uppercase tracking-wider px-1">Parte de {coupleInfo.person2Name.split(' ')[0]}</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold">R$</span>
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={specValue2}
+                                                onChange={e => setSpecValue2(formatAsBRL(e.target.value))}
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 focus:border-p2 rounded-xl pl-8 pr-3 py-2.5 font-bold text-xs text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                                placeholder="0,00"
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="col-span-2 text-[9px] text-slate-400 font-medium px-1">
+                                        * Estes valores serão atribuídos integralmente a cada pessoa antes de dividir o restante.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
 
                     <div className="space-y-1">
                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>

@@ -61,7 +61,7 @@ const PersonalWallet: React.FC<Props> = ({
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800/40 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>

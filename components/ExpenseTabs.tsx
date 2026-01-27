@@ -50,7 +50,7 @@ const ExpenseTabs: React.FC<Props> = ({
           <div className="h-px bg-slate-100 dark:bg-white/5 flex-1"></div>
         </h3>
       )}
-      <div className="bg-white dark:bg-slate-800/40 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -94,6 +94,7 @@ const ExpenseTabs: React.FC<Props> = ({
                         {activeTab === 'expenses' && (
                           <span className="text-[10px] font-black text-p1 uppercase opacity-60">
                             • {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Prop.'}
+                            {(exp.specificValueP1 || exp.specificValueP2) ? '*' : ''}
                           </span>
                         )}
                       </div>
@@ -104,8 +105,11 @@ const ExpenseTabs: React.FC<Props> = ({
 
                     {activeTab === 'expenses' && (
                       <td className="px-6 py-5 hidden md:table-cell">
-                        <span className="text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200/50 dark:border-white/5">
+                        <span className="text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200/50 dark:border-white/5 flex items-center gap-1">
                           {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Proporcional'}
+                          {(exp.specificValueP1 || exp.specificValueP2) ? (
+                            <span className="text-p1" title="Contém partes individuais">*</span>
+                          ) : null}
                         </span>
                       </td>
                     )}

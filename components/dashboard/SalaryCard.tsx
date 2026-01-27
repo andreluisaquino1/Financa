@@ -16,7 +16,7 @@ const SalaryCard: React.FC<SalaryCardProps> = ({ name, value, color, onClick }) 
     return (
         <button
             onClick={onClick}
-            className={`w-full text-left bg-white dark:bg-slate-800/40 rounded-[2rem] p-6 border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none hover:shadow-md hover:scale-[1.01] transition-all group`}
+            className={`w-full text-left bg-white dark:bg-slate-800/60 rounded-2xl p-5 border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none hover:shadow-md transition-all group`}
         >
             <div className="flex justify-between items-start mb-4">
                 <div>

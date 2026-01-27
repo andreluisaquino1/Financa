@@ -104,6 +104,8 @@ export const useAppData = () => {
                         household_id: e.household_id,
                         splitMethod: e.split_method as 'proportional' | 'custom',
                         splitPercentage1: e.metadata?.splitPercentage1,
+                        specificValueP1: e.metadata?.specificValueP1,
+                        specificValueP2: e.metadata?.specificValueP2,
                         reminderDay: e.reminder_day
                     })));
                 }
@@ -243,7 +245,9 @@ export const useAppData = () => {
                     paid_by: exp.paidBy,
                     metadata: {
                         ...(exp.metadata || {}),
-                        splitPercentage1: exp.splitPercentage1
+                        splitPercentage1: exp.splitPercentage1,
+                        specificValueP1: exp.specificValueP1,
+                        specificValueP2: exp.specificValueP2
                     },
                     split_method: exp.splitMethod || null,
                     reminder_day: exp.reminderDay
@@ -294,7 +298,9 @@ export const useAppData = () => {
                     paid_by: updates.paidBy,
                     metadata: {
                         ...(updates.metadata || {}),
-                        splitPercentage1: updates.splitPercentage1
+                        splitPercentage1: updates.splitPercentage1,
+                        specificValueP1: updates.specificValueP1,
+                        specificValueP2: updates.specificValueP2
                     },
                     split_method: updates.splitMethod || null,
                     reminder_day: updates.reminderDay
@@ -319,6 +325,8 @@ export const useAppData = () => {
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'custom',
                     splitPercentage1: data.metadata?.splitPercentage1,
+                    specificValueP1: data.metadata?.specificValueP1,
+                    specificValueP2: data.metadata?.specificValueP2,
                     reminderDay: data.reminder_day
                 };
                 setExpenses(prev => prev.map(e => e.id === id ? updatedExp : e));

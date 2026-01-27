@@ -51,6 +51,8 @@ export interface Expense {
   household_id?: string;
   splitMethod?: 'proportional' | 'custom';
   splitPercentage1?: number; // Only used if splitMethod is 'custom'
+  specificValueP1?: number; // Part of the expense that is 100% P1's responsibility
+  specificValueP2?: number; // Part of the expense that is 100% P2's responsibility
   metadata?: {
     overrides?: Record<string, number>;
   };

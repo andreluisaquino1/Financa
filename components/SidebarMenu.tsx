@@ -115,7 +115,7 @@ const SidebarMenu: React.FC<Props> = ({
       <div className={`fixed inset-0 bg-slate-900/60 z-[9998] transition-opacity backdrop-blur-sm ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
       <div className={`fixed top-0 left-0 bottom-0 w-80 md:w-96 max-w-[85vw] bg-white dark:bg-slate-900 z-[9999] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
-        <div className="p-8 bg-slate-900 text-white rounded-br-[4rem] relative overflow-hidden shrink-0">
+        <div className="p-6 bg-slate-900 text-white rounded-br-[2rem] relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-20"></div>
           <div className="relative z-10 text-white">
             <div className="flex items-center gap-2 mb-1">
@@ -135,7 +135,7 @@ const SidebarMenu: React.FC<Props> = ({
         <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
           {!isPremium && (
             <section className="animate-in fade-in slide-in-from-top-4 duration-1000">
-              <div className="p-6 bg-gradient-to-br from-p1 to-blue-600 rounded-[2rem] text-white shadow-xl shadow-p1/20 relative overflow-hidden group border border-white/10">
+              <div className="p-5 bg-gradient-to-br from-p1 to-blue-600 rounded-2xl text-white shadow-md shadow-p1/10 relative overflow-hidden group border border-white/10">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
                 <div className="relative">
                   <h4 className="font-black text-lg tracking-tight mb-1 italic">Seja PRO</h4>
@@ -153,10 +153,10 @@ const SidebarMenu: React.FC<Props> = ({
               Perfil & Renda
             </h3>
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-3">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                 <TextInput label={`Pessoa 1`} value={n1} onChange={setN1} />
               </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-3">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                 <TextInput label={`Pessoa 2`} value={n2} onChange={setN2} />
               </div>
             </div>
