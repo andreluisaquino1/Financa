@@ -305,22 +305,6 @@ const SidebarMenu: React.FC<Props> = ({
             </div>
           </section>
 
-          {/* New Income Access Button */}
-          <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
-              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Gestão de Renda
-            </h3>
-            <SidebarBtn
-              icon="💰"
-              label="Bônus & Rendas Extras"
-              onClick={() => {
-                onNavigateToIncomes?.();
-                onClose();
-              }}
-            />
-          </section>
-
           <AdBanner isPremium={isPremium} position="sidebar" />
 
           {/* Footer Actions */}

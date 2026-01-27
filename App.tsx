@@ -1,18 +1,20 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense, lazy } from 'react';
 import { Expense, CoupleInfo, ExpenseType } from './types';
-import Dashboard from './components/Dashboard';
 import SidebarMenu from './components/SidebarMenu';
-import ExpenseTabs from './components/ExpenseTabs';
-import PersonalWallet from './components/PersonalWallet';
-import SavingsGoals from './components/SavingsGoals';
 import Auth from './components/Auth';
-import HelpSupport from './components/HelpSupport';
 import HouseholdLink from './components/HouseholdLink';
 import AddExpenseModal from './components/AddExpenseModal';
 import PremiumModal from './components/PremiumModal';
 import { AuthProvider } from './AuthContext';
-import { IncomeManager } from './components/IncomeManager';
+
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const ExpenseTabs = lazy(() => import('./components/ExpenseTabs'));
+const PersonalWallet = lazy(() => import('./components/PersonalWallet'));
+const SavingsGoals = lazy(() => import('./components/SavingsGoals'));
+const HelpSupport = lazy(() => import('./components/HelpSupport'));
+const IncomeManager = lazy(() => import('./components/IncomeManager').then(m => ({ default: m.IncomeManager })));
+
 import { getMonthYearKey } from './utils';
 import { useAppData } from './hooks/useAppData';
 import { AdMob } from '@capacitor-community/admob';
@@ -255,77 +257,79 @@ const AppContent: React.FC = () => {
 
       <main className="flex-1 overflow-y-auto px-4 md:px-6 py-6 md:py-8 lg:pb-12 scroll-smooth no-scrollbar">
         <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
-          {currentTab === 'summary' && (
-            <Dashboard
-              coupleInfo={coupleInfo}
-              expenses={expenses}
-              monthKey={selectedMonth}
-              onUpdateSalary1={handleUpdateSalary1}
-              onUpdateSalary2={handleUpdateSalary2}
-              summary={summary}
-              isPremium={isPremium}
-            />
-          )}
-          {currentTab === 'incomes' && (
-            <IncomeManager
-              incomes={incomes}
-              coupleInfo={coupleInfo}
-              monthKey={selectedMonth}
-              isPremium={isPremium}
-              onAddIncome={addIncome}
-              onUpdateIncome={updateIncome}
-              onDeleteIncome={deleteIncome}
-              onShowPremium={() => setIsPremiumModalOpen(true)}
-            />
-          )}
-          {currentTab === 'help' && <HelpSupport />}
-          {currentTab === 'goals' && (
-            <SavingsGoals
-              goals={goals}
-              onAddGoal={addGoal}
-              onUpdateGoal={updateGoal}
-              onDeleteGoal={deleteGoal}
-              isPremium={isPremium}
-            />
-          )}
-          {currentTab === 'wallet1' && (
-            <PersonalWallet
-              person="person1"
-              coupleInfo={coupleInfo}
-              expenses={expenses}
-              monthKey={selectedMonth}
-              onAddExpense={(exp) => openAddExpense(ExpenseType.PERSONAL_P1)}
-              onUpdateExpense={(id, exp) => openAddExpense(ExpenseType.PERSONAL_P1, { ...exp, id } as Expense)}
-              onDeleteExpense={deleteExpense}
-            />
-          )}
-          {currentTab === 'wallet2' && (
-            <PersonalWallet
-              person="person2"
-              coupleInfo={coupleInfo}
-              expenses={expenses}
-              monthKey={selectedMonth}
-              onAddExpense={(exp) => openAddExpense(ExpenseType.PERSONAL_P2)}
-              onUpdateExpense={(id, exp) => openAddExpense(ExpenseType.PERSONAL_P2, { ...exp, id } as Expense)}
-              onDeleteExpense={deleteExpense}
-            />
-          )}
-          {['fixed', 'common', 'equal', 'reimbursement'].includes(currentTab) && (
-            <ExpenseTabs
-              activeTab={currentTab as any}
-              expenses={expenses}
-              monthKey={selectedMonth}
-              coupleInfo={coupleInfo}
-              onAddExpense={(exp) => openAddExpense({
-                'fixed': ExpenseType.FIXED,
-                'common': ExpenseType.COMMON,
-                'equal': ExpenseType.EQUAL,
-                'reimbursement': ExpenseType.REIMBURSEMENT
-              }[currentTab as 'fixed' | 'common' | 'equal' | 'reimbursement'])}
-              onUpdateExpense={(id, exp) => openAddExpense(exp.type, { ...exp, id } as Expense)}
-              onDeleteExpense={deleteExpense}
-            />
-          )}
+          <Suspense fallback={<div className="flex items-center justify-center py-20 opacity-50 font-bold">Carregando...</div>}>
+            {currentTab === 'summary' && (
+              <Dashboard
+                coupleInfo={coupleInfo}
+                expenses={expenses}
+                monthKey={selectedMonth}
+                onUpdateSalary1={handleUpdateSalary1}
+                onUpdateSalary2={handleUpdateSalary2}
+                summary={summary}
+                isPremium={isPremium}
+              />
+            )}
+            {currentTab === 'incomes' && (
+              <IncomeManager
+                incomes={incomes}
+                coupleInfo={coupleInfo}
+                monthKey={selectedMonth}
+                isPremium={isPremium}
+                onAddIncome={addIncome}
+                onUpdateIncome={updateIncome}
+                onDeleteIncome={deleteIncome}
+                onShowPremium={() => setIsPremiumModalOpen(true)}
+              />
+            )}
+            {currentTab === 'help' && <HelpSupport />}
+            {currentTab === 'goals' && (
+              <SavingsGoals
+                goals={goals}
+                onAddGoal={addGoal}
+                onUpdateGoal={updateGoal}
+                onDeleteGoal={deleteGoal}
+                isPremium={isPremium}
+              />
+            )}
+            {currentTab === 'wallet1' && (
+              <PersonalWallet
+                person="person1"
+                coupleInfo={coupleInfo}
+                expenses={expenses}
+                monthKey={selectedMonth}
+                onAddExpense={(exp) => openAddExpense(ExpenseType.PERSONAL_P1)}
+                onUpdateExpense={(id, exp) => openAddExpense(ExpenseType.PERSONAL_P1, { ...exp, id } as Expense)}
+                onDeleteExpense={deleteExpense}
+              />
+            )}
+            {currentTab === 'wallet2' && (
+              <PersonalWallet
+                person="person2"
+                coupleInfo={coupleInfo}
+                expenses={expenses}
+                monthKey={selectedMonth}
+                onAddExpense={(exp) => openAddExpense(ExpenseType.PERSONAL_P2)}
+                onUpdateExpense={(id, exp) => openAddExpense(ExpenseType.PERSONAL_P2, { ...exp, id } as Expense)}
+                onDeleteExpense={deleteExpense}
+              />
+            )}
+            {['fixed', 'common', 'equal', 'reimbursement'].includes(currentTab) && (
+              <ExpenseTabs
+                activeTab={currentTab as any}
+                expenses={expenses}
+                monthKey={selectedMonth}
+                coupleInfo={coupleInfo}
+                onAddExpense={(exp) => openAddExpense({
+                  'fixed': ExpenseType.FIXED,
+                  'common': ExpenseType.COMMON,
+                  'equal': ExpenseType.EQUAL,
+                  'reimbursement': ExpenseType.REIMBURSEMENT
+                }[currentTab as 'fixed' | 'common' | 'equal' | 'reimbursement'])}
+                onUpdateExpense={(id, exp) => openAddExpense(exp.type, { ...exp, id } as Expense)}
+                onDeleteExpense={deleteExpense}
+              />
+            )}
+          </Suspense>
         </div>
       </main>
 

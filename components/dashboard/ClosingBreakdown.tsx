@@ -98,4 +98,4 @@ const ClosingBreakdown: React.FC<Props> = ({ coupleInfo, summary }) => {
     );
 };
 
-export default ClosingBreakdown;
+export default React.memo(ClosingBreakdown);

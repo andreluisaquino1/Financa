@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CoupleInfo, Expense, MonthlySummary } from '../types';
 import { formatCurrency } from '../utils';
 import SalaryCard from './dashboard/SalaryCard';
@@ -37,6 +37,10 @@ const Dashboard: React.FC<Props> = ({
 
   const p1Left = summary.person1TotalIncome - summary.person1Responsibility - summary.person1PersonalTotal;
   const p2Left = summary.person2TotalIncome - summary.person2Responsibility - summary.person2PersonalTotal;
+
+  const sortedCategories = useMemo(() => {
+    return Object.entries(summary.categoryTotals).sort((a, b) => b[1] - a[1]);
+  }, [summary.categoryTotals]);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -181,7 +185,7 @@ const Dashboard: React.FC<Props> = ({
 
       {/* Cards de Saldo Individual */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <BalanceCard
+        < BalanceCard
           name={coupleInfo.person1Name}
           personal={summary.person1PersonalTotal}
           left={p1Left}
@@ -204,27 +208,25 @@ const Dashboard: React.FC<Props> = ({
             <h3 className="font-black text-slate-900 dark:text-slate-100 text-xl tracking-tight">Categorias</h3>
             <p className="text-slate-400 dark:text-slate-500 text-sm font-medium">Distribuição dos custos</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-xl grayscale opacity-50">🧭</div>
+          <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-xl grayscale opacity-30">🧭</div>
         </div>
 
         <CategoryChart data={summary.categoryTotals} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
-          {Object.entries(summary.categoryTotals)
-            .sort((a, b) => b[1] - a[1])
-            .map(([category, total]) => (
-              <div key={category} className="flex items-center justify-between p-5 bg-slate-50/50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl dark:hover:shadow-none group">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm group-hover:bg-p1 group-hover:text-white transition-colors">
-                    <span className="text-xs font-bold">#</span>
-                  </div>
-                  <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">{category}</span>
+          {sortedCategories.map(([category, total]) => (
+            <div key={category} className="flex items-center justify-between p-5 bg-slate-50/50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl dark:hover:shadow-none group">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm group-hover:bg-p1 group-hover:text-white transition-colors">
+                  <span className="text-xs font-bold">#</span>
                 </div>
-                <span className="text-sm font-black text-slate-900 dark:text-slate-200">{formatCurrency(total)}</span>
+                <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">{category}</span>
               </div>
-            ))}
+              <span className="text-sm font-black text-slate-900 dark:text-slate-200">{formatCurrency(total)}</span>
+            </div>
+          ))}
 
-          {Object.keys(summary.categoryTotals).length === 0 && (
+          {sortedCategories.length === 0 && (
             <div className="col-span-full py-16 text-center">
               <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full mx-auto flex items-center justify-center text-3xl mb-4 grayscale opacity-30">📊</div>
               <p className="text-slate-400 dark:text-slate-500 font-bold italic tracking-tight">Nenhum gasto registrado.</p>
@@ -232,9 +234,8 @@ const Dashboard: React.FC<Props> = ({
           )}
         </div>
       </div>
-
-    </div >
+    </div>
   );
 };
 
-export default Dashboard;
+export default React.memo(Dashboard);
