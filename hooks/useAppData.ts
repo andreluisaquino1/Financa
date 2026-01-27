@@ -23,10 +23,7 @@ export const useAppData = () => {
     const [dataLoading, setDataLoading] = useState(true);
     const [householdId, setHouseholdId] = useState<string | null>(null);
     const [inviteCode, setInviteCode] = useState<string | null>(null);
-    const [isPremium, setIsPremium] = useState<boolean>(() => {
-        const saved = localStorage.getItem('isPremium');
-        return saved ? JSON.parse(saved) : false;
-    });
+    const [isPremium, setIsPremium] = useState<boolean>(true); // SEMPRE PREMIUM - desativado lógica PRO/grátis
 
     const loadData = useCallback(async () => {
         if (!user) {
@@ -59,17 +56,8 @@ export const useAppData = () => {
                 setHouseholdId(activeHouseholdId);
                 setInviteCode(profile.invite_code);
 
-                // Check premium status at household level
-                const { data: householdProfiles, error: hhError } = await supabase
-                    .from('user_profiles')
-                    .select('is_premium')
-                    .eq('household_id', activeHouseholdId);
-
-                if (!hhError && householdProfiles) {
-                    const isHouseholdPremium = householdProfiles.some(h => !!h.is_premium);
-                    setIsPremium(isHouseholdPremium);
-                    localStorage.setItem('isPremium', JSON.stringify(isHouseholdPremium));
-                }
+                // DESATIVADO: Lógica PRO/grátis - todos são Premium agora
+                // isPremium já é true por padrão
 
                 if (!profile.invite_code) {
                     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -670,19 +658,10 @@ export const useAppData = () => {
         }
     }, [user]);
 
-    const updatePremiumStatus = useCallback(async (status: boolean) => {
-        if (!user) return;
-        try {
-            const { error } = await supabase
-                .from('user_profiles')
-                .update({ is_premium: status })
-                .eq('id', user.id);
-            if (error) throw error;
-            setIsPremium(status);
-        } catch (err: any) {
-            console.error('Error updating premium status:', err);
-        }
-    }, [user]);
+    // DESATIVADO: Lógica PRO/grátis - todos são Premium agora
+    const updatePremiumStatus = useCallback(async (_status: boolean) => {
+        // No-op: premium sempre true
+    }, []);
 
     return {
         user,
