@@ -2,7 +2,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { CoupleInfo, MonthlySummary, Expense, ExpenseType } from './types';
-import { formatCurrency } from './utils';
+import { formatCurrency, isExpenseInMonth, getMonthlyExpenseValue, getInstallmentInfo } from './utils';
 
 export const exportMonthlyPDF = (
     monthKey: string,
@@ -123,16 +123,20 @@ export const exportMonthlyPDF = (
     doc.text('EXTRATO DETALHADO DE TRANSAÇÕES', 20, 13);
 
     const expenseData = expenses
-        .filter(e => e.date.startsWith(monthKey))
+        .filter(e => isExpenseInMonth(e, monthKey))
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .map(e => [
-            new Date(e.date).toLocaleDateString('pt-BR'),
-            e.description,
-            e.category,
-            e.type === ExpenseType.FIXED ? 'Fixo' : e.type === ExpenseType.COMMON ? 'Prop.' : e.type === ExpenseType.EQUAL ? '50/50' : 'Reemb.',
-            e.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name,
-            formatCurrency(e.totalValue)
-        ]);
+        .map(e => {
+            const inst = getInstallmentInfo(e, monthKey);
+            const desc = inst ? `${e.description} (${inst.current}/${inst.total})` : e.description;
+            return [
+                new Date(e.date).toLocaleDateString('pt-BR'),
+                desc,
+                e.category,
+                e.type === ExpenseType.FIXED ? 'Fixo' : e.type === ExpenseType.COMMON ? 'Prop.' : e.type === ExpenseType.EQUAL ? '50/50' : (e.type === ExpenseType.REIMBURSEMENT ? 'Reemb.' : 'Indiv.'),
+                e.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name,
+                formatCurrency(getMonthlyExpenseValue(e, monthKey))
+            ];
+        });
 
     autoTable(doc, {
         startY: 30,

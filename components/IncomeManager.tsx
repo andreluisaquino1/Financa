@@ -209,7 +209,49 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
+            {/* Mobile View */}
+            <div className="block lg:hidden space-y-4">
+                {monthIncomes.length === 0 ? (
+                    <div className="py-12 text-center bg-white dark:bg-slate-800/40 rounded-3xl border border-dashed border-slate-200 dark:border-white/5">
+                        <p className="text-slate-400 font-bold italic">Nenhuma receita registrada.</p>
+                    </div>
+                ) : monthIncomes.map(inc => (
+                    <div key={inc.id} className={`p-5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4 ${(inc as any).isVirtual ? 'bg-blue-50/40 dark:bg-blue-900/10' : 'bg-white dark:bg-slate-800/60'}`}>
+                        <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-3">
+                                <span className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg shadow-sm ${(inc as any).isVirtual ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-slate-50 dark:bg-slate-900'}`}>
+                                    {(inc as any).isVirtual ? '🔄' : (CATEGORIES.find(c => c.label === inc.category)?.icon || '💰')}
+                                </span>
+                                <div>
+                                    <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{inc.description}</h4>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{inc.category}</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-black text-slate-900 dark:text-slate-100 text-lg">{formatCurrency(inc.value)}</p>
+                                <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-lg ${inc.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
+                                    {inc.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-3 border-t border-slate-50 dark:border-white/5">
+                            <button onClick={() => openModal(inc)} className="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl text-slate-400">📝</button>
+                            <button onClick={() => {
+                                if ((inc as any).isVirtual) {
+                                    if (confirm('Deseja remover este salário fixo recorrente?')) {
+                                        onUpdateBaseSalary(inc.paidBy, 0, inc.description);
+                                    }
+                                } else {
+                                    onDeleteIncome(inc.id);
+                                }
+                            }} className="p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl text-slate-400">🗑️</button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden lg:block bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
                 <table className="w-full border-collapse text-left">
                     <thead>
                         <tr className="border-b border-slate-50 dark:border-white/5">
@@ -220,11 +262,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                        {monthIncomes.length === 0 ? (
-                            <tr>
-                                <td colSpan={4} className="px-6 py-12 text-center text-slate-400 font-bold italic">Nenhuma receita registrada este mês.</td>
-                            </tr>
-                        ) : monthIncomes.map(inc => (
+                        {monthIncomes.map(inc => (
                             <tr key={inc.id} className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${(inc as any).isVirtual ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''}`}>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
@@ -257,7 +295,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                         <button onClick={() => openModal(inc)} className="p-2 text-slate-400 hover:text-p1 hover:bg-p1/5 rounded-xl transition-all" title={(inc as any).isVirtual ? "Editar este mês" : "Editar"}>📝</button>
                                         <button onClick={() => {
                                             if ((inc as any).isVirtual) {
-                                                if (confirm('Deseja remover este salário fixo recorrente? Isso irá parar de gerar entradas futuras.')) {
+                                                if (confirm('Deseja remover este salário fixo recorrente?')) {
                                                     onUpdateBaseSalary(inc.paidBy, 0, inc.description);
                                                 }
                                             } else {

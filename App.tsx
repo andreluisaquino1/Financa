@@ -376,15 +376,14 @@ const AppContent: React.FC = () => {
         </div>
       </main>
 
-      <nav className="lg:hidden flex-shrink-0 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl border-t dark:border-white/5 flex items-center p-2 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar scroll-smooth">
-        <div className="flex min-w-max space-x-1 px-2 mx-auto">
+      <nav className="lg:hidden flex-shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl border-t dark:border-white/5 flex items-center h-[72px] pb-[safe-area-inset-bottom] z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex w-full px-2 items-center justify-around max-w-md mx-auto">
           <MobileTab active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" label="Início" />
-          <MobileTab active={currentTab === 'incomes'} onClick={() => setCurrentTab('incomes')} icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Receitas" />
+          <MobileTab active={currentTab === 'incomes'} onClick={() => setCurrentTab('incomes')} icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Renda" />
           <MobileTab active={currentTab === 'expenses'} onClick={() => setCurrentTab('expenses')} icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" label="Gastos" />
-          <MobileTab active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} icon="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" label="Reemb." />
-          <MobileTab active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={`${coupleInfo.person1Name.slice(0, 3)}`} />
-          <MobileTab active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} icon="M20 7a4 4 0 11-8 0 4 4 0 018 0zM16 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={`${coupleInfo.person2Name.slice(0, 3)}`} />
-          <MobileTab active={currentTab === 'goals'} onClick={() => setCurrentTab('goals')} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" label="Metas" />
+          <MobileTab active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} icon="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" label="Reemb" />
+          <MobileTab active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person1Name.slice(0, 5)} />
+          <MobileTab active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person2Name.slice(0, 5)} />
         </div>
       </nav>
 
@@ -453,11 +452,13 @@ const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }>
 );
 
 const MobileTab: React.FC<{ active: boolean, onClick: () => void, icon: string, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex flex-col items-center px-3.5 py-1 transition-all ${active ? 'text-p1' : 'text-slate-400 dark:text-slate-600'}`}>
-    <div className={`p-1.5 rounded-xl transition-colors ${active ? 'bg-p1/10' : ''}`}>
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d={icon} /></svg>
+  <button onClick={onClick} className={`flex flex-col items-center justify-center px-1.5 py-1 transition-all rounded-xl ${active ? 'bg-p1/5' : ''} min-w-[64px]`}>
+    <div className={`p-1.5 rounded-xl transition-all ${active ? 'text-p1 scale-110' : 'text-slate-400 dark:text-slate-600'}`}>
+      <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2} d={icon} /></svg>
     </div>
-    <span className="text-[10px] mt-1 font-bold uppercase tracking-tighter whitespace-nowrap">{label}</span>
+    <span className={`text-[9px] font-black uppercase tracking-tighter whitespace-nowrap transition-all ${active ? 'text-p1 opacity-100 mt-0.5' : 'text-slate-400 opacity-60'}`}>
+      {label}
+    </span>
   </button>
 );
 

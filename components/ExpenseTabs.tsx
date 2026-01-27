@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Expense, ExpenseType, CoupleInfo } from '../types';
-import { formatCurrency, parseSafeDate } from '../utils';
+import { formatCurrency, parseSafeDate, isExpenseInMonth, getMonthlyExpenseValue, getInstallmentInfo } from '../utils';
 
 interface Props {
   activeTab: 'expenses' | 'reimbursement';
@@ -23,15 +23,16 @@ const ExpenseTabs: React.FC<Props> = ({
 }) => {
   const filteredExpenses = useMemo(() => {
     return expenses.filter(e => {
-      const isMonthMatch = e.date.startsWith(monthKey);
+      const isInMonth = isExpenseInMonth(e, monthKey);
 
       if (activeTab === 'expenses') {
-        return e.type === ExpenseType.FIXED ||
-          ((e.type === ExpenseType.COMMON || e.type === ExpenseType.EQUAL) && isMonthMatch);
+        return (e.type === ExpenseType.FIXED ||
+          e.type === ExpenseType.COMMON ||
+          e.type === ExpenseType.EQUAL) && isInMonth;
       }
 
       if (activeTab === 'reimbursement') {
-        return e.type === ExpenseType.REIMBURSEMENT && isMonthMatch;
+        return e.type === ExpenseType.REIMBURSEMENT && isInMonth;
       }
 
       return false;
@@ -42,6 +43,67 @@ const ExpenseTabs: React.FC<Props> = ({
   const variableExpenses = useMemo(() => filteredExpenses.filter(e => e.type !== ExpenseType.FIXED && e.type !== ExpenseType.REIMBURSEMENT), [filteredExpenses]);
   const reimbursementExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT), [filteredExpenses]);
 
+  const renderMobileList = (list: Expense[], emptyMessage: string) => (
+    <div className="space-y-4">
+      {list.map(exp => {
+        const value = getMonthlyExpenseValue(exp, monthKey);
+        const instInfo = getInstallmentInfo(exp, monthKey);
+        const isP1 = exp.paidBy === 'person1';
+
+        return (
+          <div key={exp.id} className="bg-white dark:bg-slate-800/60 p-5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg">
+                    {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase">{exp.category}</span>
+                </div>
+                <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>
+              </div>
+              <div className="text-right">
+                <p className="font-black text-slate-900 dark:text-slate-100 text-lg">{formatCurrency(value)}</p>
+                {instInfo && (
+                  <span className="text-[10px] font-black text-p1 bg-p1/10 px-2 py-0.5 rounded-lg uppercase">
+                    Parcela {instInfo.current}/{instInfo.total}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-white/5">
+              <div className="flex items-center gap-2">
+                <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-lg ${isP1 ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
+                  Pago por {isP1 ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
+                </span>
+                {exp.splitMethod === 'custom' && (
+                  <span className="text-[9px] font-black uppercase px-2 py-1 rounded-lg bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">
+                    {exp.splitPercentage1}% / {100 - (exp.splitPercentage1 || 50)}%
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => onUpdateExpense(exp.id, exp)} className="p-2.5 text-slate-400 hover:text-p1 bg-slate-50 dark:bg-slate-900 rounded-xl transition-all">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                </button>
+                <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="p-2.5 text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-900 rounded-xl transition-all">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+
+      {list.length === 0 && (
+        <div className="py-12 text-center bg-white dark:bg-slate-800/40 rounded-3xl border border-dashed border-slate-200 dark:border-white/5">
+          <p className="text-slate-400 dark:text-slate-600 text-[10px] font-black uppercase tracking-widest">{emptyMessage}</p>
+        </div>
+      )}
+    </div>
+  );
+
   const renderExpenseTable = (list: Expense[], title?: string, emptyMessage: string = "Nenhum gasto encontrado") => (
     <div className="space-y-4">
       {title && (
@@ -50,13 +112,20 @@ const ExpenseTabs: React.FC<Props> = ({
           <div className="h-px bg-slate-100 dark:bg-white/5 flex-1"></div>
         </h3>
       )}
-      <div className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+
+      {/* Mobile View */}
+      <div className="block lg:hidden">
+        {renderMobileList(list, emptyMessage)}
+      </div>
+
+      {/* Desktop View */}
+      <div className="hidden lg:block bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5">
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[100px]">Data</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center sm:text-left min-w-[200px]">Descrição</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:table-cell">Categoria</th>
                 {activeTab === 'expenses' && (
                   <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell">Divisão</th>
@@ -68,9 +137,8 @@ const ExpenseTabs: React.FC<Props> = ({
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
               {list.map(exp => {
-                const value = (exp.type === ExpenseType.FIXED && exp.metadata?.overrides?.[monthKey])
-                  ? exp.metadata.overrides[monthKey]
-                  : exp.totalValue;
+                const value = getMonthlyExpenseValue(exp, monthKey);
+                const instInfo = getInstallmentInfo(exp, monthKey);
 
                 return (
                   <tr key={exp.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
@@ -88,13 +156,9 @@ const ExpenseTabs: React.FC<Props> = ({
                             Dia {exp.reminderDay}
                           </span>
                         )}
-                      </div>
-                      <div className="sm:hidden flex flex-wrap gap-1 mt-1">
-                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">{exp.category}</span>
-                        {activeTab === 'expenses' && (
-                          <span className="text-[10px] font-black text-p1 uppercase opacity-60">
-                            • {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Prop.'}
-                            {(exp.specificValueP1 || exp.specificValueP2) ? '*' : ''}
+                        {instInfo && (
+                          <span className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
+                            {instInfo.current}/{instInfo.total}
                           </span>
                         )}
                       </div>
@@ -135,14 +199,6 @@ const ExpenseTabs: React.FC<Props> = ({
                   </tr>
                 );
               })}
-
-              {list.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
-                    <p className="text-slate-400 dark:text-slate-600 text-[10px] font-black uppercase tracking-widest">{emptyMessage}</p>
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>

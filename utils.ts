@@ -41,6 +41,29 @@ const roundMoney = (num: number): number => {
   return Math.round((num + Number.EPSILON) * 100) / 100;
 };
 
+export const isExpenseInMonth = (exp: Expense, monthKey: string): boolean => {
+  const [targetYear, targetMonth] = monthKey.split('-').map(Number);
+  const expDate = parseSafeDate(exp.date);
+  const diffMonths = (targetYear - expDate.getFullYear()) * 12 + (targetMonth - (expDate.getMonth() + 1));
+
+  return diffMonths >= 0 && (exp.type === ExpenseType.FIXED || diffMonths < (exp.installments || 1));
+};
+
+export const getMonthlyExpenseValue = (exp: Expense, monthKey: string): number => {
+  if (exp.type === ExpenseType.FIXED && exp.metadata?.overrides?.[monthKey]) {
+    return exp.metadata.overrides[monthKey];
+  }
+  return roundMoney(exp.totalValue / (exp.installments || 1));
+};
+
+export const getInstallmentInfo = (exp: Expense, monthKey: string): { current: number; total: number } | null => {
+  if (exp.type === ExpenseType.FIXED || !exp.installments || exp.installments <= 1) return null;
+  const [targetYear, targetMonth] = monthKey.split('-').map(Number);
+  const expDate = parseSafeDate(exp.date);
+  const diffMonths = (targetYear - expDate.getFullYear()) * 12 + (targetMonth - (expDate.getMonth() + 1));
+  return { current: diffMonths + 1, total: exp.installments };
+};
+
 export const calculateSummary = (
   expenses: Expense[],
   incomes: Income[],
@@ -121,16 +144,9 @@ export const calculateSummary = (
   const categoryTotals: Record<string, number> = {};
 
   expenses.forEach((exp) => {
-    const expDate = parseSafeDate(exp.date);
-    const diffMonths = (targetYear - expDate.getFullYear()) * 12 + (targetMonth - (expDate.getMonth() + 1));
+    if (!isExpenseInMonth(exp, monthKey)) return;
 
-    const isValidMonth = diffMonths >= 0 && (exp.type === ExpenseType.FIXED || diffMonths < exp.installments);
-    if (!isValidMonth) return;
-
-    let monthlyValue = roundMoney(exp.totalValue / exp.installments);
-    if (exp.metadata?.overrides?.[monthKey]) {
-      monthlyValue = exp.metadata.overrides[monthKey];
-    }
+    const monthlyValue = getMonthlyExpenseValue(exp, monthKey);
 
     const cat = exp.category || 'Outros';
     categoryTotals[cat] = roundMoney((categoryTotals[cat] || 0) + monthlyValue);

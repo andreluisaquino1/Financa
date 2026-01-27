@@ -97,47 +97,47 @@ const Dashboard: React.FC<Props> = ({
           <div className="absolute top-0 right-0 w-64 h-64 bg-p1 rounded-full -mr-32 -mt-32 blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-p2 rounded-full -ml-32 -mb-32 blur-[100px] opacity-10 group-hover:opacity-20 transition-opacity"></div>
 
-          <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
-            <div className="flex items-center gap-6">
-              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-2xl shadow-2xl">🤝</div>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 relative z-10">
+            <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-xl md:text-2xl shadow-2xl shrink-0">🤝</div>
               <div>
-                <h3 className="font-black text-white/40 uppercase tracking-[0.3em] text-[10px] mb-1">Acerto Financeiro</h3>
-                <p className="text-lg font-bold text-white tracking-tight">Equilíbrio da Casa</p>
+                <h3 className="font-black text-white/40 uppercase tracking-[0.2em] md:tracking-[0.3em] text-[8px] md:text-[10px] mb-0.5 md:mb-1">Acerto Financeiro</h3>
+                <p className="text-base md:text-lg font-bold text-white tracking-tight">Equilíbrio da Casa</p>
               </div>
             </div>
 
             <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
               {summary.whoTransfers !== 'none' ? (
                 <>
-                  <div className={`px-5 py-2.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest text-center border ${summary.whoTransfers === 'person1' ? 'bg-p1/20 border-p1/20 text-p1' : 'bg-p2/20 border-p2/20 text-p2'}`}>
+                  <div className={`w-full md:w-auto px-4 md:px-5 py-2 md:py-2.5 rounded-[1.25rem] text-[9px] md:text-[10px] font-black uppercase tracking-widest text-center border ${summary.whoTransfers === 'person1' ? 'bg-p1/20 border-p1/20 text-p1' : 'bg-p2/20 border-p2/20 text-p2'}`}>
                     {summary.whoTransfers === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]} deve transferir
                   </div>
-                  <div className="bg-white dark:bg-slate-100 px-6 py-4 rounded-xl shadow-md">
-                    <p className="text-slate-950 text-3xl font-black tracking-tighter text-center">{formatCurrency(summary.transferAmount)}</p>
+                  <div className="bg-white dark:bg-slate-100 px-6 py-3 md:py-4 rounded-xl shadow-md w-full md:w-auto">
+                    <p className="text-slate-950 text-2xl md:text-3xl font-black tracking-tighter text-center">{formatCurrency(summary.transferAmount)}</p>
                   </div>
                 </>
               ) : (
-                <div className="flex items-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-6 py-4 rounded-2xl text-emerald-400 font-black text-sm uppercase tracking-widest">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                <div className="flex items-center justify-center gap-3 bg-emerald-500/10 border border-emerald-500/20 px-6 py-4 rounded-2xl text-emerald-400 font-black text-xs md:text-sm uppercase tracking-widest w-full md:w-auto">
+                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                   Contas Equilibradas
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full md:w-auto justify-center">
                 {isPremium && (
                   <button
                     onClick={() => exportMonthlyPDF(monthKey, coupleInfo, summary, expenses)}
-                    className="p-3 rounded-2xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all active:scale-95 flex items-center gap-2"
+                    className="flex-1 md:flex-none p-3 rounded-2xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                     title="Exportar PDF PRO"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                    <span className="text-[10px] font-black uppercase tracking-tighter hidden sm:inline">Exportar PDF</span>
+                    <span className="text-[10px] font-black uppercase tracking-tighter sm:inline">PDF</span>
                   </button>
                 )}
 
                 <button
                   onClick={() => setShowBreakdown(!showBreakdown)}
-                  className="p-3 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+                  className="flex-1 md:flex-none p-3 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center"
                   title="Ver detalhes do cálculo"
                 >
                   <svg className={`w-6 h-6 transition-transform ${showBreakdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>

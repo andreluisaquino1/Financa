@@ -322,7 +322,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 ))}
                             </select>
                         </div>
-                        {isJoint && currentType !== ExpenseType.FIXED && (
+                        {currentType !== ExpenseType.FIXED && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Parcelas</label>
                                 <input

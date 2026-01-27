@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { CoupleInfo, Expense, ExpenseType } from '../types';
-import { formatCurrency, parseSafeDate } from '../utils';
+import { formatCurrency, parseSafeDate, isExpenseInMonth, getMonthlyExpenseValue, getInstallmentInfo } from '../utils';
 
 interface Props {
     person: 'person1' | 'person2';
@@ -28,12 +28,12 @@ const PersonalWallet: React.FC<Props> = ({
     const accentText = person === 'person1' ? 'text-p1' : 'text-p2';
 
     const filteredExpenses = useMemo(() => {
-        return expenses.filter(e => e.type === type && e.date.startsWith(monthKey));
+        return expenses.filter(e => e.type === type && isExpenseInMonth(e, monthKey));
     }, [expenses, type, monthKey]);
 
     const total = useMemo(() => {
-        return filteredExpenses.reduce((acc, curr) => acc + curr.totalValue, 0);
-    }, [filteredExpenses]);
+        return filteredExpenses.reduce((acc, curr) => acc + getMonthlyExpenseValue(curr, monthKey), 0);
+    }, [filteredExpenses, monthKey]);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -61,7 +61,45 @@ const PersonalWallet: React.FC<Props> = ({
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
+            {/* Mobile View */}
+            <div className="block sm:hidden space-y-4">
+                {filteredExpenses.map(exp => (
+                    <div key={exp.id} className="bg-white dark:bg-slate-800/60 p-5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg">
+                                        {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                    </span>
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase">{exp.category}</span>
+                                </div>
+                                <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>
+                            </div>
+                            <div className="text-right">
+                                <p className={`font-black text-lg ${person === 'person1' ? 'text-p1' : 'text-p2'}`}>
+                                    {formatCurrency(getMonthlyExpenseValue(exp, monthKey))}
+                                </p>
+                                {getInstallmentInfo(exp, monthKey) && (
+                                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">
+                                        {getInstallmentInfo(exp, monthKey)?.current}/{getInstallmentInfo(exp, monthKey)?.total}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-3 border-t border-slate-50 dark:border-white/5">
+                            <button onClick={() => onUpdateExpense(exp.id, exp)} className={`p-2.5 text-slate-400 hover:${accentText} bg-slate-50 dark:bg-slate-900 rounded-xl transition-all`}>
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            </button>
+                            <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="p-2.5 text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-900 rounded-xl transition-all">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden sm:block bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -70,7 +108,7 @@ const PersonalWallet: React.FC<Props> = ({
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:table-cell">Categoria</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"></th>
+                                <th className="px-6 py-4"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-white/5">
@@ -80,14 +118,20 @@ const PersonalWallet: React.FC<Props> = ({
                                         {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                                     </td>
                                     <td className="px-6 py-5">
-                                        <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
-                                        <p className="sm:hidden text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5">{exp.category}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
+                                            {getInstallmentInfo(exp, monthKey) && (
+                                                <span className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
+                                                    {getInstallmentInfo(exp, monthKey)?.current}/{getInstallmentInfo(exp, monthKey)?.total}
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-5 hidden sm:table-cell">
                                         <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/5 px-3 py-1.5 rounded-xl">{exp.category}</span>
                                     </td>
                                     <td className="px-6 py-5 text-right whitespace-nowrap font-black text-slate-900 dark:text-slate-100 text-sm">
-                                        {formatCurrency(exp.totalValue)}
+                                        {formatCurrency(getMonthlyExpenseValue(exp, monthKey))}
                                     </td>
                                     <td className="px-6 py-5">
                                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -101,20 +145,19 @@ const PersonalWallet: React.FC<Props> = ({
                                     </td>
                                 </tr>
                             ))}
-                            {filteredExpenses.length === 0 && (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-20 text-center">
-                                        <div className="flex flex-col items-center">
-                                            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center text-2xl mb-4 grayscale opacity-50">👛</div>
-                                            <p className="text-slate-400 dark:text-slate-600 font-bold">Nenhum gasto individual</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            {filteredExpenses.length === 0 && (
+                <div className="py-20 text-center bg-white dark:bg-slate-800/40 rounded-3xl border border-dashed border-slate-200 dark:border-white/5">
+                    <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center text-2xl mb-4 grayscale opacity-50">👛</div>
+                        <p className="text-slate-400 dark:text-slate-600 font-bold uppercase text-[10px] tracking-widest">Nenhum gasto individual</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
