@@ -55,7 +55,15 @@ export const useAppData = () => {
                 const activeHouseholdId = profile.household_id || profile.id;
                 setHouseholdId(activeHouseholdId);
                 setInviteCode(profile.invite_code);
-                setIsPremium(!!profile.is_premium);
+
+                // Check premium status at household level
+                const { data: householdProfiles } = await supabase
+                    .from('user_profiles')
+                    .select('is_premium')
+                    .eq('household_id', activeHouseholdId);
+
+                const isHouseholdPremium = householdProfiles?.some(h => !!h.is_premium) || false;
+                setIsPremium(isHouseholdPremium);
 
                 if (!profile.invite_code) {
                     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();

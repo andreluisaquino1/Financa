@@ -11,6 +11,7 @@ interface IncomeManagerProps {
     onAddIncome: (inc: any) => void;
     onUpdateIncome: (id: string, inc: any) => void;
     onDeleteIncome: (id: string) => void;
+    onUpdateBaseSalary: (person: 'person1' | 'person2', value: number) => void;
     onShowPremium: () => void;
 }
 
@@ -29,6 +30,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     onAddIncome,
     onUpdateIncome,
     onDeleteIncome,
+    onUpdateBaseSalary,
     onShowPremium
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,6 +40,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     const [value, setValue] = useState('');
     const [paidBy, setPaidBy] = useState<'person1' | 'person2'>('person1');
     const [category, setCategory] = useState('Salário');
+    const [setAsDefault, setSetAsDefault] = useState(false);
 
     const monthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
     const totalP1 = monthIncomes.filter(i => i.paidBy === 'person1').reduce((sum, i) => sum + i.value, 0);
@@ -64,6 +67,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
             setPaidBy('person1');
             setCategory('Salário');
         }
+        setSetAsDefault(false);
         setIsModalOpen(true);
     };
 
@@ -81,6 +85,11 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
         } else {
             onAddIncome(payload);
         }
+
+        if (setAsDefault && category === 'Salário') {
+            onUpdateBaseSalary(paidBy, payload.value);
+        }
+
         setIsModalOpen(false);
     };
 
@@ -253,6 +262,26 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                     />
                                 </div>
                             </div>
+
+                            {category === 'Salário' && (
+                                <div className="flex items-center gap-3 px-1 py-1">
+                                    <button
+                                        onClick={() => setSetAsDefault(!setAsDefault)}
+                                        className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${setAsDefault ? 'bg-p1 border-p1' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-white/10'}`}
+                                    >
+                                        {setAsDefault && <span className="text-white text-[10px]">✓</span>}
+                                    </button>
+                                    <div className="flex flex-col">
+                                        <label
+                                            onClick={() => setSetAsDefault(!setAsDefault)}
+                                            className="text-[10px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight cursor-pointer"
+                                        >
+                                            Definir como Salário Base
+                                        </label>
+                                        <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500">Isso atualizará seu salário fixo para os próximos meses</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 mt-8">

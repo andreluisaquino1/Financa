@@ -7,9 +7,7 @@ const coupleInfo: CoupleInfo = {
     person1Name: 'André',
     person2Name: 'Luciana',
     salary1: 8000,
-    salary2: 4000,
-    andreCreditCardValue: 500,
-    andrePersonalExpenses: 0
+    salary2: 4000
 };
 
 const expenses: Expense[] = [
@@ -51,14 +49,13 @@ const expenses: Expense[] = [
 const monthKey = '2026-01';
 
 // Run test
-const summary = calculateSummary(expenses, coupleInfo, monthKey);
+const summary = calculateSummary(expenses, [], coupleInfo, monthKey);
 
 console.log('=== TESTE DE CÁLCULOS ===');
 console.log('');
 console.log('Dados de Entrada:');
 console.log(`  Salário André: R$ ${coupleInfo.salary1}`);
 console.log(`  Salário Luciana: R$ ${coupleInfo.salary2}`);
-console.log(`  Cartão André: R$ ${coupleInfo.andreCreditCardValue}`);
 console.log(`  Proporção: ${(coupleInfo.salary1 / (coupleInfo.salary1 + coupleInfo.salary2) * 100).toFixed(1)}% / ${(coupleInfo.salary2 / (coupleInfo.salary1 + coupleInfo.salary2) * 100).toFixed(1)}%`);
 console.log('');
 console.log('Gastos:');
@@ -85,29 +82,28 @@ console.log('');
 // Aluguel (1200): André deve 800, Luciana deve 400
 // Supermercado (600): André deve 400, Luciana deve 200
 // Cinema 50/50 (100): André deve 50, Luciana deve 50
-// Cartão André (500): André deve 500 (Luciana pagou)
 
-// Responsabilidade André: 800 + 400 + 50 + 500 = 1750
+// Responsabilidade André: 800 + 400 + 50 = 1250
 // Responsabilidade Luciana: 400 + 200 + 50 = 650
 
 // André pagou: 1200 (aluguel) + 100 (cinema) = 1300
-// Luciana pagou: 600 (super) + 500 (cartão) = 1100
+// Luciana pagou: 600 (super) = 600
 
-// Balance André: 1750 - 1300 = 450 (André deve)
-// Balance Luciana: 650 - 1100 = -450 (Luciana recebe)
+// Balance André: 1250 - 1300 = -50 (André recebe)
+// Balance Luciana: 650 - 600 = 50 (Luciana deve)
 
 console.log('=== VERIFICAÇÃO ESPERADA ===');
-console.log('  André deveria: R$ 1750.00');
+console.log('  André deveria: R$ 1250.00');
 console.log('  Luciana deveria: R$ 650.00');
 console.log('  André pagou: R$ 1300');
-console.log('  Luciana pagou: R$ 1100');
-console.log('  André deveria transferir: R$ 450.00');
+console.log('  Luciana pagou: R$ 600');
+console.log('  Luciana deveria transferir: R$ 50.00');
 console.log('');
 
-const passedResp1 = Math.abs(summary.person1Responsibility - 1750) < 0.01;
+const passedResp1 = Math.abs(summary.person1Responsibility - 1250) < 0.01;
 const passedResp2 = Math.abs(summary.person2Responsibility - 650) < 0.01;
-const passedTransfer = Math.abs(summary.transferAmount - 450) < 0.01;
-const passedWho = summary.whoTransfers === 'person1';
+const passedTransfer = Math.abs(summary.transferAmount - 50) < 0.01;
+const passedWho = summary.whoTransfers === 'person2';
 
 console.log('=== RESULTADO DOS TESTES ===');
 console.log(`  Responsabilidade André: ${passedResp1 ? '✅ PASSOU' : '❌ FALHOU'}`);

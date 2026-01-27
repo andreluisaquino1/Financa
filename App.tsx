@@ -149,6 +149,13 @@ const AppContent: React.FC = () => {
     }, true);
   };
 
+  const handleUpdateBaseSalary = (person: 'person1' | 'person2', value: number) => {
+    saveCoupleInfo({
+      ...coupleInfo,
+      [person === 'person1' ? 'salary1' : 'salary2']: value
+    }, true);
+  };
+
   const navigateMonth = (direction: number) => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const date = new Date(year, month - 1 + direction, 1);
@@ -272,6 +279,7 @@ const AppContent: React.FC = () => {
                 onAddIncome={addIncome}
                 onUpdateIncome={updateIncome}
                 onDeleteIncome={deleteIncome}
+                onUpdateBaseSalary={handleUpdateBaseSalary}
                 onShowPremium={() => setIsPremiumModalOpen(true)}
               />
             )}

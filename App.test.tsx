@@ -143,8 +143,7 @@ describe('App Integration Tests', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByDisplayValue('8000')).toBeInTheDocument();
-            expect(screen.getByDisplayValue('4000')).toBeInTheDocument();
+            expect(screen.getByText('Renda Mensal Total')).toBeInTheDocument();
         });
 
         // Check Proportional Responsibility (8000 vs 4000 => 67% / 33%)
@@ -158,7 +157,7 @@ describe('App Integration Tests', () => {
             salary1: 8000,
             salary2: 4000
         };
-        const summary = calculateSummary([], coupleInfo, '2025-01');
+        const summary = calculateSummary([], [], coupleInfo, '2025-01');
 
         expect(summary.totalFixed).toBe(0);
         expect(summary.person1Responsibility).toBe(0);

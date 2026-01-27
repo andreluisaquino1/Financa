@@ -49,21 +49,24 @@ export const calculateSummary = (
   // Somar as rendas do mês por categoria e pessoa
   const monthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
 
-  const p1Salary = monthIncomes
-    .filter(i => i.paidBy === 'person1' && i.category === 'Salário')
-    .reduce((sum, i) => roundMoney(sum + i.value), 0);
+  // Lógica de Continuidade: Se não houver entrada de 'Salário', usa o valor base do perfil
+  const p1SalaryEntries = monthIncomes.filter(i => i.paidBy === 'person1' && i.category === 'Salário');
+  const p1Salary = p1SalaryEntries.length > 0
+    ? p1SalaryEntries.reduce((sum, i) => roundMoney(sum + i.value), 0)
+    : (coupleInfo.salary1 || 0);
 
-  const p2Salary = monthIncomes
-    .filter(i => i.paidBy === 'person2' && i.category === 'Salário')
-    .reduce((sum, i) => roundMoney(sum + i.value), 0);
+  const p2SalaryEntries = monthIncomes.filter(i => i.paidBy === 'person2' && i.category === 'Salário');
+  const p2Salary = p2SalaryEntries.length > 0
+    ? p2SalaryEntries.reduce((sum, i) => roundMoney(sum + i.value), 0)
+    : (coupleInfo.salary2 || 0);
 
-  const totalIncome1 = monthIncomes
-    .filter(i => i.paidBy === 'person1')
-    .reduce((sum, i) => roundMoney(sum + i.value), 0);
+  const totalIncome1 = roundMoney(p1Salary + monthIncomes
+    .filter(i => i.paidBy === 'person1' && i.category !== 'Salário')
+    .reduce((sum, i) => roundMoney(sum + i.value), 0));
 
-  const totalIncome2 = monthIncomes
-    .filter(i => i.paidBy === 'person2')
-    .reduce((sum, i) => roundMoney(sum + i.value), 0);
+  const totalIncome2 = roundMoney(p2Salary + monthIncomes
+    .filter(i => i.paidBy === 'person2' && i.category !== 'Salário')
+    .reduce((sum, i) => roundMoney(sum + i.value), 0));
 
   const combinedTotalIncome = roundMoney(totalIncome1 + totalIncome2);
   const combinedSalaries = roundMoney(p1Salary + p2Salary);
