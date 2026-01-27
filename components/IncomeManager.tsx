@@ -242,9 +242,15 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button onClick={() => openModal(inc)} className="p-2 text-slate-400 hover:text-p1 hover:bg-p1/5 rounded-xl transition-all" title={(inc as any).isVirtual ? "Editar este mês" : "Editar"}>📝</button>
-                                        {!(inc as any).isVirtual && (
-                                            <button onClick={() => onDeleteIncome(inc.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">🗑️</button>
-                                        )}
+                                        <button onClick={() => {
+                                            if ((inc as any).isVirtual) {
+                                                if (confirm('Deseja remover este salário fixo recorrente? Isso irá parar de gerar entradas futuras.')) {
+                                                    onUpdateBaseSalary(inc.paidBy, 0, inc.description);
+                                                }
+                                            } else {
+                                                onDeleteIncome(inc.id);
+                                            }
+                                        }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">🗑️</button>
                                     </div>
                                 </td>
                             </tr>

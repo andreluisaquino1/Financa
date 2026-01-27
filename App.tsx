@@ -162,9 +162,14 @@ const AppContent: React.FC = () => {
     let newIncomes = [...currentIncomes];
 
     if (existingIndex >= 0) {
-      // Update
-      newIncomes[existingIndex] = { ...newIncomes[existingIndex], value, description };
-    } else {
+      if (value === 0) {
+        // Remove
+        newIncomes.splice(existingIndex, 1);
+      } else {
+        // Update
+        newIncomes[existingIndex] = { ...newIncomes[existingIndex], value, description };
+      }
+    } else if (value > 0) {
       // Add new
       newIncomes.push({ id: Date.now().toString(), description, value });
     }
@@ -174,14 +179,23 @@ const AppContent: React.FC = () => {
       [person === 'person1' ? 'person1RecurringIncomes' : 'person2RecurringIncomes']: newIncomes
     };
 
-    // If this is the FIRST recurring income, sync it to legacy fields to be safe
+    // If this is the FIRST recurring income (or if list became empty), sync legacy
     if (newIncomes.length === 1) {
       if (person === 'person1') {
-        updates.salary1 = value;
-        updates.salary1Description = description;
-      } else {
-        updates.salary2 = value;
-        updates.salary2Description = description;
+        updates.salary1 = newIncomes[0].value;
+        updates.salary1Description = newIncomes[0].description;
+      } else if (person === 'person2') {
+        updates.salary2 = newIncomes[0].value;
+        updates.salary2Description = newIncomes[0].description;
+      }
+    } else if (newIncomes.length === 0) {
+      // If empty, clear legacy too
+      if (person === 'person1') {
+        updates.salary1 = 0;
+        updates.salary1Description = '';
+      } else if (person === 'person2') {
+        updates.salary2 = 0;
+        updates.salary2Description = '';
       }
     }
 
