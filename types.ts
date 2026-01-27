@@ -48,6 +48,17 @@ export interface Expense {
   reminderDay?: number; // 1-31
 }
 
+export interface Income {
+  id: string;
+  description: string;
+  value: number;
+  paidBy: 'person1' | 'person2';
+  date: string;
+  household_id?: string;
+  user_id?: string;
+  createdAt: string;
+}
+
 export interface MonthlySummary {
   totalFixed: number;
   totalCommon: number;
@@ -59,6 +70,8 @@ export interface MonthlySummary {
   person2Responsibility: number;
   person1PersonalTotal: number;
   person2PersonalTotal: number;
+  person1TotalIncome: number;
+  person2TotalIncome: number;
   transferAmount: number;
   whoTransfers: 'person1' | 'person2' | 'none';
   categoryTotals: Record<string, number>;

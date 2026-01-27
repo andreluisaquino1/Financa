@@ -24,6 +24,7 @@ interface Props {
   userEmail?: string;
   onSignOut?: () => void;
   onNavigateToHelp?: () => void;
+  onNavigateToIncomes?: () => void;
   onShowHouseholdLink?: () => void;
   onShowPremium?: () => void;
   onDeleteMonthData?: () => void;
@@ -46,6 +47,7 @@ const SidebarMenu: React.FC<Props> = ({
   userEmail,
   onSignOut,
   onNavigateToHelp,
+  onNavigateToIncomes,
   onShowHouseholdLink,
   onShowPremium,
   onDeleteMonthData,
@@ -269,16 +271,54 @@ const SidebarMenu: React.FC<Props> = ({
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <div className="relative group">
-                  <input type="color" value={p1Color} onChange={(e) => setP1Color(e.target.value)} className="w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none cursor-pointer" />
-                  <div className="absolute inset-0 rounded-lg pointer-events-none border-2 border-white dark:border-slate-800 shadow-sm" style={{ backgroundColor: p1Color }}></div>
+                <div
+                  className="relative group cursor-pointer"
+                  onClick={() => !isPremium && onShowPremium?.()}
+                >
+                  <input
+                    type="color"
+                    value={p1Color}
+                    onChange={(e) => isPremium ? setP1Color(e.target.value) : null}
+                    className={`w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none ${isPremium ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                    disabled={!isPremium}
+                  />
+                  <div className="absolute inset-0 rounded-lg pointer-events-none border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center" style={{ backgroundColor: p1Color }}>
+                    {!isPremium && <span className="text-[8px]">🔒</span>}
+                  </div>
                 </div>
-                <div className="relative group">
-                  <input type="color" value={p2Color} onChange={(e) => setP2Color(e.target.value)} className="w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none cursor-pointer" />
-                  <div className="absolute inset-0 rounded-lg pointer-events-none border-2 border-white dark:border-slate-800 shadow-sm" style={{ backgroundColor: p2Color }}></div>
+                <div
+                  className="relative group cursor-pointer"
+                  onClick={() => !isPremium && onShowPremium?.()}
+                >
+                  <input
+                    type="color"
+                    value={p2Color}
+                    onChange={(e) => isPremium ? setP2Color(e.target.value) : null}
+                    className={`w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none ${isPremium ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                    disabled={!isPremium}
+                  />
+                  <div className="absolute inset-0 rounded-lg pointer-events-none border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center" style={{ backgroundColor: p2Color }}>
+                    {!isPremium && <span className="text-[8px]">🔒</span>}
+                  </div>
                 </div>
               </div>
             </div>
+          </section>
+
+          {/* New Income Access Button */}
+          <section className="space-y-4">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
+              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
+              Gestão de Renda
+            </h3>
+            <SidebarBtn
+              icon="💰"
+              label="Bônus & Rendas Extras"
+              onClick={() => {
+                onNavigateToIncomes?.();
+                onClose();
+              }}
+            />
           </section>
 
           <AdBanner isPremium={isPremium} position="sidebar" />

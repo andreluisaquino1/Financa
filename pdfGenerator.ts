@@ -14,63 +14,113 @@ export const exportMonthlyPDF = (
     const [year, month] = monthKey.split('-');
     const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
 
-    // Header Visual
-    doc.setFillColor(30, 41, 59); // Slate 800
-    doc.rect(0, 0, 210, 40, 'F');
+    // Primary Colors
+    const primaryBlue = [37, 99, 235]; // #2563eb
+    const primaryPink = [236, 72, 153]; // #ec4899
+    const darkSlate = [15, 23, 42]; // #0f172a
 
+    // -- PAGE 1: COVER & SUMMARY --
+
+    // Header Bar
+    doc.setFillColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+    doc.rect(0, 0, 210, 50, 'F');
+
+    // Logo / Brand
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
+    doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
-    doc.text('Relatório Mensal de Finanças', 15, 20);
+    doc.text('Finanças em Casal', 20, 25);
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Período: ${monthName.toUpperCase()}`, 15, 30);
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 15, 35);
+    doc.text('RELATÓRIO MENSAL DE PERFORMANCE FINANCEIRA', 20, 32);
 
-    // Summary Table
-    doc.setTextColor(30, 41, 59);
+    // Month Info Box (Right)
+    doc.setFillColor(255, 255, 255, 0.1);
+    doc.rect(140, 15, 55, 20, 'F');
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(monthName.toUpperCase(), 145, 24);
+    doc.setFontSize(8);
+    doc.text(`GERADO EM: ${new Date().toLocaleDateString('pt-BR')}`, 145, 30);
+
+    // --- SUMMARY BOXES ---
+    const drawBox = (x: number, y: number, label: string, value: string, color: number[]) => {
+        doc.setFillColor(248, 250, 252); // Slate 50
+        doc.roundedRect(x, y, 55, 25, 3, 3, 'F');
+        doc.setDrawColor(color[0], color[1], color[2]);
+        doc.line(x, y + 23, x + 55, y + 23); // Bottom accent line
+
+        doc.setTextColor(100, 116, 139); // Slate 500
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text(label.toUpperCase(), x + 5, y + 8);
+
+        doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+        doc.setFontSize(12);
+        doc.text(value, x + 5, y + 18);
+    };
+
+    const totalOut = summary.totalFixed + summary.totalCommon + summary.totalEqual;
+    drawBox(15, 65, 'Total de Gastos', formatCurrency(totalOut), primaryPink);
+    drawBox(77, 65, `Renda ${coupleInfo.person1Name.split(' ')[0]}`, formatCurrency(coupleInfo.salary1), primaryBlue);
+    drawBox(140, 65, `Renda ${coupleInfo.person2Name.split(' ')[0]}`, formatCurrency(coupleInfo.salary2), primaryBlue);
+
+    // --- SETTLEMENT SECTION ---
     doc.setFontSize(14);
-    doc.text('Resumo Financeiro', 15, 55);
+    doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+    doc.text('Fechamento do Mês', 15, 110);
 
     autoTable(doc, {
-        startY: 60,
-        head: [['Descrição', 'Valor']],
+        startY: 115,
+        head: [['Divisão de Responsabilidades', 'Valor']],
         body: [
-            ['Total Gastos Fixos', formatCurrency(summary.totalFixed)],
-            ['Total Gastos Proporcionais', formatCurrency(summary.totalCommon)],
-            ['Total Gastos 50/50', formatCurrency(summary.totalEqual)],
-            ['Total Reembolsos', formatCurrency(summary.totalReimbursement)],
-            ['', ''],
-            [`Responsabilidade ${coupleInfo.person1Name}`, formatCurrency(summary.person1Responsibility)],
-            [`Responsabilidade ${coupleInfo.person2Name}`, formatCurrency(summary.person2Responsibility)],
-            ['', ''],
-            ['ACERTO FINAL', summary.whoTransfers === 'none' ? 'Contas Equilibradas' : `${summary.whoTransfers === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name} transfere ${formatCurrency(summary.transferAmount)}`]
+            [`Responsabilidade de ${coupleInfo.person1Name}`, formatCurrency(summary.person1Responsibility)],
+            [`Responsabilidade de ${coupleInfo.person2Name}`, formatCurrency(summary.person2Responsibility)],
+            ['Diferença a Ajustar', formatCurrency(summary.transferAmount)],
         ],
         theme: 'striped',
-        headStyles: { fillColor: [37, 99, 235] }, // Blue 600
-        styles: { fontSize: 10 }
+        headStyles: { fillColor: primaryBlue as [number, number, number] },
+        styles: { fontStyle: 'bold', cellPadding: 5 }
     });
 
-    // Category Table
-    const lastY = (doc as any).lastAutoTable.finalY + 15;
-    doc.text('Gastos por Categoria', 15, lastY);
+    // Result Highlight
+    const lastY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(15, lastY, 180, 20, 2, 2, 'F');
+    doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+    doc.setFontSize(11);
+    const resultText = summary.whoTransfers === 'none'
+        ? 'As contas estão equilibradas! Ninguém precisa transferir para ninguém.'
+        : `RESULTADO: ${summary.whoTransfers === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name} deve transferir ${formatCurrency(summary.transferAmount)} para o parceiro.`;
+    doc.text(resultText, 25, lastY + 13);
+
+    // --- CATEGORY BREAKDOWN ---
+    const catY = lastY + 45;
+    doc.setFontSize(14);
+    doc.text('Maiores Gastos por Categoria', 15, catY);
 
     const categoryData = Object.entries(summary.categoryTotals)
         .sort((a, b) => b[1] - a[1])
         .map(([cat, val]) => [cat, formatCurrency(val)]);
 
     autoTable(doc, {
-        startY: lastY + 5,
-        head: [['Categoria', 'Total']],
+        startY: catY + 5,
+        head: [['Categoria', 'Total Investido / Gasto']],
         body: categoryData,
         theme: 'grid',
-        headStyles: { fillColor: [30, 41, 59] }
+        headStyles: { fillColor: darkSlate as [number, number, number] },
+        columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } }
     });
 
-    // Full Expenses Table (New Page if needed)
+    // -- PAGE 2: DETAILED LOG --
     doc.addPage();
-    doc.text('Detalhamento de Transações', 15, 20);
+
+    doc.setFillColor(darkSlate[0], darkSlate[1], darkSlate[2]);
+    doc.rect(0, 0, 210, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.text('EXTRATO DETALHADO DE TRANSAÇÕES', 20, 13);
 
     const expenseData = expenses
         .filter(e => e.date.startsWith(monthKey))
@@ -85,12 +135,23 @@ export const exportMonthlyPDF = (
         ]);
 
     autoTable(doc, {
-        startY: 25,
-        head: [['Data', 'Descrição', 'Cat.', 'Tipo', 'Pago por', 'Valor']],
+        startY: 30,
+        head: [['Data', 'Descrição', 'Categoria', 'Tipo', 'Pago por', 'Valor']],
         body: expenseData,
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [71, 85, 105] }
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [71, 85, 105] }, // Slate 600
+        columnStyles: { 5: { halign: 'right', fontStyle: 'bold' } }
     });
 
-    doc.save(`Finanças_${monthKey}_${coupleInfo.person1Name}_${coupleInfo.person2Name}.pdf`);
+    // Footer on every page (optional, but professional)
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Gerado pelo App Finanças em Casal PRO - Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
+    }
+
+    doc.save(`Relatorio_Financas_${monthKey}.pdf`);
 };
+

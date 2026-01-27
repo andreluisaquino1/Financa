@@ -31,12 +31,12 @@ const Dashboard: React.FC<Props> = ({
 }) => {
   const [showBreakdown, setShowBreakdown] = React.useState(false);
 
-  const totalSalary = coupleInfo.salary1 + coupleInfo.salary2;
-  const p1Ratio = totalSalary > 0 ? (coupleInfo.salary1 / totalSalary) * 100 : 50;
-  const p2Ratio = totalSalary > 0 ? (coupleInfo.salary2 / totalSalary) * 100 : 50;
+  const totalIncome = summary.person1TotalIncome + summary.person2TotalIncome;
+  const p1Ratio = totalIncome > 0 ? (summary.person1TotalIncome / totalIncome) * 100 : 50;
+  const p2Ratio = totalIncome > 0 ? (summary.person2TotalIncome / totalIncome) * 100 : 50;
 
-  const p1Left = coupleInfo.salary1 - summary.person1Responsibility - summary.person1PersonalTotal;
-  const p2Left = coupleInfo.salary2 - summary.person2Responsibility - summary.person2PersonalTotal;
+  const p1Left = summary.person1TotalIncome - summary.person1Responsibility - summary.person1PersonalTotal;
+  const p2Left = summary.person2TotalIncome - summary.person2Responsibility - summary.person2PersonalTotal;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -63,7 +63,14 @@ const Dashboard: React.FC<Props> = ({
       <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl px-8 py-5 rounded-[2.5rem] border border-white dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col md:flex-row items-center gap-6">
         <div className="shrink-0 flex items-center gap-3">
           <div className="w-1.5 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full"></div>
-          <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Regra de Divisão</h3>
+          <div className="flex flex-col">
+            <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+              Regra de Divisão
+              {!isPremium && (summary.person1TotalIncome > coupleInfo.salary1 || summary.person2TotalIncome > coupleInfo.salary2) && (
+                <span className="text-amber-500 cursor-help" title="No plano grátis, rendas extras não entram no cálculo de proporção.">🔒</span>
+              )}
+            </h3>
+          </div>
         </div>
         <div className="flex-1 w-full h-3 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden flex p-0.5 border border-slate-200/50 dark:border-slate-800 shadow-inner">
           <div style={{ width: `${p1Ratio}%` }} className="bg-p1 h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_var(--p1-color)] brightness-110"></div>

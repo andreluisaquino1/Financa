@@ -1,5 +1,5 @@
 
-import { Expense, ExpenseType, CoupleInfo, MonthlySummary } from './types';
+import { Expense, ExpenseType, CoupleInfo, MonthlySummary, Income } from './types';
 
 export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('pt-BR', {
@@ -41,11 +41,25 @@ const roundMoney = (num: number): number => {
 
 export const calculateSummary = (
   expenses: Expense[],
+  incomes: Income[],
   coupleInfo: CoupleInfo,
-  monthKey: string
+  monthKey: string,
+  isPremium: boolean = false
 ): MonthlySummary => {
   const { salary1, salary2, customSplitMode, manualPercentage1 } = coupleInfo;
-  const totalSalary = salary1 + salary2;
+
+  // Somar as outras rendas do mês para a Pessoa 1 e 2
+  const extraIncome1 = incomes
+    .filter(inc => inc.paidBy === 'person1' && inc.date.startsWith(monthKey))
+    .reduce((sum, inc) => roundMoney(sum + inc.value), 0);
+
+  const extraIncome2 = incomes
+    .filter(inc => inc.paidBy === 'person2' && inc.date.startsWith(monthKey))
+    .reduce((sum, inc) => roundMoney(sum + inc.value), 0);
+
+  const totalIncome1 = roundMoney(salary1 + extraIncome1);
+  const totalIncome2 = roundMoney(salary2 + extraIncome2);
+  const combinedTotalIncome = roundMoney(totalIncome1 + totalIncome2);
 
   // Determinar a proporção baseada na configuração
   let ratio1 = 0.5;
@@ -55,8 +69,16 @@ export const calculateSummary = (
     ratio1 = manualPercentage1 / 100;
     ratio2 = 1 - ratio1;
   } else {
-    ratio1 = totalSalary > 0 ? salary1 / totalSalary : 0.5;
-    ratio2 = totalSalary > 0 ? salary2 / totalSalary : 0.5;
+    // SE FOR GRÁTIS: A proporção é baseada APENAS nos salários base
+    // SE FOR PRO: A proporção considera as rendas extras também
+    if (isPremium) {
+      ratio1 = combinedTotalIncome > 0 ? totalIncome1 / combinedTotalIncome : 0.5;
+      ratio2 = combinedTotalIncome > 0 ? totalIncome2 / combinedTotalIncome : 0.5;
+    } else {
+      const totalSalaryBase = salary1 + salary2;
+      ratio1 = totalSalaryBase > 0 ? salary1 / totalSalaryBase : 0.5;
+      ratio2 = totalSalaryBase > 0 ? salary2 / totalSalaryBase : 0.5;
+    }
   }
 
   let totalFixed = 0;
@@ -160,6 +182,8 @@ export const calculateSummary = (
     person2Responsibility: p2Target,
     person1PersonalTotal,
     person2PersonalTotal,
+    person1TotalIncome: totalIncome1,
+    person2TotalIncome: totalIncome2,
     transferAmount,
     whoTransfers,
     categoryTotals

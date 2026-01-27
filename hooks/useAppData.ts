@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary } from '../types';
+import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income } from '../types';
 import { supabase } from '../supabaseClient';
 import { scheduleReminder, cancelReminder } from '../notificationService';
 import { getMonthYearKey, calculateSummary, formatCurrency } from '../utils';
@@ -17,6 +17,7 @@ export const useAppData = () => {
     });
 
     const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [incomes, setIncomes] = useState<Income[]>([]);
     const [goals, setGoals] = useState<SavingsGoal[]>([]);
     const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
     const [dataLoading, setDataLoading] = useState(true);
@@ -112,7 +113,27 @@ export const useAppData = () => {
                     setGoals(goalsData);
                 }
 
-                // 4. Load monthly config
+                // 4. Load incomes
+                const { data: incomesData } = await supabase
+                    .from('incomes')
+                    .select('*')
+                    .eq('household_id', activeHouseholdId)
+                    .order('created_at', { ascending: false });
+
+                if (incomesData) {
+                    setIncomes(incomesData.map(i => ({
+                        id: i.id,
+                        description: i.description,
+                        value: Number(i.value),
+                        paidBy: i.paid_by,
+                        date: i.date,
+                        household_id: i.household_id,
+                        user_id: i.user_id,
+                        createdAt: i.created_at
+                    })));
+                }
+
+                // 5. Load monthly config
                 const { data: monthConfig } = await supabase
                     .from('monthly_configs')
                     .select('*')
@@ -147,8 +168,8 @@ export const useAppData = () => {
     }, [loadData]);
 
     const summary = useMemo(() => {
-        return calculateSummary(expenses, coupleInfo, selectedMonth);
-    }, [expenses, coupleInfo, selectedMonth]);
+        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth);
+    }, [expenses, incomes, coupleInfo, selectedMonth]);
 
     const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo, updateGlobal = false) => {
         setCoupleInfo(newInfo);
@@ -369,8 +390,16 @@ export const useAppData = () => {
 
         setDataLoading(true);
         try {
+            // 1. Delete all expenses
             await supabase.from('expenses').delete().eq('household_id', activeHouseholdId);
+
+            // 2. Delete all incomes
+            await supabase.from('incomes').delete().eq('household_id', activeHouseholdId);
+
+            // 3. Delete all goals
             await supabase.from('savings_goals').delete().eq('household_id', activeHouseholdId);
+
+            // 4. Delete all monthly config
             await supabase.from('monthly_configs').delete().eq('household_id', activeHouseholdId);
 
             const defaultInfo: CoupleInfo = {
@@ -388,6 +417,7 @@ export const useAppData = () => {
             }).eq('id', user.id);
 
             setExpenses([]);
+            setIncomes([]);
             setGoals([]);
             setCoupleInfo(defaultInfo);
             alert('Todos os dados foram limpos com sucesso! 🧹');
@@ -404,20 +434,99 @@ export const useAppData = () => {
 
         setDataLoading(true);
         try {
-            const { error } = await supabase
-                .from('expenses')
-                .delete()
-                .eq('household_id', activeHouseholdId)
-                .like('date', `${monthKey}%`);
+            await supabase.from('expenses').delete().eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
+            await supabase.from('incomes').delete().eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
 
-            if (error) throw error;
             setExpenses(prev => prev.filter(e => !e.date.startsWith(monthKey)));
+            setIncomes(prev => prev.filter(i => !i.date.startsWith(monthKey)));
         } catch (err: any) {
             alert('Erro ao apagar dados do mês: ' + err.message);
         } finally {
             setDataLoading(false);
         }
+    }, [user, householdId, loadData]);
+
+    const addIncome = useCallback(async (inc: Omit<Income, 'id' | 'createdAt'>) => {
+        if (!user) return;
+        const activeHouseholdId = householdId || user.id;
+
+        try {
+            const { data, error } = await supabase
+                .from('incomes')
+                .insert({
+                    user_id: user.id,
+                    household_id: activeHouseholdId,
+                    description: inc.description,
+                    value: inc.value,
+                    paid_by: inc.paidBy,
+                    date: inc.date
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const newInc: Income = {
+                    id: data.id,
+                    description: data.description,
+                    value: Number(data.value),
+                    paidBy: data.paid_by,
+                    date: data.date,
+                    household_id: data.household_id,
+                    user_id: data.user_id,
+                    createdAt: data.created_at
+                };
+                setIncomes(prev => [newInc, ...prev]);
+            }
+        } catch (err: any) {
+            alert('Erro ao adicionar receita: ' + err.message);
+        }
     }, [user, householdId]);
+
+    const updateIncome = useCallback(async (id: string, updates: Omit<Income, 'id' | 'createdAt'>) => {
+        if (!user) return;
+        try {
+            const { data, error } = await supabase
+                .from('incomes')
+                .update({
+                    description: updates.description,
+                    value: updates.value,
+                    paid_by: updates.paidBy,
+                    date: updates.date
+                })
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const updatedInc: Income = {
+                    id: data.id,
+                    description: data.description,
+                    value: Number(data.value),
+                    paidBy: data.paid_by,
+                    date: data.date,
+                    household_id: data.household_id,
+                    user_id: data.user_id,
+                    createdAt: data.created_at
+                };
+                setIncomes(prev => prev.map(i => i.id === id ? updatedInc : i));
+            }
+        } catch (err: any) {
+            alert('Erro ao atualizar receita: ' + err.message);
+        }
+    }, [user]);
+
+    const deleteIncome = useCallback(async (id: string) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase.from('incomes').delete().eq('id', id);
+            if (error) throw error;
+            setIncomes(prev => prev.filter(i => i.id !== id));
+        } catch (err: any) {
+            alert('Erro ao deletar receita: ' + err.message);
+        }
+    }, [user]);
 
     const updatePremiumStatus = useCallback(async (status: boolean) => {
         if (!user) return;
@@ -439,6 +548,7 @@ export const useAppData = () => {
         dataLoading,
         coupleInfo,
         expenses,
+        incomes,
         goals,
         selectedMonth,
         setSelectedMonth,
@@ -455,6 +565,9 @@ export const useAppData = () => {
         addGoal,
         updateGoal,
         deleteGoal,
+        addIncome,
+        updateIncome,
+        deleteIncome,
         deleteAllData,
         deleteMonthData,
         signOut,

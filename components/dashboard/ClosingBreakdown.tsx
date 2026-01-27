@@ -11,9 +11,9 @@ interface Props {
 const ClosingBreakdown: React.FC<Props> = ({ coupleInfo, summary }) => {
     const totalShared = summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement;
 
-    const totalSalary = coupleInfo.salary1 + coupleInfo.salary2;
-    const p1Ratio = totalSalary > 0 ? (coupleInfo.salary1 / totalSalary) : 0.5;
-    const p2Ratio = totalSalary > 0 ? (coupleInfo.salary2 / totalSalary) : 0.5;
+    const totalIncomeCombined = summary.person1TotalIncome + summary.person2TotalIncome;
+    const p1Ratio = totalIncomeCombined > 0 ? (summary.person1TotalIncome / totalIncomeCombined) : 0.5;
+    const p2Ratio = totalIncomeCombined > 0 ? (summary.person2TotalIncome / totalIncomeCombined) : 0.5;
 
     // No fixed mode, ratios are different
     const actualRatio1 = coupleInfo.customSplitMode === 'fixed' ? (coupleInfo.manualPercentage1 || 50) / 100 : p1Ratio;
@@ -89,7 +89,7 @@ const ClosingBreakdown: React.FC<Props> = ({ coupleInfo, summary }) => {
                 <div className="flex items-center gap-3">
                     <span className="text-p1 text-lg">💡</span>
                     <p className="text-[11px] font-medium leading-relaxed opacity-80">
-                        A soma das rendas é {formatCurrency(totalSalary)}. A divisão é baseada na sua
+                        A soma das rendas é {formatCurrency(totalIncomeCombined)}. A divisão é baseada na sua
                         {coupleInfo.customSplitMode === 'fixed' ? ' porcentagem fixa definida' : ' renda proporcional'}.
                     </p>
                 </div>
