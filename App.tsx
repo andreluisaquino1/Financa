@@ -149,10 +149,11 @@ const AppContent: React.FC = () => {
     }, true);
   };
 
-  const handleUpdateBaseSalary = (person: 'person1' | 'person2', value: number) => {
+  const handleUpdateBaseSalary = (person: 'person1' | 'person2', value: number, description?: string) => {
     saveCoupleInfo({
       ...coupleInfo,
-      [person === 'person1' ? 'salary1' : 'salary2']: value
+      [person === 'person1' ? 'salary1' : 'salary2']: value,
+      [person === 'person1' ? 'salary1Description' : 'salary2Description']: description || (person === 'person1' ? coupleInfo.salary1Description : coupleInfo.salary2Description)
     }, true);
   };
 

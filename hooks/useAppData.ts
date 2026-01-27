@@ -82,7 +82,9 @@ export const useAppData = () => {
                         manualPercentage1: info.manualPercentage1,
                         theme: info.theme || 'light',
                         person1Color: info.person1Color || '#2563eb',
-                        person2Color: info.person2Color || '#ec4899'
+                        person2Color: info.person2Color || '#ec4899',
+                        salary1Description: info.salary1Description,
+                        salary2Description: info.salary2Description
                     }));
                 }
 

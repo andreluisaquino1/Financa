@@ -19,6 +19,8 @@ export interface CoupleInfo {
   theme?: 'light' | 'dark';
   person1Color?: string; // hex code
   person2Color?: string; // hex code
+  salary1Description?: string;
+  salary2Description?: string;
 }
 
 export interface UserAccount {

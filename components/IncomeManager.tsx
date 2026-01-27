@@ -11,7 +11,7 @@ interface IncomeManagerProps {
     onAddIncome: (inc: any) => void;
     onUpdateIncome: (id: string, inc: any) => void;
     onDeleteIncome: (id: string) => void;
-    onUpdateBaseSalary: (person: 'person1' | 'person2', value: number) => void;
+    onUpdateBaseSalary: (person: 'person1' | 'person2', value: number, description?: string) => void;
     onShowPremium: () => void;
 }
 
@@ -55,7 +55,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     if (!hasP1Salary && coupleInfo.salary1 > 0) {
         virtualIncomes.push({
             id: 'virtual-p1',
-            description: 'Salário Base',
+            description: coupleInfo.salary1Description || 'Salário Base',
             value: coupleInfo.salary1,
             category: 'Salário',
             paidBy: 'person1',
@@ -70,7 +70,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     if (!hasP2Salary && coupleInfo.salary2 > 0) {
         virtualIncomes.push({
             id: 'virtual-p2',
-            description: 'Salário Base',
+            description: coupleInfo.salary2Description || 'Salário Base',
             value: coupleInfo.salary2,
             category: 'Salário',
             paidBy: 'person2',
@@ -139,7 +139,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
         }
 
         if (setAsDefault && category === 'Salário') {
-            onUpdateBaseSalary(paidBy, payload.value);
+            onUpdateBaseSalary(paidBy, payload.value, description);
         }
 
         setIsModalOpen(false);
