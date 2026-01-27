@@ -130,6 +130,7 @@ const PersonalWallet: React.FC<Props> = ({
                     type={type}
                     coupleInfo={coupleInfo}
                     initialData={editingExpense}
+                    isPremium={true}
                     onClose={() => { setIsModalOpen(false); setEditingExpense(null); }}
                     onAdd={(exp) => {
                         if (editingExpense) onUpdateExpense(editingExpense.id, exp);

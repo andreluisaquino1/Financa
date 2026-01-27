@@ -230,28 +230,22 @@ export const useAppData = () => {
         setExpenses(prev => [optimisticExp, ...prev]);
 
         try {
-            const insertPayload: any = {
-                user_id: user.id,
-                household_id: activeHouseholdId,
-                date: exp.date,
-                type: exp.type,
-                category: exp.category,
-                description: exp.description,
-                total_value: exp.totalValue,
-                installments: exp.installments,
-                paid_by: exp.paidBy,
-                metadata: exp.metadata || {},
-                split_method: exp.splitMethod || null
-            };
-
-            // Only add reminder_day if it has a value, to avoid errors if column is missing
-            if (exp.reminderDay) {
-                insertPayload.reminder_day = exp.reminderDay;
-            }
-
+            // SIMPLIFICADO: NUNCA envia reminder_day para evitar erros de coluna
             const { data, error } = await supabase
                 .from('expenses')
-                .insert(insertPayload)
+                .insert({
+                    user_id: user.id,
+                    household_id: activeHouseholdId,
+                    date: exp.date,
+                    type: exp.type,
+                    category: exp.category,
+                    description: exp.description,
+                    total_value: exp.totalValue,
+                    installments: exp.installments,
+                    paid_by: exp.paidBy,
+                    metadata: exp.metadata || {},
+                    split_method: exp.splitMethod || null
+                })
                 .select()
                 .single();
 
@@ -271,104 +265,35 @@ export const useAppData = () => {
                     metadata: data.metadata,
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'equal',
-                    reminderDay: data.reminder_day
+                    reminderDay: undefined // Desativado por agora
                 };
 
-                // Replace temp with real ID
                 setExpenses(prev => prev.map(e => e.id === tempId ? newExp : e));
-
-                if (newExp.reminderDay) {
-                    scheduleReminder(newExp);
-                }
-
-                // Force a background refresh to ensure total sync
-                loadData();
             }
         } catch (err: any) {
-            // Fallback: Se o erro for de coluna inexistente (migração falhou), tenta salvar SEM o lembrete
-            // Erro comum: column "reminder_day" of relation "expenses" does not exist
-            if (err.message && (err.message.includes('reminder_day') || err.message.includes('column'))) {
-                try {
-                    const { data: fallbackData, error: fallbackError } = await supabase
-                        .from('expenses')
-                        .insert({
-                            user_id: user.id,
-                            household_id: activeHouseholdId,
-                            date: exp.date,
-                            type: exp.type,
-                            category: exp.category,
-                            description: exp.description,
-                            total_value: exp.totalValue,
-                            installments: exp.installments,
-                            paid_by: exp.paidBy,
-                            metadata: exp.metadata || {},
-                            split_method: exp.splitMethod || null
-                            // REMOVED reminder_day
-                        })
-                        .select()
-                        .single();
-
-                    if (fallbackError) throw fallbackError;
-
-                    if (fallbackData) {
-                        const fallbackExp: Expense = {
-                            id: fallbackData.id,
-                            date: fallbackData.date,
-                            type: fallbackData.type as ExpenseType,
-                            category: fallbackData.category,
-                            description: fallbackData.description,
-                            totalValue: Number(fallbackData.total_value),
-                            installments: fallbackData.installments,
-                            paidBy: fallbackData.paid_by as 'person1' | 'person2',
-                            createdAt: fallbackData.created_at,
-                            metadata: fallbackData.metadata,
-                            household_id: fallbackData.household_id,
-                            splitMethod: fallbackData.split_method as 'proportional' | 'equal',
-                            reminderDay: undefined
-                        };
-                        setExpenses(prev => prev.map(e => e.id === tempId ? fallbackExp : e));
-                        loadData();
-                        alert('Gasto salvo! (Aviso: Lembrete não salvo pois o banco de dados ainda está atualizando)');
-                        return;
-                    }
-                } catch (fallbackErr) {
-                    console.error('Fallback failed:', fallbackErr);
-                }
-            }
-
             console.error('Error adding expense:', err);
             setExpenses(prev => prev.filter(e => e.id !== tempId));
-
-            // Translate common error for user
-            let msg = err.message;
-            if (msg.includes('reminder_day')) msg = 'Erro de atualização do banco de dados (coluna faltando).';
-            alert('Erro ao salvar gasto: ' + msg);
+            alert('Erro ao salvar gasto: ' + err.message);
         }
-    }, [user, householdId, loadData]);
+    }, [user, householdId]);
 
     const updateExpense = useCallback(async (id: string, updates: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
         try {
-            const updatePayload: any = {
-                date: updates.date,
-                type: updates.type,
-                category: updates.category,
-                description: updates.description,
-                total_value: updates.totalValue,
-                installments: updates.installments,
-                paid_by: updates.paidBy,
-                metadata: updates.metadata || {},
-                split_method: updates.splitMethod || null
-            };
-
-            // Only add reminder_day if it has a value
-            if (updates.reminderDay) {
-                updatePayload.reminder_day = updates.reminderDay;
-            }
-
+            // SIMPLIFICADO: NUNCA envia reminder_day
             const { data, error } = await supabase
                 .from('expenses')
-                .update(updatePayload)
+                .update({
+                    date: updates.date,
+                    type: updates.type,
+                    category: updates.category,
+                    description: updates.description,
+                    total_value: updates.totalValue,
+                    installments: updates.installments,
+                    paid_by: updates.paidBy,
+                    metadata: updates.metadata || {},
+                    split_method: updates.splitMethod || null
+                })
                 .eq('id', id)
                 .select()
                 .single();
@@ -388,58 +313,11 @@ export const useAppData = () => {
                     metadata: data.metadata,
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'equal',
-                    reminderDay: data.reminder_day
+                    reminderDay: undefined // Desativado por agora
                 };
                 setExpenses(prev => prev.map(e => e.id === id ? updatedExp : e));
-
-                // Update reminder
-                await cancelReminder(id);
-                if (updatedExp.reminderDay) {
-                    await scheduleReminder(updatedExp);
-                }
             }
         } catch (err: any) {
-            // Fallback for column errors
-            if (err.message && (err.message.includes('reminder_day') || err.message.includes('column'))) {
-                try {
-                    const { data: fallbackData } = await supabase
-                        .from('expenses')
-                        .update({
-                            date: updates.date,
-                            type: updates.type,
-                            category: updates.category,
-                            description: updates.description,
-                            total_value: updates.totalValue,
-                            installments: updates.installments,
-                            paid_by: updates.paidBy,
-                            metadata: updates.metadata || {},
-                            split_method: updates.splitMethod || null
-                        })
-                        .eq('id', id)
-                        .select()
-                        .single();
-
-                    if (fallbackData) {
-                        const fallbackExp: Expense = {
-                            id: fallbackData.id,
-                            date: fallbackData.date,
-                            type: fallbackData.type as ExpenseType,
-                            category: fallbackData.category,
-                            description: fallbackData.description,
-                            totalValue: Number(fallbackData.total_value),
-                            installments: fallbackData.installments,
-                            paidBy: fallbackData.paid_by as 'person1' | 'person2',
-                            createdAt: fallbackData.created_at,
-                            metadata: fallbackData.metadata,
-                            household_id: fallbackData.household_id,
-                            splitMethod: fallbackData.split_method as 'proportional' | 'equal',
-                            reminderDay: undefined
-                        };
-                        setExpenses(prev => prev.map(e => e.id === id ? fallbackExp : e));
-                        return;
-                    }
-                } catch (fbErr) { console.error(fbErr); }
-            }
             alert('Erro ao atualizar: ' + err.message);
         }
     }, [user]);
