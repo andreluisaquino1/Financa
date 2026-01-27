@@ -118,7 +118,7 @@ export const useAppData = () => {
                     .select('*')
                     .eq('household_id', activeHouseholdId)
                     .eq('month_key', selectedMonth)
-                    .single();
+                    .maybeSingle();
 
                 if (monthConfig) {
                     setCoupleInfo(prev => ({
@@ -178,13 +178,14 @@ export const useAppData = () => {
 
     const addExpense = useCallback(async (exp: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
+        const activeHouseholdId = householdId || user.id;
 
         const tempId = 'temp-' + Date.now();
         const optimisticExp: Expense = {
             ...exp,
             id: tempId,
             createdAt: new Date().toISOString(),
-            household_id: householdId || user.id
+            household_id: activeHouseholdId
         };
 
         setExpenses(prev => [optimisticExp, ...prev]);
@@ -194,7 +195,7 @@ export const useAppData = () => {
                 .from('expenses')
                 .insert({
                     user_id: user.id,
-                    household_id: householdId || user.id,
+                    household_id: activeHouseholdId,
                     date: exp.date,
                     type: exp.type,
                     category: exp.category,
@@ -227,18 +228,23 @@ export const useAppData = () => {
                     splitMethod: data.split_method as 'proportional' | 'equal',
                     reminderDay: data.reminder_day
                 };
+
+                // Replace temp with real ID
                 setExpenses(prev => prev.map(e => e.id === tempId ? newExp : e));
 
-                // Schedule notification
                 if (newExp.reminderDay) {
                     scheduleReminder(newExp);
                 }
+
+                // Force a background refresh to ensure total sync
+                loadData();
             }
         } catch (err: any) {
+            console.error('Error adding expense:', err);
             setExpenses(prev => prev.filter(e => e.id !== tempId));
-            alert('Erro ao salvar: ' + err.message);
+            alert('Erro ao salvar gasto: ' + err.message);
         }
-    }, [user, householdId]);
+    }, [user, householdId, loadData]);
 
     const updateExpense = useCallback(async (id: string, updates: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
