@@ -196,8 +196,8 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 selection:bg-p1/20 pb-20 lg:pb-0">
-      <header className="bg-white/80 dark:bg-slate-900/80 border-b dark:border-white/5 sticky top-0 z-[100] shadow-sm backdrop-blur-xl">
+    <div className="h-screen bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 selection:bg-p1/20 overflow-hidden">
+      <header className="bg-white dark:bg-slate-900 border-b dark:border-white/5 sticky top-0 z-[110] shadow-sm flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between py-3 md:py-4 gap-4">
             <div className="flex items-center space-x-3 shrink-0">
