@@ -1,269 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanças em Casal - Do Caos ao Controle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        .gradient-text { background: linear-gradient(90deg, #2563eb, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pro-badge { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        .floating { animation: float 3s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
 
-<div class="presentation-wrapper">
-  
-  <!-- Slide 1: Capa -->
-  <section class="slide hero">
-    <div class="content">
-      <div class="logo-container">
-        <img src="/logo.png" alt="Finanças em Casal" class="logo">
-      </div>
-      <span class="badge">GESTÃO INTELIGENTE & COLABORATIVA</span>
-      <h1>Finanças em <span class="gradient-text">Casal</span></h1>
-      <p>A plataforma definitiva para organizar gastos compartilhados, equilibrar contas e planejar o futuro financeiro a dois.</p>
-      <div class="footer-minimal">
-        <span class="auth-initials">A | L</span>
-        <span class="tagline">SIMPLIFICANDO A VIDA A DOIS</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- Slide 2: O Problema e a Solução -->
-  <section class="slide">
-    <div class="content grid-cols-2">
-      <div class="card problem">
-        <div class="card-icon">✕</div>
-        <h3>O Problema</h3>
-        <ul>
-          <li>Planilhas manuais complexas</li>
-          <li>Confusão sobre quem pagou o quê</li>
-          <li>Dificuldade em calcular divisões por renda</li>
-          <li>Falta de visão sobre o saldo individual</li>
-        </ul>
-      </div>
-      <div class="card solution">
-        <div class="card-icon">✓</div>
-        <h3>A Solução</h3>
-        <ul>
-          <li>Acerto de contas automático</li>
-          <li>Divisão Proporcional Inteligente</li>
-          <li>Carteiras Pessoais integradas</li>
-          <li>Sincronização em tempo real</li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- Slide 3: Funcionalidade - Conexão de Parceiro -->
-  <section class="slide">
-    <div class="content">
-      <span class="badge">NOVIDADE</span>
-      <h2>Conexão de <span class="gradient-text">Parceiro</span></h2>
-      <div class="feature-layout">
-        <div class="text">
-          <p>Cada parceiro com seu próprio login, compartilhando o mesmo painel financeiro.</p>
-          <div class="steps">
-            <div class="step">1. Gere um código curto de 6 dígitos</div>
-            <div class="step">2. O parceiro insere o código no app dele</div>
-            <div class="step">3. Dados sincronizados instantaneamente</div>
-          </div>
+    <!-- Hero Section -->
+    <section class="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 bg-white">
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full font-black text-[10px] uppercase tracking-widest text-slate-500">
+            🚀 O App n.º 1 para Casais Organizados
         </div>
-        <div class="feature-visual">
-          <div class="invite-code-mock">X7Y2A3</div>
+        <h1 class="text-5xl md:text-7xl font-black tracking-tighter leading-tight">
+            Dinheiro não precisa ser<br> motivo de <span class="gradient-text italic">briga</span>.
+        </h1>
+        <p class="max-w-2xl text-slate-500 font-bold text-lg">
+            Sincronize despesas em tempo real, defina metas juntos e tenha um fechamento de mês automático com apenas um toque.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="#pro" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black transition-all hover:scale-105 shadow-xl">Conhecer Plano PRO</a>
+            <a href="#free" class="px-8 py-4 bg-white border border-slate-200 rounded-2xl font-black text-slate-600 transition-all hover:bg-slate-50">Ver Recursos Grátis</a>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Slide 4: Funcionalidade - Visão 360° -->
-  <section class="slide">
-    <div class="content">
-      <h2>Painel de Resumo <span class="gradient-text">Inteligente</span></h2>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <span class="icon">💰</span>
-          <h4>Cálculo de PIX</h4>
-          <p>Saiba exatamente quem precisa transferir para quem no final do mês.</p>
+        <div class="pt-12 floating">
+            <img src="/logo.png" class="h-24 opacity-20 grayscale brightness-0" alt="">
         </div>
-        <div class="stat-item">
-          <span class="icon">📊</span>
-          <h4>Gastos por Categoria</h4>
-          <p>Visualize para onde o dinheiro está indo com gráficos claros.</p>
+    </section>
+
+    <!-- Recursos Grátis -->
+    <section id="free" class="py-24 bg-slate-50">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-black tracking-tight">Tudo que você precisa para começar</h2>
+                <p class="text-slate-500 font-bold mt-2">Mesmo na versão gratuita, o controle é total.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">📲</div>
+                    <h3 class="font-black text-lg mb-2">Sincronização</h3>
+                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Pessoa A gasta, Pessoa B vê na hora. Sem planilhas manuais ou grupos de WhatsApp.</p>
+                </div>
+                <div class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-6">📊</div>
+                    <h3 class="font-black text-lg mb-2">Resumo Automático</h3>
+                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Cálculo instantâneo de quem deve quanto para quem ao final de cada mês.</p>
+                </div>
+                <div class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                    <div class="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-2xl mb-6">❤️</div>
+                    <h3 class="font-black text-lg mb-2">Carteiras Pessoais</h3>
+                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Controle separado do seu dinheiro para lazer e compras individuais.</p>
+                </div>
+            </div>
         </div>
-        <div class="stat-item">
-          <span class="icon">🎯</span>
-          <h4>Metas de Poupança</h4>
-          <p>Planeje sonhos juntos com projeções de juros compostos.</p>
+    </section>
+
+    <!-- PRO Section -->
+    <section id="pro" class="py-24 bg-slate-900 text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-600 rounded-full blur-[150px] opacity-10"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-pink-600 rounded-full blur-[150px] opacity-10"></div>
+
+        <div class="max-w-6xl mx-auto px-6 relative z-10">
+            <div class="flex flex-col md:flex-row items-center gap-16">
+                <div class="flex-1 space-y-8">
+                    <span class="pro-badge px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">FINANÇAS PRO 💎</span>
+                    <h2 class="text-5xl font-black tracking-tight italic leading-none">O Upgrade para o<br>Próximo Nível.</h2>
+                    
+                    <div class="space-y-6">
+                        <div class="flex gap-4">
+                            <span class="text-emerald-400 text-xl font-bold">✓</span>
+                            <div>
+                                <h4 class="font-black text-lg">Exportação em PDF</h4>
+                                <p class="text-slate-400 text-sm font-bold">Gere relatórios profissionais e guarde seu histórico mensal.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="text-emerald-400 text-xl font-bold">✓</span>
+                            <div>
+                                <h4 class="font-black text-lg">Lembretes de Pagamento</h4>
+                                <p class="text-slate-400 text-sm font-bold">Nunca mais pague juros. Receba alertas no dia do vencimento.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="text-emerald-400 text-xl font-bold">✓</span>
+                            <div>
+                                <h4 class="font-black text-lg">Experiência Sem Anúncios</h4>
+                                <p class="text-slate-400 text-sm font-bold">Foco total no que importa. Use o app de forma limpa e rápida.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="text-emerald-400 text-xl font-bold">✓</span>
+                            <div>
+                                <h4 class="font-black text-lg">Histórico Mensal Ilimitado</h4>
+                                <p class="text-slate-400 text-sm font-bold">Analise sua evolução financeira de anos com um scroll.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest pt-8 italic">Pagamento único • Acesso vitalício • R$ 29,90</p>
+                </div>
+
+                <div class="flex-1">
+                    <div class="bg-white/5 border border-white/10 p-10 rounded-[3rem] backdrop-blur-3xl text-center">
+                        <h3 class="text-2xl font-black mb-6">Pronto para transformar sua relação com o dinheiro?</h3>
+                        <div class="text-6xl font-black tracking-tighter mb-2 italic">R$ 29,90</div>
+                        <p class="text-sm text-slate-400 font-bold mb-8 italic">Menos que uma ida ao cinema.</p>
+                        <button class="w-full py-5 bg-white text-slate-950 rounded-2xl font-black transition-all hover:scale-105 shadow-2xl">QUERO SER PRO AGORA ✨</button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Slide 5: Central de Ajuda -->
-  <section class="slide">
-    <div class="content text-center">
-      <h2>Suporte <span class="gradient-text">Sempre Ativo</span></h2>
-      <p>Nova Central de Ajuda integrada para tirar dúvidas e reportar erros.</p>
-      <div class="help-visual">
-        <div class="faq-mock">FAQ Interativo</div>
-        <div class="email-mock">E-mail de Suporte Direto</div>
-      </div>
-    </div>
-  </section>
+    <!-- Footer Meta -->
+    <footer class="py-12 border-t border-slate-100 text-center">
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Finanças em Casal © 2026</p>
+    </footer>
 
-  <!-- Slide 6: Encerramento -->
-  <section class="slide final">
-    <div class="content">
-      <h3>Sua jornada para a paz financeira começa aqui.</h3>
-      <a href="https://financacasais.app" class="btn-primary">financacasais.app</a>
-    </div>
-  </section>
-
-</div>
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-
-:root {
-  --primary: #2563eb;
-  --primary-dark: #1e40af;
-  --slate-900: #0f172a;
-  --slate-800: #1e293b;
-  --bg: #f8fafc;
-}
-
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: var(--bg);
-  color: var(--slate-900);
-}
-
-.presentation-wrapper {
-  scroll-snap-type: y mandatory;
-  overflow-y: scroll;
-  height: 100vh;
-}
-
-.slide {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem;
-  scroll-snap-align: start;
-  position: relative;
-  overflow: hidden;
-}
-
-.content {
-  max-width: 1100px;
-  width: 100%;
-}
-
-h1 { font-size: 5rem; font-weight: 900; letter-spacing: -0.05em; margin-bottom: 1rem; }
-h2 { font-size: 3.5rem; font-weight: 900; letter-spacing: -0.04em; margin-bottom: 2rem; }
-h3 { font-size: 2rem; font-weight: 900; margin-bottom: 1.5rem; }
-
-.gradient-text {
-  background: linear-gradient(135deg, var(--primary), #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.badge {
-  color: var(--primary);
-  font-size: 0.75rem;
-  font-weight: 900;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-bottom: 1rem;
-  display: block;
-}
-
-.slide.hero::before {
-  content: '';
-  position: absolute;
-  top: 10%;
-  right: -10%;
-  width: 600px;
-  height: 600px;
-  background: var(--primary);
-  opacity: 0.05;
-  border-radius: 50%;
-  filter: blur(100px);
-}
-
-.logo { height: 80px; margin-bottom: 2rem; }
-
-.grid-cols-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-
-.card {
-  background: white;
-  padding: 3rem;
-  border-radius: 3rem;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.05);
-}
-
-.card.problem { border-left: 8px solid #ef4444; }
-.card.solution { border-left: 8px solid var(--primary); }
-
-.card-icon {
-  width: 40px; height: 40px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 50%;
-  margin-bottom: 1rem;
-  font-weight: 900;
-}
-
-.problem .card-icon { background: #fef2f2; color: #ef4444; }
-.solution .card-icon { background: #eff6ff; color: var(--primary); }
-
-ul { list-style: none; padding: 0; }
-li { margin-bottom: 1rem; font-weight: 600; color: #64748b; position: relative; padding-left: 1.5rem; }
-li::before { content: '•'; position: absolute; left: 0; color: var(--primary); }
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
-}
-
-.stat-item {
-  background: white;
-  padding: 2.5rem;
-  border-radius: 2.5rem;
-  text-align: center;
-}
-
-.stat-item .icon { font-size: 2.5rem; display: block; margin-bottom: 1rem; }
-
-.invite-code-mock {
-  background: var(--slate-900);
-  color: white;
-  font-family: monospace;
-  font-size: 3rem;
-  padding: 2rem 4rem;
-  border-radius: 2rem;
-  letter-spacing: 0.2em;
-}
-
-.btn-primary {
-  background: white;
-  color: var(--slate-900);
-  padding: 1.5rem 4rem;
-  border-radius: 2rem;
-  text-decoration: none;
-  font-weight: 900;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  font-size: 1.5rem;
-}
-
-.help-visual {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-top: 3rem;
-}
-
-.faq-mock, .email-mock {
-  background: white;
-  padding: 2rem;
-  border-radius: 2rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  min-width: 250px;
-}
-</style>
+</body>
+</html>

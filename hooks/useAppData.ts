@@ -1,8 +1,8 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary } from '../types';
 import { supabase } from '../supabaseClient';
-import { getMonthYearKey, calculateSummary } from '../utils';
+import { scheduleReminder, cancelReminder } from '../notificationService';
+import { getMonthYearKey, calculateSummary, formatCurrency } from '../utils';
 import { useAuth } from '../AuthContext';
 
 export const useAppData = () => {
@@ -203,7 +203,8 @@ export const useAppData = () => {
                     installments: exp.installments,
                     paid_by: exp.paidBy,
                     metadata: exp.metadata || {},
-                    split_method: exp.splitMethod
+                    split_method: exp.splitMethod,
+                    reminder_day: exp.reminderDay
                 })
                 .select()
                 .single();
@@ -223,9 +224,15 @@ export const useAppData = () => {
                     createdAt: data.created_at,
                     metadata: data.metadata,
                     household_id: data.household_id,
-                    splitMethod: data.split_method as 'proportional' | 'equal'
+                    splitMethod: data.split_method as 'proportional' | 'equal',
+                    reminderDay: data.reminder_day
                 };
                 setExpenses(prev => prev.map(e => e.id === tempId ? newExp : e));
+
+                // Schedule notification
+                if (newExp.reminderDay) {
+                    scheduleReminder(newExp);
+                }
             }
         } catch (err: any) {
             setExpenses(prev => prev.filter(e => e.id !== tempId));
@@ -247,7 +254,8 @@ export const useAppData = () => {
                     installments: updates.installments,
                     paid_by: updates.paidBy,
                     metadata: updates.metadata || {},
-                    split_method: updates.splitMethod
+                    split_method: updates.splitMethod,
+                    reminder_day: updates.reminderDay
                 })
                 .eq('id', id)
                 .select()
@@ -267,9 +275,16 @@ export const useAppData = () => {
                     createdAt: data.created_at,
                     metadata: data.metadata,
                     household_id: data.household_id,
-                    splitMethod: data.split_method as 'proportional' | 'equal'
+                    splitMethod: data.split_method as 'proportional' | 'equal',
+                    reminderDay: data.reminder_day
                 };
                 setExpenses(prev => prev.map(e => e.id === id ? updatedExp : e));
+
+                // Update reminder
+                await cancelReminder(id);
+                if (updatedExp.reminderDay) {
+                    await scheduleReminder(updatedExp);
+                }
             }
         } catch (err: any) {
             alert('Erro ao atualizar: ' + err.message);
@@ -279,11 +294,12 @@ export const useAppData = () => {
     const deleteExpense = useCallback(async (id: string) => {
         if (!user) return;
         try {
+            await cancelReminder(id);
             const { error } = await supabase.from('expenses').delete().eq('id', id);
             if (error) throw error;
             setExpenses(prev => prev.filter(e => e.id !== id));
         } catch (err: any) {
-            alert('Erro ao excluir: ' + err.message);
+            alert('Erro ao deletar: ' + err.message);
         }
     }, [user]);
 
@@ -369,7 +385,7 @@ export const useAppData = () => {
                 .from('expenses')
                 .delete()
                 .eq('household_id', householdId || user.id)
-                .like('date', `${monthKey}%`);
+                .like('date', `${monthKey}% `);
 
             if (error) throw error;
 

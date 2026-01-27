@@ -99,7 +99,15 @@ const ExpenseTabs: React.FC<Props> = ({
                       </span>
                     </td>
                     <td className="px-6 py-5">
-                      <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
+                        {exp.reminderDay && (
+                          <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase" title={`Lembrete dia ${exp.reminderDay}`}>
+                            <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.64 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z" /></svg>
+                            Dia {exp.reminderDay}
+                          </span>
+                        )}
+                      </div>
                       <p className="sm:hidden text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5">{exp.category}</p>
                     </td>
                     <td className="px-6 py-5 hidden sm:table-cell">

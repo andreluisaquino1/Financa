@@ -9,6 +9,8 @@ interface AddExpenseModalProps {
     initialData?: Expense | null;
     onClose: () => void;
     onAdd: (exp: any) => void;
+    isPremium?: boolean;
+    onShowPremium?: () => void;
 }
 
 export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
@@ -16,7 +18,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     coupleInfo,
     initialData,
     onClose,
-    onAdd
+    onAdd,
+    isPremium,
+    onShowPremium
 }) => {
     const [description, setDescription] = useState(initialData?.description || '');
     const [value, setValue] = useState(initialData?.totalValue ? formatAsBRL((initialData.totalValue * 100).toString()) : '');
@@ -25,6 +29,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
     const [installments, setInstallments] = useState(initialData?.installments?.toString() || '1');
     const [splitMethod, setSplitMethod] = useState<'proportional' | 'equal'>(initialData?.splitMethod || 'proportional');
+    const [reminderDay, setReminderDay] = useState<string>(initialData?.reminderDay?.toString() || '');
 
     const [onlyThisMonth, setOnlyThisMonth] = useState(false);
 
@@ -63,7 +68,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             date,
             installments: type === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
             splitMethod: type === ExpenseType.FIXED ? splitMethod : (type === ExpenseType.COMMON ? 'proportional' : (type === ExpenseType.EQUAL ? 'equal' : undefined)),
-            metadata: finalMetadata
+            metadata: finalMetadata,
+            reminderDay: reminderDay ? parseInt(reminderDay) : undefined
         });
         onClose();
     };
@@ -125,22 +131,23 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
-                                <input
-                                    type="text"
-                                    inputMode="decimal"
-                                    required
-                                    value={value}
-                                    onChange={e => setValue(formatAsBRL(e.target.value))}
-                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
-                                    placeholder="0,00"
-                                />
-                            </div>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                required
+                                value={value}
+                                onChange={e => setValue(formatAsBRL(e.target.value))}
+                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                placeholder="0,00"
+                            />
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Data</label>
                             <input
@@ -149,6 +156,23 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 value={date}
                                 onChange={e => setDate(e.target.value)}
                                 className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1">
+                                Lembrete (Dia)
+                                {!isPremium && <span title="Recurso PRO">🔒</span>}
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="31"
+                                value={reminderDay}
+                                disabled={!isPremium}
+                                onClick={() => !isPremium && onShowPremium?.()}
+                                onChange={e => setReminderDay(e.target.value)}
+                                placeholder="Ex: 05"
+                                className={`w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all ${!isPremium ? 'opacity-50 cursor-not-allowed' : ''}`}
                             />
                         </div>
                     </div>

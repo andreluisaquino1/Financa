@@ -45,6 +45,7 @@ export interface Expense {
   metadata?: {
     overrides?: Record<string, number>;
   };
+  reminderDay?: number; // 1-31
 }
 
 export interface MonthlySummary {

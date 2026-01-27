@@ -350,6 +350,8 @@ const AppContent: React.FC = () => {
           type={modalType}
           coupleInfo={coupleInfo}
           initialData={editingExpense}
+          isPremium={isPremium}
+          onShowPremium={() => setIsPremiumModalOpen(true)}
           onClose={() => { setIsGlobalModalOpen(false); setEditingExpense(null); }}
           onAdd={(exp) => {
             if (editingExpense) updateExpense(editingExpense.id, exp);
