@@ -57,13 +57,15 @@ export const useAppData = () => {
                 setInviteCode(profile.invite_code);
 
                 // Check premium status at household level
-                const { data: householdProfiles } = await supabase
+                const { data: householdProfiles, error: hhError } = await supabase
                     .from('user_profiles')
                     .select('is_premium')
                     .eq('household_id', activeHouseholdId);
 
-                const isHouseholdPremium = householdProfiles?.some(h => !!h.is_premium) || false;
-                setIsPremium(isHouseholdPremium);
+                if (!hhError && householdProfiles) {
+                    const isHouseholdPremium = householdProfiles.some(h => !!h.is_premium);
+                    setIsPremium(isHouseholdPremium);
+                }
 
                 if (!profile.invite_code) {
                     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -270,7 +272,7 @@ export const useAppData = () => {
                     metadata: data.metadata,
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'equal',
-                    reminderDay: exp.reminderDay // Keep in local state if passed, but don't save to DB yet
+                    reminderDay: data.reminder_day
                 };
 
                 // Replace temp with real ID
