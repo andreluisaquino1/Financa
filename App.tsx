@@ -149,11 +149,45 @@ const AppContent: React.FC = () => {
     }, true);
   };
 
-  const handleUpdateBaseSalary = (person: 'person1' | 'person2', value: number, description?: string) => {
+  const handleUpdateRecurringIncome = (person: 'person1' | 'person2', value: number, description: string) => {
+    // Determine which array to update
+    const currentIncomes = person === 'person1'
+      ? (coupleInfo.person1RecurringIncomes || [])
+      : (coupleInfo.person2RecurringIncomes || []);
+
+    // Check if we need to update an existing one or add new
+    // We match by description OR id if present. For simplicity in this logic, we use description as key if ID is missing.
+    const existingIndex = currentIncomes.findIndex(inc => inc.description === description);
+
+    let newIncomes = [...currentIncomes];
+
+    if (existingIndex >= 0) {
+      // Update
+      newIncomes[existingIndex] = { ...newIncomes[existingIndex], value, description };
+    } else {
+      // Add new
+      newIncomes.push({ id: Date.now().toString(), description, value });
+    }
+
+    // Also update legacy fields for backward compat or if array was empty
+    const updates: Partial<CoupleInfo> = {
+      [person === 'person1' ? 'person1RecurringIncomes' : 'person2RecurringIncomes']: newIncomes
+    };
+
+    // If this is the FIRST recurring income, sync it to legacy fields to be safe
+    if (newIncomes.length === 1) {
+      if (person === 'person1') {
+        updates.salary1 = value;
+        updates.salary1Description = description;
+      } else {
+        updates.salary2 = value;
+        updates.salary2Description = description;
+      }
+    }
+
     saveCoupleInfo({
       ...coupleInfo,
-      [person === 'person1' ? 'salary1' : 'salary2']: value,
-      [person === 'person1' ? 'salary1Description' : 'salary2Description']: description || (person === 'person1' ? coupleInfo.salary1Description : coupleInfo.salary2Description)
+      ...updates
     }, true);
   };
 
@@ -280,7 +314,7 @@ const AppContent: React.FC = () => {
                 onAddIncome={addIncome}
                 onUpdateIncome={updateIncome}
                 onDeleteIncome={deleteIncome}
-                onUpdateBaseSalary={handleUpdateBaseSalary}
+                onUpdateBaseSalary={(p, v, d) => handleUpdateRecurringIncome(p, v, d || 'Salário Base')}
                 onShowPremium={() => setIsPremiumModalOpen(true)}
               />
             )}

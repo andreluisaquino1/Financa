@@ -8,6 +8,12 @@ export enum ExpenseType {
   PERSONAL_P2 = 'PERSONAL_P2'
 }
 
+export interface RecurringIncome {
+  id: string; // unique identifier for the recurring template
+  description: string;
+  value: number;
+}
+
 export interface CoupleInfo {
   person1Name: string;
   person2Name: string;
@@ -21,6 +27,8 @@ export interface CoupleInfo {
   person2Color?: string; // hex code
   salary1Description?: string;
   salary2Description?: string;
+  person1RecurringIncomes?: RecurringIncome[];
+  person2RecurringIncomes?: RecurringIncome[];
 }
 
 export interface UserAccount {

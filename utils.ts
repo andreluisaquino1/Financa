@@ -49,16 +49,39 @@ export const calculateSummary = (
   // Somar as rendas do mês por categoria e pessoa
   const monthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
 
-  // Lógica de Continuidade: Se não houver entrada de 'Salário', usa o valor base do perfil
-  const p1SalaryEntries = monthIncomes.filter(i => i.paidBy === 'person1' && i.category === 'Salário');
-  const p1Salary = p1SalaryEntries.length > 0
-    ? p1SalaryEntries.reduce((sum, i) => roundMoney(sum + i.value), 0)
-    : (coupleInfo.salary1 || 0);
+  // Lógica de Múltiplas Rendas Recorrentes
+  // 1. Identificar rendas reais deste mês
+  const p1RealSalaries = monthIncomes.filter(i => i.paidBy === 'person1' && i.category === 'Salário');
+  const p2RealSalaries = monthIncomes.filter(i => i.paidBy === 'person2' && i.category === 'Salário');
 
-  const p2SalaryEntries = monthIncomes.filter(i => i.paidBy === 'person2' && i.category === 'Salário');
-  const p2Salary = p2SalaryEntries.length > 0
-    ? p2SalaryEntries.reduce((sum, i) => roundMoney(sum + i.value), 0)
-    : (coupleInfo.salary2 || 0);
+  // 2. Identificar rendas recorrentes ativas (aquelas que NÃO têm uma entrada real correspondente pela descrição)
+  const p1Recurring = coupleInfo.person1RecurringIncomes || [];
+  const p2Recurring = coupleInfo.person2RecurringIncomes || [];
+
+  // Migração legada: Se não houver recurring array, usar os campos antigos se > 0
+  if (p1Recurring.length === 0 && coupleInfo.salary1 > 0) {
+    p1Recurring.push({ id: 'legacy-p1', description: coupleInfo.salary1Description || 'Salário Base', value: coupleInfo.salary1 });
+  }
+  if (p2Recurring.length === 0 && coupleInfo.salary2 > 0) {
+    p2Recurring.push({ id: 'legacy-p2', description: coupleInfo.salary2Description || 'Salário Base', value: coupleInfo.salary2 });
+  }
+
+  const p1ActiveRecurring = p1Recurring.filter(rec =>
+    !p1RealSalaries.some(real => real.description === rec.description)
+  );
+
+  const p2ActiveRecurring = p2Recurring.filter(rec =>
+    !p2RealSalaries.some(real => real.description === rec.description)
+  );
+
+  // 3. Somar Tudo
+  const p1RealTotal = p1RealSalaries.reduce((sum, i) => roundMoney(sum + i.value), 0);
+  const p1VirtualTotal = p1ActiveRecurring.reduce((sum, i) => roundMoney(sum + i.value), 0);
+  const p1Salary = roundMoney(p1RealTotal + p1VirtualTotal);
+
+  const p2RealTotal = p2RealSalaries.reduce((sum, i) => roundMoney(sum + i.value), 0);
+  const p2VirtualTotal = p2ActiveRecurring.reduce((sum, i) => roundMoney(sum + i.value), 0);
+  const p2Salary = roundMoney(p2RealTotal + p2VirtualTotal);
 
   const totalIncome1 = roundMoney(p1Salary + monthIncomes
     .filter(i => i.paidBy === 'person1' && i.category !== 'Salário')

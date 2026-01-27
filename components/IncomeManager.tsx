@@ -52,35 +52,57 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     // Create virtual entries
     const virtualIncomes: Income[] = [];
 
-    if (!hasP1Salary && coupleInfo.salary1 > 0) {
-        virtualIncomes.push({
-            id: 'virtual-p1',
-            description: coupleInfo.salary1Description || 'Salário Base',
-            value: coupleInfo.salary1,
-            category: 'Salário',
-            paidBy: 'person1',
-            date: `${monthKey}-01`,
-            household_id: 'virtual',
-            user_id: 'virtual',
-            createdAt: new Date().toISOString(),
-            isVirtual: true // Custom flag for UI
-        } as any);
+    const p1Recurring = coupleInfo.person1RecurringIncomes || [];
+    const p2Recurring = coupleInfo.person2RecurringIncomes || [];
+
+    // Fallback Legacy migration for UI
+    if (p1Recurring.length === 0 && coupleInfo.salary1 > 0) {
+        p1Recurring.push({ id: 'legacy-p1', description: coupleInfo.salary1Description || 'Salário Base', value: coupleInfo.salary1 });
+    }
+    if (p2Recurring.length === 0 && coupleInfo.salary2 > 0) {
+        p2Recurring.push({ id: 'legacy-p2', description: coupleInfo.salary2Description || 'Salário Base', value: coupleInfo.salary2 });
     }
 
-    if (!hasP2Salary && coupleInfo.salary2 > 0) {
-        virtualIncomes.push({
-            id: 'virtual-p2',
-            description: coupleInfo.salary2Description || 'Salário Base',
-            value: coupleInfo.salary2,
-            category: 'Salário',
-            paidBy: 'person2',
-            date: `${monthKey}-01`,
-            household_id: 'virtual',
-            user_id: 'virtual',
-            createdAt: new Date().toISOString(),
-            isVirtual: true // Custom flag for UI
-        } as any);
-    }
+    // Process Person 1 Recurring
+    p1Recurring.forEach(rec => {
+        // If there is ANY real income with same description for this month, don't show virtual
+        const hasRealOverride = realMonthIncomes.some(i => i.paidBy === 'person1' && i.description === rec.description);
+
+        if (!hasRealOverride) {
+            virtualIncomes.push({
+                id: `virtual-p1-${rec.id || rec.description}`,
+                description: rec.description,
+                value: rec.value,
+                category: 'Salário',
+                paidBy: 'person1',
+                date: `${monthKey}-01`,
+                household_id: 'virtual',
+                user_id: 'virtual',
+                createdAt: new Date().toISOString(),
+                isVirtual: true // Custom flag for UI
+            } as any);
+        }
+    });
+
+    // Process Person 2 Recurring
+    p2Recurring.forEach(rec => {
+        const hasRealOverride = realMonthIncomes.some(i => i.paidBy === 'person2' && i.description === rec.description);
+
+        if (!hasRealOverride) {
+            virtualIncomes.push({
+                id: `virtual-p2-${rec.id || rec.description}`,
+                description: rec.description,
+                value: rec.value,
+                category: 'Salário',
+                paidBy: 'person2',
+                date: `${monthKey}-01`,
+                household_id: 'virtual',
+                user_id: 'virtual',
+                createdAt: new Date().toISOString(),
+                isVirtual: true // Custom flag for UI
+            } as any);
+        }
+    });
 
     const monthIncomes = [...realMonthIncomes, ...virtualIncomes].sort((a, b) => {
         // Sort: Real first, then virtual? Or just by date/created?

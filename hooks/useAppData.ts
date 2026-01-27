@@ -84,7 +84,9 @@ export const useAppData = () => {
                         person1Color: info.person1Color || '#2563eb',
                         person2Color: info.person2Color || '#ec4899',
                         salary1Description: info.salary1Description,
-                        salary2Description: info.salary2Description
+                        salary2Description: info.salary2Description,
+                        person1RecurringIncomes: info.person1RecurringIncomes || [],
+                        person2RecurringIncomes: info.person2RecurringIncomes || []
                     }));
                 }
 
