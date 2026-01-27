@@ -1,39 +1,81 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanças em Casal - Do Caos ao Controle</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
-        .gradient-text { background: linear-gradient(90deg, #2563eb, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .pro-badge { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; }
-        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); }
-        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
-        .floating { animation: float 3s ease-in-out infinite; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #2563eb, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .pro-badge {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
     </style>
 </head>
+
 <body class="bg-slate-50 text-slate-900">
 
     <!-- Hero Section -->
     <section class="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 bg-white">
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full font-black text-[10px] uppercase tracking-widest text-slate-500">
+        <div
+            class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full font-black text-[10px] uppercase tracking-widest text-slate-500">
             🚀 O App n.º 1 para Casais Organizados
         </div>
         <h1 class="text-5xl md:text-7xl font-black tracking-tighter leading-tight">
             Dinheiro não precisa ser<br> motivo de <span class="gradient-text italic">briga</span>.
         </h1>
         <p class="max-w-2xl text-slate-500 font-bold text-lg">
-            Sincronize despesas em tempo real, defina metas juntos e tenha um fechamento de mês automático com apenas um toque.
+            Sincronize despesas em tempo real, defina metas juntos e tenha um fechamento de mês automático com apenas um
+            toque.
         </p>
         <div class="flex flex-wrap justify-center gap-4">
-            <a href="#pro" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black transition-all hover:scale-105 shadow-xl">Conhecer Plano PRO</a>
-            <a href="#free" class="px-8 py-4 bg-white border border-slate-200 rounded-2xl font-black text-slate-600 transition-all hover:bg-slate-50">Ver Recursos Grátis</a>
+            <a href="#pro"
+                class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black transition-all hover:scale-105 shadow-xl">Conhecer
+                Plano PRO</a>
+            <a href="#free"
+                class="px-8 py-4 bg-white border border-slate-200 rounded-2xl font-black text-slate-600 transition-all hover:bg-slate-50">Ver
+                Recursos Grátis</a>
         </div>
         <div class="pt-12 floating">
-            <img src="/logo.png" class="h-24 opacity-20 grayscale brightness-0" alt="">
+            <img src="/logo.png" class="h-28 drop-shadow-2xl" alt="Logo Finanças em Casal">
         </div>
     </section>
 
@@ -45,20 +87,41 @@
                 <p class="text-slate-500 font-bold mt-2">Mesmo na versão gratuita, o controle é total.</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">📲</div>
+                <div
+                    class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                    <div
+                        class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        📲</div>
                     <h3 class="font-black text-lg mb-2">Sincronização</h3>
-                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Pessoa A gasta, Pessoa B vê na hora. Sem planilhas manuais ou grupos de WhatsApp.</p>
+                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Pessoa A gasta, Pessoa B vê na hora. Sem
+                        planilhas manuais ou grupos de WhatsApp.</p>
                 </div>
-                <div class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-6">📊</div>
+                <div
+                    class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                    <div
+                        class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        📊</div>
                     <h3 class="font-black text-lg mb-2">Resumo Automático</h3>
-                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Cálculo instantâneo de quem deve quanto para quem ao final de cada mês.</p>
+                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Cálculo instantâneo de quem deve quanto
+                        para quem ao final de cada mês.</p>
                 </div>
-                <div class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
-                    <div class="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-2xl mb-6">❤️</div>
+                <div
+                    class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                    <div
+                        class="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        ❤️</div>
                     <h3 class="font-black text-lg mb-2">Carteiras Pessoais</h3>
-                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Controle separado do seu dinheiro para lazer e compras individuais.</p>
+                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Controle separado do seu dinheiro para
+                        lazer e compras individuais.</p>
+                </div>
+                <div
+                    class="p-8 bg-white rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-md transition-all">
+                    <div
+                        class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        💰</div>
+                    <h3 class="font-black text-lg mb-2">Gestão de Receitas</h3>
+                    <p class="text-sm text-slate-400 font-bold leading-relaxed">Centralize salários, bônus e
+                        investimentos em um só lugar para cálculos mais justos.</p>
                 </div>
             </div>
         </div>
@@ -72,41 +135,57 @@
         <div class="max-w-6xl mx-auto px-6 relative z-10">
             <div class="flex flex-col md:flex-row items-center gap-16">
                 <div class="flex-1 space-y-8">
-                    <span class="pro-badge px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">FINANÇAS PRO 💎</span>
-                    <h2 class="text-5xl font-black tracking-tight italic leading-none">O Upgrade para o<br>Próximo Nível.</h2>
-                    
+                    <span
+                        class="pro-badge px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">FINANÇAS
+                        PRO 💎</span>
+                    <h2 class="text-5xl font-black tracking-tight italic leading-none">O Upgrade para o<br>Próximo
+                        Nível.</h2>
+
                     <div class="space-y-6">
                         <div class="flex gap-4">
                             <span class="text-emerald-400 text-xl font-bold">✓</span>
                             <div>
                                 <h4 class="font-black text-lg">Exportação em PDF</h4>
-                                <p class="text-slate-400 text-sm font-bold">Gere relatórios profissionais e guarde seu histórico mensal.</p>
+                                <p class="text-slate-400 text-sm font-bold">Gere relatórios profissionais e guarde seu
+                                    histórico mensal.</p>
                             </div>
                         </div>
                         <div class="flex gap-4">
                             <span class="text-emerald-400 text-xl font-bold">✓</span>
                             <div>
                                 <h4 class="font-black text-lg">Lembretes de Pagamento</h4>
-                                <p class="text-slate-400 text-sm font-bold">Nunca mais pague juros. Receba alertas no dia do vencimento.</p>
+                                <p class="text-slate-400 text-sm font-bold">Nunca mais pague juros. Receba alertas no
+                                    dia do vencimento.</p>
                             </div>
                         </div>
                         <div class="flex gap-4">
                             <span class="text-emerald-400 text-xl font-bold">✓</span>
                             <div>
                                 <h4 class="font-black text-lg">Experiência Sem Anúncios</h4>
-                                <p class="text-slate-400 text-sm font-bold">Foco total no que importa. Use o app de forma limpa e rápida.</p>
+                                <p class="text-slate-400 text-sm font-bold">Foco total no que importa. Use o app de
+                                    forma limpa e rápida.</p>
                             </div>
                         </div>
                         <div class="flex gap-4">
                             <span class="text-emerald-400 text-xl font-bold">✓</span>
                             <div>
                                 <h4 class="font-black text-lg">Histórico Mensal Ilimitado</h4>
-                                <p class="text-slate-400 text-sm font-bold">Analise sua evolução financeira de anos com um scroll.</p>
+                                <p class="text-slate-400 text-sm font-bold">Analise sua evolução financeira de anos com
+                                    um scroll.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="text-emerald-400 text-xl font-bold">✓</span>
+                            <div>
+                                <h4 class="font-black text-lg">Premium Compartilhado 💎</h4>
+                                <p class="text-slate-400 text-sm font-bold">Se um dos parceiros for PRO, ambos herdam os
+                                    recursos automaticamente.</p>
                             </div>
                         </div>
                     </div>
 
-                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest pt-8 italic">Pagamento único • Acesso vitalício • R$ 29,90</p>
+                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest pt-8 italic">Pagamento
+                        único • Acesso vitalício • R$ 29,90</p>
                 </div>
 
                 <div class="flex-1">
@@ -114,7 +193,9 @@
                         <h3 class="text-2xl font-black mb-6">Pronto para transformar sua relação com o dinheiro?</h3>
                         <div class="text-6xl font-black tracking-tighter mb-2 italic">R$ 29,90</div>
                         <p class="text-sm text-slate-400 font-bold mb-8 italic">Menos que uma ida ao cinema.</p>
-                        <button class="w-full py-5 bg-white text-slate-950 rounded-2xl font-black transition-all hover:scale-105 shadow-2xl">QUERO SER PRO AGORA ✨</button>
+                        <button
+                            class="w-full py-5 bg-white text-slate-950 rounded-2xl font-black transition-all hover:scale-105 shadow-2xl">QUERO
+                            SER PRO AGORA ✨</button>
                     </div>
                 </div>
             </div>
@@ -127,4 +208,5 @@
     </footer>
 
 </body>
+
 </html>
