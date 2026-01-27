@@ -15,7 +15,7 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
     // Trip Form State
     const [newName, setNewName] = useState('');
     const [newBudget, setNewBudget] = useState('');
-    const [newProportion, setNewProportion] = useState<'proportional' | 'custom' | 'equal'>('equal');
+    const [newProportion, setNewProportion] = useState<'proportional' | 'custom'>('proportional');
     const [newCustomP1, setNewCustomP1] = useState(50);
 
     const trips = coupleInfo.trips || [];
@@ -88,19 +88,42 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
                         </div>
                         <div className="space-y-2 md:col-span-2">
                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Divisão da Viagem</label>
-                            <div className="flex gap-3 bg-slate-50 dark:bg-slate-900/50 p-1 rounded-2xl">
-                                {(['equal', 'proportional', 'custom'] as const).map(type => (
+                            <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl">
+                                {(['proportional', 'custom'] as const).map(type => (
                                     <button
                                         key={type}
                                         type="button"
                                         onClick={() => setNewProportion(type)}
                                         className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${newProportion === type ? 'bg-white dark:bg-slate-800 shadow-sm text-p1' : 'text-slate-400'}`}
                                     >
-                                        {type === 'equal' ? '50/50' : type === 'proportional' ? 'Proporcional' : 'Percentual'}
+                                        {type === 'proportional' ? 'Proporcional' : 'Percentual %'}
                                     </button>
                                 ))}
                             </div>
                         </div>
+
+                        {newProportion === 'custom' && (
+                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 md:col-span-2">
+                                <div className="flex justify-between items-center text-[10px] font-black uppercase">
+                                    <span className="text-p1">{coupleInfo.person1Name.split(' ')[0]} {newCustomP1}%</span>
+                                    <span className="text-p2">{coupleInfo.person2Name.split(' ')[0]} {100 - newCustomP1}%</span>
+                                </div>
+                                <input
+                                    type="range" min="0" max="100" value={newCustomP1}
+                                    onChange={(e) => setNewCustomP1(Number(e.target.value))}
+                                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-p1"
+                                />
+                                <div className="flex justify-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => setNewCustomP1(50)}
+                                        className="text-[9px] font-black uppercase text-slate-400 hover:text-p1 transition-colors"
+                                    >
+                                        Zerar em 50/50
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     <button type="submit" className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-5 rounded-[1.8rem] shadow-xl hover:brightness-110 transition-all active:scale-[0.98]">
                         Criar Viagem
@@ -228,7 +251,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                         <h3 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tighter">{trip.name}</h3>
                         <div className="flex items-center gap-2">
                             <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-500 uppercase">
-                                Divisão: {trip.proportionType === 'equal' ? '50/50' : trip.proportionType === 'proportional' ? `Proporcional (${Math.round(p1Percent)}/${Math.round(p2Percent)})` : `Personalizado (${Math.round(p1Percent)}/${Math.round(p2Percent)})`}
+                                Divisão: {trip.proportionType === 'proportional' ? `Proporcional (${Math.round(p1Percent)}/${Math.round(p2Percent)})` : (p1Percent === 50 ? 'Igualitária (50/50)' : `Percentual (${Math.round(p1Percent)}/${Math.round(p2Percent)})`)}
                             </span>
                         </div>
                     </div>
