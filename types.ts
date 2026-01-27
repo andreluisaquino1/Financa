@@ -52,6 +52,7 @@ export interface Income {
   id: string;
   description: string;
   value: number;
+  category: string; // e.g., 'Salário', 'Investimento', 'Bônus', etc.
   paidBy: 'person1' | 'person2';
   date: string;
   household_id?: string;

@@ -12,8 +12,6 @@ interface Props {
   onUpdateSettings: (
     n1: string,
     n2: string,
-    s1: number,
-    s2: number,
     cats?: string[],
     mode?: 'proportional' | 'fixed',
     mPerc1?: number,
@@ -60,8 +58,6 @@ const SidebarMenu: React.FC<Props> = ({
 }) => {
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
-  const [s1, setS1] = useState(coupleInfo.salary1 ? formatAsBRL((coupleInfo.salary1 * 100).toString()) : '');
-  const [s2, setS2] = useState(coupleInfo.salary2 ? formatAsBRL((coupleInfo.salary2 * 100).toString()) : '');
 
   // Logic: if not premium, use hardcoded categories. If premium, use saved ones.
   const initialCats = isPremium ? (coupleInfo.categories || []) : DEFAULT_FREE_CATEGORIES;
@@ -77,7 +73,7 @@ const SidebarMenu: React.FC<Props> = ({
 
   const handleSave = () => {
     // Free users can't change categories, so we pass back the static list or their saved list if premium
-    onUpdateSettings(n1, n2, parseBRL(s1), parseBRL(s2), categories, splitMode, manualPerc1, theme, p1Color, p2Color);
+    onUpdateSettings(n1, n2, categories, splitMode, manualPerc1, theme, p1Color, p2Color);
     onClose();
   };
 
@@ -153,11 +149,9 @@ const SidebarMenu: React.FC<Props> = ({
             <div className="space-y-4">
               <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-3">
                 <TextInput label={`Pessoa 1`} value={n1} onChange={setN1} />
-                <MoneyInput label="Renda Base" value={s1} onChange={setS1} />
               </div>
               <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-3">
                 <TextInput label={`Pessoa 2`} value={n2} onChange={setN2} />
-                <MoneyInput label="Renda Base" value={s2} onChange={setS2} />
               </div>
             </div>
           </section>

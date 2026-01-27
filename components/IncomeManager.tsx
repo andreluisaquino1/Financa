@@ -14,6 +14,13 @@ interface IncomeManagerProps {
     onShowPremium: () => void;
 }
 
+const CATEGORIES = [
+    { label: 'Salário', icon: '💼' },
+    { label: 'Investimento', icon: '📈' },
+    { label: 'Bônus', icon: '🎁' },
+    { label: 'Outros', icon: '💰' }
+];
+
 export const IncomeManager: React.FC<IncomeManagerProps> = ({
     incomes,
     coupleInfo,
@@ -30,26 +37,32 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
     const [paidBy, setPaidBy] = useState<'person1' | 'person2'>('person1');
+    const [category, setCategory] = useState('Salário');
 
     const monthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
     const totalP1 = monthIncomes.filter(i => i.paidBy === 'person1').reduce((sum, i) => sum + i.value, 0);
     const totalP2 = monthIncomes.filter(i => i.paidBy === 'person2').reduce((sum, i) => sum + i.value, 0);
 
     const openModal = (inc?: Income) => {
-        if (!isPremium) {
-            onShowPremium();
-            return;
+        if (!isPremium && inc?.category !== 'Salário' && !inc) {
+            // Check if adding new or editing extra
+            if (!inc) {
+                // onShowPremium(); // Let them open but lock categories later or keep simple
+            }
         }
+
         if (inc) {
             setEditingIncome(inc);
             setDescription(inc.description);
             setValue(formatAsBRL((inc.value * 100).toString()));
             setPaidBy(inc.paidBy);
+            setCategory(inc.category || 'Salário');
         } else {
             setEditingIncome(null);
             setDescription('');
             setValue('');
             setPaidBy('person1');
+            setCategory('Salário');
         }
         setIsModalOpen(true);
     };
@@ -59,6 +72,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
             description,
             value: parseBRL(value),
             paidBy,
+            category,
             date: editingIncome?.date || `${monthKey}-01`
         };
 
@@ -75,38 +89,37 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
             <div className="flex items-center justify-between">
                 <div>
                     <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Rendas Extras</h2>
+                        <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Gestão de Renda</h2>
                         {!isPremium && (
                             <span className="px-2 py-1 bg-amber-100 text-amber-600 text-[10px] font-black rounded-lg uppercase tracking-widest">Recurso PRO</span>
                         )}
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">Adicione bônus, dividendos ou freelas</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">Organize salários, bônus e investimentos</p>
                 </div>
                 <button
                     onClick={() => openModal()}
                     className="bg-p1 hover:bg-p1/90 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg shadow-p1/20 transition-all active:scale-95 flex items-center gap-2"
                 >
-                    {!isPremium && <span className="text-xs">🔒</span>}
-                    <span>+</span> Adicionar Receita
+                    <span>+</span> Adicionar Entrada
                 </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-6 rounded-[2rem] shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Extras {coupleInfo.person1Name}</p>
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-6 rounded-[2.5rem] shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Renda Total {coupleInfo.person1Name}</p>
                     <p className="text-2xl font-black text-p1">{formatCurrency(totalP1)}</p>
                 </div>
-                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-6 rounded-[2rem] shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Extras {coupleInfo.person2Name}</p>
+                <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-6 rounded-[2.5rem] shadow-sm">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Renda Total {coupleInfo.person2Name}</p>
                     <p className="text-2xl font-black text-p2">{formatCurrency(totalP2)}</p>
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-sm">
+            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-sm">
                 <table className="w-full border-collapse text-left">
                     <thead>
                         <tr className="border-b border-slate-50 dark:border-white/5">
-                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Descrição</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo & Descrição</th>
                             <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pessoa</th>
                             <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Valor</th>
                             <th className="px-6 py-4"></th>
@@ -115,12 +128,20 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                     <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                         {monthIncomes.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="px-6 py-12 text-center text-slate-400 font-bold italic">Nenhuma renda extra este mês.</td>
+                                <td colSpan={4} className="px-6 py-12 text-center text-slate-400 font-bold italic">Nenhuma receita registrada este mês.</td>
                             </tr>
                         ) : monthIncomes.map(inc => (
                             <tr key={inc.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                                 <td className="px-6 py-4">
-                                    <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{inc.description}</p>
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-sm shadow-sm">
+                                            {CATEGORIES.find(c => c.label === inc.category)?.icon || '💰'}
+                                        </span>
+                                        <div>
+                                            <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{inc.description}</p>
+                                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{inc.category}</p>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${inc.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
@@ -145,17 +166,17 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
-                        <div className="mb-8">
+                    <div className="relative bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                        <div className="mb-6">
                             <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
-                                {editingIncome ? 'Editar Receita' : 'Nova Receita Extra'}
+                                {editingIncome ? 'Editar Entrada' : 'Nova Entrada de Renda'}
                             </h3>
-                            <p className="text-slate-500 font-bold text-sm">Adicione bônus ou rendas pontuais.</p>
+                            <p className="text-slate-500 font-bold text-sm">Onde o dinheiro está entrando?</p>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-5">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Quem recebeu?</label>
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Pessoa responsável</label>
                                 <div className="flex p-1 bg-slate-100 dark:bg-slate-950/40 rounded-2xl gap-1 border border-slate-200 dark:border-white/5">
                                     <button
                                         onClick={() => setPaidBy('person1')}
@@ -173,13 +194,48 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                             </div>
 
                             <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Categoria da Receita</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {CATEGORIES.map(cat => {
+                                        const isSalary = cat.label === 'Salário';
+                                        const currentSalariesCount = monthIncomes.filter(i => i.paidBy === paidBy && i.category === 'Salário').length;
+                                        const isDisabled = !isPremium && !isSalary;
+                                        const isSalaryLocked = !isPremium && isSalary && currentSalariesCount >= 1 && (!editingIncome || editingIncome.category !== 'Salário');
+
+                                        return (
+                                            <button
+                                                key={cat.label}
+                                                onClick={() => {
+                                                    if (isDisabled || isSalaryLocked) {
+                                                        onShowPremium();
+                                                        return;
+                                                    }
+                                                    setCategory(cat.label);
+                                                }}
+                                                className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-3 ${category === cat.label
+                                                    ? 'bg-p1/5 border-p1 text-p1'
+                                                    : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-white/5 text-slate-400'
+                                                    } ${(isDisabled || isSalaryLocked) ? 'opacity-50 grayscale' : ''}`}
+                                            >
+                                                <span className="text-lg">{cat.icon}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black uppercase tracking-tight leading-none">{cat.label}</span>
+                                                    {(isDisabled || isSalaryLocked) && <span className="text-[8px] font-bold text-amber-600 mt-1 uppercase flex items-center gap-0.5">🔒 PRO</span>}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Descrição</label>
                                 <input
                                     type="text"
                                     value={description}
                                     onChange={e => setDescription(e.target.value)}
-                                    placeholder="Ex: Bônus de Natal, Freela Grafitti"
-                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                    placeholder="Ex: Salário Mensal, Rendição NuBank..."
+                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
                                 />
                             </div>
 
@@ -193,25 +249,25 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                         value={value}
                                         onChange={e => setValue(formatAsBRL(e.target.value))}
                                         placeholder="0,00"
-                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-black text-2xl text-slate-900 dark:text-slate-100 outline-none transition-all"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mt-10">
+                        <div className="grid grid-cols-2 gap-4 mt-8">
                             <button
                                 onClick={() => setIsModalOpen(false)}
-                                className="w-full py-4 bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 rounded-2xl font-black text-sm transition-all hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300"
+                                className="w-full py-4 bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 rounded-2xl font-black text-[10px] uppercase transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleSave}
                                 disabled={!description || !value}
-                                className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black text-sm transition-all hover:scale-[1.02] shadow-xl disabled:opacity-50 disabled:hover:scale-100"
+                                className="w-full py-4 bg-slate-900 dark:bg-p1 text-white rounded-2xl font-black text-[10px] uppercase transition-all hover:scale-[1.02] shadow-xl disabled:opacity-50 disabled:hover:scale-100"
                             >
-                                Salvar Receita
+                                Salvar Receita 🚀
                             </button>
                         </div>
                     </div>
@@ -220,3 +276,4 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
         </div>
     );
 };
+

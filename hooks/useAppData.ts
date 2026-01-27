@@ -125,6 +125,7 @@ export const useAppData = () => {
                         id: i.id,
                         description: i.description,
                         value: Number(i.value),
+                        category: i.category || 'Salário',
                         paidBy: i.paid_by,
                         date: i.date,
                         household_id: i.household_id,
@@ -458,6 +459,7 @@ export const useAppData = () => {
                     household_id: activeHouseholdId,
                     description: inc.description,
                     value: inc.value,
+                    category: inc.category,
                     paid_by: inc.paidBy,
                     date: inc.date
                 })
@@ -470,6 +472,7 @@ export const useAppData = () => {
                     id: data.id,
                     description: data.description,
                     value: Number(data.value),
+                    category: data.category,
                     paidBy: data.paid_by,
                     date: data.date,
                     household_id: data.household_id,
@@ -491,6 +494,7 @@ export const useAppData = () => {
                 .update({
                     description: updates.description,
                     value: updates.value,
+                    category: updates.category,
                     paid_by: updates.paidBy,
                     date: updates.date
                 })
@@ -504,6 +508,7 @@ export const useAppData = () => {
                     id: data.id,
                     description: data.description,
                     value: Number(data.value),
+                    category: data.category,
                     paidBy: data.paid_by,
                     date: data.date,
                     household_id: data.household_id,

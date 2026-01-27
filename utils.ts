@@ -46,38 +46,46 @@ export const calculateSummary = (
   monthKey: string,
   isPremium: boolean = false
 ): MonthlySummary => {
-  const { salary1, salary2, customSplitMode, manualPercentage1 } = coupleInfo;
+  // Somar as rendas do mês por categoria e pessoa
+  const monthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
 
-  // Somar as outras rendas do mês para a Pessoa 1 e 2
-  const extraIncome1 = incomes
-    .filter(inc => inc.paidBy === 'person1' && inc.date.startsWith(monthKey))
-    .reduce((sum, inc) => roundMoney(sum + inc.value), 0);
+  const p1Salary = monthIncomes
+    .filter(i => i.paidBy === 'person1' && i.category === 'Salário')
+    .reduce((sum, i) => roundMoney(sum + i.value), 0);
 
-  const extraIncome2 = incomes
-    .filter(inc => inc.paidBy === 'person2' && inc.date.startsWith(monthKey))
-    .reduce((sum, inc) => roundMoney(sum + inc.value), 0);
+  const p2Salary = monthIncomes
+    .filter(i => i.paidBy === 'person2' && i.category === 'Salário')
+    .reduce((sum, i) => roundMoney(sum + i.value), 0);
 
-  const totalIncome1 = roundMoney(salary1 + extraIncome1);
-  const totalIncome2 = roundMoney(salary2 + extraIncome2);
+  const totalIncome1 = monthIncomes
+    .filter(i => i.paidBy === 'person1')
+    .reduce((sum, i) => roundMoney(sum + i.value), 0);
+
+  const totalIncome2 = monthIncomes
+    .filter(i => i.paidBy === 'person2')
+    .reduce((sum, i) => roundMoney(sum + i.value), 0);
+
   const combinedTotalIncome = roundMoney(totalIncome1 + totalIncome2);
+  const combinedSalaries = roundMoney(p1Salary + p2Salary);
 
   // Determinar a proporção baseada na configuração
   let ratio1 = 0.5;
   let ratio2 = 0.5;
 
+  const { customSplitMode, manualPercentage1 } = coupleInfo;
+
   if (customSplitMode === 'fixed' && manualPercentage1 !== undefined) {
     ratio1 = manualPercentage1 / 100;
     ratio2 = 1 - ratio1;
   } else {
-    // SE FOR GRÁTIS: A proporção é baseada APENAS nos salários base
-    // SE FOR PRO: A proporção considera as rendas extras também
+    // SE FOR GRÁTIS: A proporção é baseada APENAS nas entradas de categoria 'Salário'
+    // SE FOR PRO: A proporção considera o TOTAL de todas as rendas (Investimentos, Bônus, etc)
     if (isPremium) {
       ratio1 = combinedTotalIncome > 0 ? totalIncome1 / combinedTotalIncome : 0.5;
       ratio2 = combinedTotalIncome > 0 ? totalIncome2 / combinedTotalIncome : 0.5;
     } else {
-      const totalSalaryBase = salary1 + salary2;
-      ratio1 = totalSalaryBase > 0 ? salary1 / totalSalaryBase : 0.5;
-      ratio2 = totalSalaryBase > 0 ? salary2 / totalSalaryBase : 0.5;
+      ratio1 = combinedSalaries > 0 ? p1Salary / combinedSalaries : 0.5;
+      ratio2 = combinedSalaries > 0 ? p2Salary / combinedSalaries : 0.5;
     }
   }
 

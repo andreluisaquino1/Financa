@@ -131,7 +131,7 @@ const AppContent: React.FC = () => {
   };
 
   const handleUpdateSettings = (
-    n1: string, n2: string, s1: number, s2: number,
+    n1: string, n2: string,
     cats?: string[], customMode?: 'proportional' | 'fixed',
     manualPerc?: number, theme?: 'light' | 'dark',
     p1Color?: string, p2Color?: string
@@ -140,8 +140,6 @@ const AppContent: React.FC = () => {
       ...coupleInfo,
       person1Name: n1,
       person2Name: n2,
-      salary1: s1,
-      salary2: s2,
       categories: cats || coupleInfo.categories,
       customSplitMode: customMode || coupleInfo.customSplitMode,
       manualPercentage1: manualPerc !== undefined ? manualPerc : coupleInfo.manualPercentage1,
@@ -150,9 +148,6 @@ const AppContent: React.FC = () => {
       person2Color: p2Color || coupleInfo.person2Color
     }, true);
   };
-
-  const handleUpdateSalary1 = (val: number, isGlobal?: boolean) => saveCoupleInfo({ ...coupleInfo, salary1: val }, isGlobal);
-  const handleUpdateSalary2 = (val: number, isGlobal?: boolean) => saveCoupleInfo({ ...coupleInfo, salary2: val }, isGlobal);
 
   const navigateMonth = (direction: number) => {
     const [year, month] = selectedMonth.split('-').map(Number);
@@ -263,8 +258,7 @@ const AppContent: React.FC = () => {
                 coupleInfo={coupleInfo}
                 expenses={expenses}
                 monthKey={selectedMonth}
-                onUpdateSalary1={handleUpdateSalary1}
-                onUpdateSalary2={handleUpdateSalary2}
+                onNavigateToIncomes={() => setCurrentTab('incomes')}
                 summary={summary}
                 isPremium={isPremium}
               />

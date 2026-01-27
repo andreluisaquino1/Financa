@@ -14,8 +14,7 @@ interface Props {
   coupleInfo: CoupleInfo;
   expenses: Expense[];
   monthKey: string;
-  onUpdateSalary1: (val: number, isGlobal?: boolean) => void;
-  onUpdateSalary2: (val: number, isGlobal?: boolean) => void;
+  onNavigateToIncomes: () => void;
   summary: MonthlySummary;
   isPremium?: boolean;
 }
@@ -24,8 +23,7 @@ const Dashboard: React.FC<Props> = ({
   coupleInfo,
   expenses,
   monthKey,
-  onUpdateSalary1,
-  onUpdateSalary2,
+  onNavigateToIncomes,
   summary,
   isPremium
 }) => {
@@ -49,17 +47,15 @@ const Dashboard: React.FC<Props> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SalaryCard
           name={coupleInfo.person1Name}
-          value={coupleInfo.salary1}
-          onChange={(v, global) => onUpdateSalary1(v, global)}
+          value={summary.person1TotalIncome}
+          onClick={onNavigateToIncomes}
           color="p1"
-          isPremium={isPremium}
         />
         <SalaryCard
           name={coupleInfo.person2Name}
-          value={coupleInfo.salary2}
-          onChange={(v, global) => onUpdateSalary2(v, global)}
+          value={summary.person2TotalIncome}
+          onClick={onNavigateToIncomes}
           color="p2"
-          isPremium={isPremium}
         />
       </div>
 
