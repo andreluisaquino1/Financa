@@ -63,39 +63,52 @@ const PersonalWallet: React.FC<Props> = ({
 
             {/* Mobile View */}
             <div className="block sm:hidden space-y-4">
-                {filteredExpenses.map(exp => (
-                    <div key={exp.id} className="bg-white dark:bg-slate-800/60 p-5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
+                {filteredExpenses.map(exp => {
+                    const value = getMonthlyExpenseValue(exp, monthKey);
+                    const instInfo = getInstallmentInfo(exp, monthKey);
+
+                    return (
+                        <div key={exp.id} className="bg-white dark:bg-slate-800/60 p-5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
+                            <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg">
                                         {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                                     </span>
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase">{exp.category}</span>
+                                    {exp.reminderDay && (
+                                        <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
+                                            <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.64 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z" /></svg>
+                                            Dia {exp.reminderDay}
+                                        </span>
+                                    )}
                                 </div>
-                                <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>
-                            </div>
-                            <div className="text-right">
-                                <p className={`font-black text-lg ${person === 'person1' ? 'text-p1' : 'text-p2'}`}>
-                                    {formatCurrency(getMonthlyExpenseValue(exp, monthKey))}
+                                <p className={`font-black text-lg ${accentText}`}>
+                                    {formatCurrency(value)}
                                 </p>
-                                {getInstallmentInfo(exp, monthKey) && (
-                                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">
-                                        {getInstallmentInfo(exp, monthKey)?.current}/{getInstallmentInfo(exp, monthKey)?.total}
-                                    </span>
-                                )}
+                            </div>
+
+                            <div className="space-y-1">
+                                <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase">{exp.category}</span>
+                                    {instInfo && (
+                                        <span className="text-[10px] font-black text-p1 bg-p1/10 px-2 py-0.5 rounded-lg uppercase">
+                                            {instInfo.current}/{instInfo.total}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-3 border-t border-slate-50 dark:border-white/5">
+                                <button onClick={() => onUpdateExpense(exp.id, exp)} className={`p-2.5 text-slate-400 hover:${accentText} bg-slate-50 dark:bg-slate-900 rounded-xl transition-all`}>
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                </button>
+                                <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="p-2.5 text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-900 rounded-xl transition-all">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
                             </div>
                         </div>
-                        <div className="flex justify-end gap-2 pt-3 border-t border-slate-50 dark:border-white/5">
-                            <button onClick={() => onUpdateExpense(exp.id, exp)} className={`p-2.5 text-slate-400 hover:${accentText} bg-slate-50 dark:bg-slate-900 rounded-xl transition-all`}>
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                            </button>
-                            <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="p-2.5 text-slate-400 hover:text-red-500 bg-slate-50 dark:bg-slate-900 rounded-xl transition-all">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            </button>
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* Desktop View */}
@@ -104,22 +117,38 @@ const PersonalWallet: React.FC<Props> = ({
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5">
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Data</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[140px]">Data / Lembrete</th>
                                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:table-cell">Categoria</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Valor</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[120px]">Valor</th>
+                                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria / Parcelas</th>
                                 <th className="px-6 py-4"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                             {filteredExpenses.map(exp => (
                                 <tr key={exp.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                    <td className="px-6 py-5 whitespace-nowrap text-xs font-bold text-slate-500 dark:text-slate-400">
-                                        {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                    <td className="px-6 py-5 whitespace-nowrap">
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded-lg w-fit">
+                                                {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                            </span>
+                                            {exp.reminderDay && (
+                                                <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase w-fit" title={`Lembrete dia ${exp.reminderDay}`}>
+                                                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.64 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z" /></svg>
+                                                    Dia {exp.reminderDay}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
+                                    </td>
+                                    <td className="px-6 py-5 whitespace-nowrap font-black text-slate-900 dark:text-slate-100 text-sm">
+                                        {formatCurrency(getMonthlyExpenseValue(exp, monthKey))}
                                     </td>
                                     <td className="px-6 py-5">
                                         <div className="flex items-center gap-2">
-                                            <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
+                                            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/5 px-3 py-1.5 rounded-xl">{exp.category}</span>
                                             {getInstallmentInfo(exp, monthKey) && (
                                                 <span className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
                                                     {getInstallmentInfo(exp, monthKey)?.current}/{getInstallmentInfo(exp, monthKey)?.total}
@@ -127,13 +156,7 @@ const PersonalWallet: React.FC<Props> = ({
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-5 hidden sm:table-cell">
-                                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/5 px-3 py-1.5 rounded-xl">{exp.category}</span>
-                                    </td>
-                                    <td className="px-6 py-5 text-right whitespace-nowrap font-black text-slate-900 dark:text-slate-100 text-sm">
-                                        {formatCurrency(getMonthlyExpenseValue(exp, monthKey))}
-                                    </td>
-                                    <td className="px-6 py-5">
+                                    <td className="px-6 py-5 text-right">
                                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button onClick={() => onUpdateExpense(exp.id, exp)} className={`p-2 text-slate-400 hover:${accentText} hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all`}>
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>

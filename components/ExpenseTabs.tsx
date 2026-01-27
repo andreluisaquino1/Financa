@@ -52,21 +52,28 @@ const ExpenseTabs: React.FC<Props> = ({
 
         return (
           <div key={exp.id} className="bg-white dark:bg-slate-800/60 p-5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
-            <div className="flex justify-between items-start">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg">
-                    {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg">
+                  {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                </span>
+                {exp.reminderDay && (
+                  <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
+                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.64 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z" /></svg>
+                    Dia {exp.reminderDay}
                   </span>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">{exp.category}</span>
-                </div>
-                <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>
+                )}
               </div>
-              <div className="text-right">
-                <p className="font-black text-slate-900 dark:text-slate-100 text-lg">{formatCurrency(value)}</p>
+              <p className="font-black text-slate-900 dark:text-slate-100 text-lg">{formatCurrency(value)}</p>
+            </div>
+
+            <div className="space-y-1">
+              <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">{exp.category}</span>
                 {instInfo && (
                   <span className="text-[10px] font-black text-p1 bg-p1/10 px-2 py-0.5 rounded-lg uppercase">
-                    Parcela {instInfo.current}/{instInfo.total}
+                    {instInfo.current}/{instInfo.total}
                   </span>
                 )}
               </div>
@@ -75,7 +82,7 @@ const ExpenseTabs: React.FC<Props> = ({
             <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-white/5">
               <div className="flex items-center gap-2">
                 <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-lg ${isP1 ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
-                  Pago por {isP1 ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
+                  {isP1 ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
                 </span>
                 {exp.splitMethod === 'custom' && (
                   <span className="text-[9px] font-black uppercase px-2 py-1 rounded-lg bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400">
@@ -124,15 +131,15 @@ const ExpenseTabs: React.FC<Props> = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[100px]">Data</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[140px]">Data / Lembrete</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:table-cell">Categoria</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[120px]">Valor</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria / Parcelas</th>
                 {activeTab === 'expenses' && (
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell">Divisão</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell text-center">Divisão</th>
                 )}
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden lg:table-cell">Pago por</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right min-w-[120px]">Valor</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest"></th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Pago por</th>
+                <th className="px-6 py-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
@@ -143,19 +150,27 @@ const ExpenseTabs: React.FC<Props> = ({
                 return (
                   <tr key={exp.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-5 whitespace-nowrap">
-                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded-lg">
-                        {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded-lg w-fit">
+                          {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                        </span>
                         {exp.reminderDay && (
-                          <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase" title={`Lembrete dia ${exp.reminderDay}`}>
+                          <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase w-fit" title={`Lembrete dia ${exp.reminderDay}`}>
                             <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.64 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z" /></svg>
                             Dia {exp.reminderDay}
                           </span>
                         )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-5">
+                      <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{exp.description}</p>
+                    </td>
+                    <td className="px-6 py-5 whitespace-nowrap">
+                      <span className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(value)}</span>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/5 px-3 py-1.5 rounded-xl">{exp.category}</span>
                         {instInfo && (
                           <span className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
                             {instInfo.current}/{instInfo.total}
@@ -163,14 +178,11 @@ const ExpenseTabs: React.FC<Props> = ({
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-5 hidden sm:table-cell">
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/5 px-3 py-1.5 rounded-xl">{exp.category}</span>
-                    </td>
 
                     {activeTab === 'expenses' && (
-                      <td className="px-6 py-5 hidden md:table-cell">
-                        <span className="text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200/50 dark:border-white/5 flex items-center gap-1">
-                          {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Proporcional'}
+                      <td className="px-6 py-5 hidden md:table-cell text-center">
+                        <span className="text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200/50 dark:border-white/5 inline-flex items-center gap-1">
+                          {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Prop.'}
                           {(exp.specificValueP1 || exp.specificValueP2) ? (
                             <span className="text-p1" title="Contém partes individuais">*</span>
                           ) : null}
@@ -178,13 +190,10 @@ const ExpenseTabs: React.FC<Props> = ({
                       </td>
                     )}
 
-                    <td className="px-6 py-5 hidden lg:table-cell">
+                    <td className="px-6 py-5 text-center">
                       <span className={`text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
                         {exp.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
                       </span>
-                    </td>
-                    <td className="px-6 py-5 text-right whitespace-nowrap">
-                      <span className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(value)}</span>
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
