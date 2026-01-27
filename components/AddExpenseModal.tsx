@@ -76,7 +76,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-slate-900/80 flex justify-center items-start sm:items-center z-[9999] p-4 backdrop-blur-sm animate-in fade-in transition-all overflow-y-auto">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300 relative my-auto border border-white/5">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] p-6 sm:p-8 shadow-2xl animate-in slide-in-from-bottom duration-300 relative my-auto border border-white/5">
                 <button
                     onClick={onClose}
                     className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"

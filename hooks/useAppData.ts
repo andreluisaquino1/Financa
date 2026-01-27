@@ -234,8 +234,7 @@ export const useAppData = () => {
                     installments: exp.installments,
                     paid_by: exp.paidBy,
                     metadata: exp.metadata || {},
-                    split_method: exp.splitMethod,
-                    reminder_day: exp.reminderDay
+                    split_method: exp.splitMethod
                 })
                 .select()
                 .single();
@@ -256,7 +255,7 @@ export const useAppData = () => {
                     metadata: data.metadata,
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'equal',
-                    reminderDay: data.reminder_day
+                    reminderDay: exp.reminderDay // Keep in local state if passed, but don't save to DB yet
                 };
 
                 // Replace temp with real ID
@@ -290,8 +289,7 @@ export const useAppData = () => {
                     installments: updates.installments,
                     paid_by: updates.paidBy,
                     metadata: updates.metadata || {},
-                    split_method: updates.splitMethod,
-                    reminder_day: updates.reminderDay
+                    split_method: updates.splitMethod
                 })
                 .eq('id', id)
                 .select()

@@ -42,7 +42,54 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     const [category, setCategory] = useState('Salário');
     const [setAsDefault, setSetAsDefault] = useState(false);
 
-    const monthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
+    // Filter real incomes first
+    const realMonthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
+
+    // Calculate duplicates/overrides check
+    const hasP1Salary = realMonthIncomes.some(i => i.paidBy === 'person1' && i.category === 'Salário');
+    const hasP2Salary = realMonthIncomes.some(i => i.paidBy === 'person2' && i.category === 'Salário');
+
+    // Create virtual entries
+    const virtualIncomes: Income[] = [];
+
+    if (!hasP1Salary && coupleInfo.salary1 > 0) {
+        virtualIncomes.push({
+            id: 'virtual-p1',
+            description: 'Salário Base',
+            value: coupleInfo.salary1,
+            category: 'Salário',
+            paidBy: 'person1',
+            date: `${monthKey}-01`,
+            household_id: 'virtual',
+            user_id: 'virtual',
+            createdAt: new Date().toISOString(),
+            isVirtual: true // Custom flag for UI
+        } as any);
+    }
+
+    if (!hasP2Salary && coupleInfo.salary2 > 0) {
+        virtualIncomes.push({
+            id: 'virtual-p2',
+            description: 'Salário Base',
+            value: coupleInfo.salary2,
+            category: 'Salário',
+            paidBy: 'person2',
+            date: `${monthKey}-01`,
+            household_id: 'virtual',
+            user_id: 'virtual',
+            createdAt: new Date().toISOString(),
+            isVirtual: true // Custom flag for UI
+        } as any);
+    }
+
+    const monthIncomes = [...realMonthIncomes, ...virtualIncomes].sort((a, b) => {
+        // Sort: Real first, then virtual? Or just by date/created?
+        // Let's put Salário first usually.
+        if (a.category === 'Salário' && b.category !== 'Salário') return -1;
+        if (a.category !== 'Salário' && b.category === 'Salário') return 1;
+        return 0;
+    });
+
     const totalP1 = monthIncomes.filter(i => i.paidBy === 'person1').reduce((sum, i) => sum + i.value, 0);
     const totalP2 = monthIncomes.filter(i => i.paidBy === 'person2').reduce((sum, i) => sum + i.value, 0);
 
@@ -55,7 +102,12 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
         }
 
         if (inc) {
-            setEditingIncome(inc);
+            // If virtual, we are technically "creating" a real one based on it
+            if ((inc as any).isVirtual) {
+                setEditingIncome(null); // It's new
+            } else {
+                setEditingIncome(inc);
+            }
             setDescription(inc.description);
             setValue(formatAsBRL((inc.value * 100).toString()));
             setPaidBy(inc.paidBy);
@@ -95,7 +147,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
                 <div>
                     <div className="flex items-center gap-3">
                         <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Gestão de Renda</h2>
@@ -128,9 +180,9 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                 <table className="w-full border-collapse text-left">
                     <thead>
                         <tr className="border-b border-slate-50 dark:border-white/5">
-                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo & Descrição</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[200px]">Tipo & Descrição</th>
                             <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pessoa</th>
-                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Valor</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right min-w-[120px]">Valor</th>
                             <th className="px-6 py-4"></th>
                         </tr>
                     </thead>
@@ -140,14 +192,19 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 <td colSpan={4} className="px-6 py-12 text-center text-slate-400 font-bold italic">Nenhuma receita registrada este mês.</td>
                             </tr>
                         ) : monthIncomes.map(inc => (
-                            <tr key={inc.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                            <tr key={inc.id} className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${(inc as any).isVirtual ? 'opacity-70 bg-slate-50/30' : ''}`}>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        <span className="w-8 h-8 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-sm shadow-sm">
+                                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm shadow-sm ${(inc as any).isVirtual ? 'bg-slate-100 dark:bg-slate-800 text-slate-400' : 'bg-slate-50 dark:bg-slate-800'}`}>
                                             {CATEGORIES.find(c => c.label === inc.category)?.icon || '💰'}
                                         </span>
                                         <div>
-                                            <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{inc.description}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{inc.description}</p>
+                                                {(inc as any).isVirtual && (
+                                                    <span className="text-[8px] font-black bg-slate-200 dark:bg-slate-700 text-slate-500 px-1.5 py-0.5 rounded uppercase tracking-wider">Automático</span>
+                                                )}
+                                            </div>
                                             <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{inc.category}</p>
                                         </div>
                                     </div>
@@ -162,8 +219,10 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => openModal(inc)} className="p-2 text-slate-400 hover:text-p1 hover:bg-p1/5 rounded-xl transition-all">📝</button>
-                                        <button onClick={() => onDeleteIncome(inc.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">🗑️</button>
+                                        <button onClick={() => openModal(inc)} className="p-2 text-slate-400 hover:text-p1 hover:bg-p1/5 rounded-xl transition-all" title={(inc as any).isVirtual ? "Editar este mês" : "Editar"}>📝</button>
+                                        {!(inc as any).isVirtual && (
+                                            <button onClick={() => onDeleteIncome(inc.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">🗑️</button>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
