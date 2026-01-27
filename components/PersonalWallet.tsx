@@ -132,12 +132,13 @@ const PersonalWallet: React.FC<Props> = ({
                             {filteredExpenses.map(exp => (
                                 <tr key={exp.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                                     <td className="px-6 py-5 whitespace-nowrap">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded-lg">
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-1 rounded-lg w-fit">
                                                 {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                                             </span>
                                             {exp.reminderDay && (
-                                                <span className="text-[10px] font-black text-p1 bg-p1/10 px-2 py-1 rounded-lg uppercase">
+                                                <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase w-fit" title={`Lembrete dia ${exp.reminderDay}`}>
+                                                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.64 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z" /></svg>
                                                     Dia {exp.reminderDay}
                                                 </span>
                                             )}
@@ -153,7 +154,7 @@ const PersonalWallet: React.FC<Props> = ({
                                         <div className="flex items-center gap-2">
                                             <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-white/5 px-3 py-1.5 rounded-xl">{exp.category}</span>
                                             {getInstallmentInfo(exp, monthKey) && (
-                                                <span className="text-[10px] font-black text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-lg uppercase">
+                                                <span className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
                                                     {getInstallmentInfo(exp, monthKey)?.current}/{getInstallmentInfo(exp, monthKey)?.total}
                                                 </span>
                                             )}
