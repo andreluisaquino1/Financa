@@ -151,3 +151,33 @@ textarea {
 button:active {
   transform: scale(0.96);
 }
+
+/* Fix date input height consistency */
+input[type="date"],
+input[type="number"],
+input[type="text"],
+select {
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+/* Ensure date picker icon is visible */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Grid alignment fix */
+.grid > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid > div > input,
+.grid > div > select {
+  flex: 1;
+}

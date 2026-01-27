@@ -149,30 +149,27 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Data</label>
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 h-4 flex items-center">Data</label>
                             <input
                                 type="date"
                                 required
                                 value={date}
                                 onChange={e => setDate(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 flex items-center gap-1">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 h-4 flex items-center gap-1">
                                 Lembrete (Dia)
-                                {!isPremium && <span title="Recurso PRO">🔒</span>}
                             </label>
                             <input
                                 type="number"
                                 min="1"
                                 max="31"
                                 value={reminderDay}
-                                disabled={!isPremium}
-                                onClick={() => !isPremium && onShowPremium?.()}
                                 onChange={e => setReminderDay(e.target.value)}
                                 placeholder="Ex: 05"
-                                className={`w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all ${!isPremium ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
                             />
                         </div>
                     </div>

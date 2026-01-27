@@ -116,7 +116,8 @@ export const useAppData = () => {
                         createdAt: e.created_at,
                         metadata: e.metadata,
                         household_id: e.household_id,
-                        splitMethod: e.split_method as 'proportional' | 'equal'
+                        splitMethod: e.split_method as 'proportional' | 'equal',
+                        reminderDay: e.reminder_day
                     })));
                 }
 
