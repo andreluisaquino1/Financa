@@ -40,6 +40,9 @@ const Dashboard: React.FC<Props> = ({
     return Object.entries(summary.categoryTotals).sort((a, b) => b[1] - a[1]);
   }, [summary.categoryTotals]);
 
+  // Totais simplificados para exibição
+  const totalExpenses = summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement;
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
 
@@ -59,14 +62,14 @@ const Dashboard: React.FC<Props> = ({
         />
       </div>
 
-      {/* Barra de Proporção Integrada */}
+      {/* Barra de Proporção de Rendas */}
       <div className="bg-white/60 dark:bg-slate-800/40 backdrop-blur-xl px-8 py-5 rounded-[2.5rem] border border-white dark:border-white/5 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col md:flex-row items-center gap-6">
         <div className="shrink-0 flex items-center gap-3">
           <div className="w-1.5 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full"></div>
           <div className="flex flex-col">
             <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
-              Regra de Divisão
-              {!isPremium && (summary.person1TotalIncome > coupleInfo.salary1 || summary.person2TotalIncome > coupleInfo.salary2) && (
+              Balanço de Rendas
+              {!isPremium && (summary.person1TotalIncome > (coupleInfo.salary1 || 0) || summary.person2TotalIncome > (coupleInfo.salary2 || 0)) && (
                 <span className="text-amber-500 cursor-help" title="No plano grátis, rendas extras não entram no cálculo de proporção.">🔒</span>
               )}
             </h3>
@@ -96,10 +99,10 @@ const Dashboard: React.FC<Props> = ({
 
           <div className="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
             <div className="flex items-center gap-6">
-              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-2xl shadow-2xl">✨</div>
+              <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-2xl shadow-2xl">🤝</div>
               <div>
                 <h3 className="font-black text-white/40 uppercase tracking-[0.3em] text-[10px] mb-1">Acerto Financeiro</h3>
-                <p className="text-lg font-bold text-white tracking-tight">Fechamento do Mês</p>
+                <p className="text-lg font-bold text-white tracking-tight">Equilíbrio da Casa</p>
               </div>
             </div>
 
@@ -107,7 +110,7 @@ const Dashboard: React.FC<Props> = ({
               {summary.whoTransfers !== 'none' ? (
                 <>
                   <div className={`px-5 py-2.5 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest text-center border ${summary.whoTransfers === 'person1' ? 'bg-p1/20 border-p1/20 text-p1' : 'bg-p2/20 border-p2/20 text-p2'}`}>
-                    {summary.whoTransfers === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name} deve transferir
+                    {summary.whoTransfers === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]} deve transferir
                   </div>
                   <div className="bg-white dark:bg-slate-100 px-8 py-5 rounded-[1.5rem] shadow-[0_0_50px_rgba(255,255,255,0.1)] transform hover:scale-105 transition-transform duration-500">
                     <p className="text-slate-950 text-3xl font-black tracking-tighter text-center">{formatCurrency(summary.transferAmount)}</p>
@@ -153,27 +156,37 @@ const Dashboard: React.FC<Props> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white dark:bg-slate-800/40 dark:backdrop-blur-md rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none overflow-hidden flex flex-col">
           <div className="px-8 py-6 flex justify-between items-center border-b border-slate-50 dark:border-white/5">
-            <h3 className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[10px]">Movimentação Total</h3>
-            <span className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tighter">{formatCurrency(summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement)}</span>
+            <h3 className="font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[10px]">Gastos do Mês</h3>
+            <span className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tighter">{formatCurrency(totalExpenses)}</span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-slate-50 dark:divide-white/5 bg-slate-50/30 dark:bg-transparent">
-            <StatSmall label="Fixos" value={summary.totalFixed} />
-            <StatSmall label="Prop." value={summary.totalCommon} />
-            <StatSmall label="50/50" value={summary.totalEqual} />
-            <StatSmall label="Reemb." value={summary.totalReimbursement} />
+          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-slate-50 dark:divide-white/5 bg-slate-50/30 dark:bg-transparent">
+            <StatSmall label="Contas Fixas" value={summary.totalFixed} />
+            <StatSmall label="Variáveis" value={summary.totalCommon + summary.totalEqual} />
+            <StatSmall label="Reembolsos" value={summary.totalReimbursement} />
+            <StatSmall label="Média Diária" value={totalExpenses / 30} />
           </div>
         </div>
 
         <div className="bg-white dark:bg-slate-800/40 dark:backdrop-blur-md rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5 shadow-sm dark:shadow-none flex flex-col justify-center">
-          <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6">Desembolso Real</h4>
-          <div className="space-y-5">
-            <div className="flex justify-between items-center p-4 bg-p1/5 rounded-2xl border border-p1/10">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{coupleInfo.person1Name}</span>
-              <span className="text-sm font-black text-p1">{formatCurrency(summary.person1Paid)}</span>
+          <h4 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-6 text-center">Desembolso (Pago no Mês)</h4>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase text-p1 mb-1">
+                <span>{coupleInfo.person1Name}</span>
+                <span>{formatCurrency(summary.person1Paid)}</span>
+              </div>
+              <div className="w-full h-1.5 bg-p1/10 rounded-full overflow-hidden">
+                <div style={{ width: `${(summary.person1Paid / (summary.person1Paid + summary.person2Paid || 1)) * 100}%` }} className="h-full bg-p1 rounded-full"></div>
+              </div>
             </div>
-            <div className="flex justify-between items-center p-4 bg-p2/5 rounded-2xl border border-p2/10">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{coupleInfo.person2Name}</span>
-              <span className="text-sm font-black text-p2">{formatCurrency(summary.person2Paid)}</span>
+            <div className="flex flex-col gap-1">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase text-p2 mb-1">
+                <span>{coupleInfo.person2Name}</span>
+                <span>{formatCurrency(summary.person2Paid)}</span>
+              </div>
+              <div className="w-full h-1.5 bg-p2/10 rounded-full overflow-hidden">
+                <div style={{ width: `${(summary.person2Paid / (summary.person1Paid + summary.person2Paid || 1)) * 100}%` }} className="h-full bg-p2 rounded-full"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -181,7 +194,7 @@ const Dashboard: React.FC<Props> = ({
 
       {/* Cards de Saldo Individual */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        < BalanceCard
+        <BalanceCard
           name={coupleInfo.person1Name}
           personal={summary.person1PersonalTotal}
           left={p1Left}
@@ -202,7 +215,7 @@ const Dashboard: React.FC<Props> = ({
         <div className="flex items-center justify-between mb-10">
           <div className="space-y-1">
             <h3 className="font-black text-slate-900 dark:text-slate-100 text-xl tracking-tight">Categorias</h3>
-            <p className="text-slate-400 dark:text-slate-500 text-sm font-medium">Distribuição dos custos</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm font-medium">Distribuição dos custos no mês</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-xl grayscale opacity-30">🧭</div>
         </div>
