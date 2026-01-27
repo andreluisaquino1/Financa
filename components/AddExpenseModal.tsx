@@ -37,9 +37,42 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const [specValue2, setSpecValue2] = useState(initialData?.specificValueP2 ? formatAsBRL((initialData.specificValueP2 * 100).toString()) : '');
     const [showAdvancedSplit, setShowAdvancedSplit] = useState(!!(initialData?.specificValueP1 || initialData?.specificValueP2));
 
+    const [installmentValue, setInstallmentValue] = useState('');
     const [reminderDay, setReminderDay] = useState<string>(initialData?.reminderDay?.toString() || '');
     const [onlyThisMonth, setOnlyThisMonth] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Sync total value and installment value
+    useEffect(() => {
+        const total = parseBRL(value);
+        const instCount = parseInt(installments) || 1;
+        if (instCount > 1 && total > 0) {
+            const instVal = total / instCount;
+            setInstallmentValue(formatAsBRL((instVal * 100).toString()));
+        } else {
+            setInstallmentValue('');
+        }
+    }, [installments]); // Only refresh on installments change initially or when value changes manually
+
+    const handleValueChange = (newVal: string) => {
+        setValue(formatAsBRL(newVal));
+        const total = parseBRL(formatAsBRL(newVal));
+        const instCount = parseInt(installments) || 1;
+        if (instCount > 1) {
+            const instVal = total / instCount;
+            setInstallmentValue(formatAsBRL((instVal * 100).toString()));
+        }
+    };
+
+    const handleInstallmentValueChange = (newVal: string) => {
+        setInstallmentValue(formatAsBRL(newVal));
+        const instVal = parseBRL(formatAsBRL(newVal));
+        const instCount = parseInt(installments) || 1;
+        if (instCount >= 1) {
+            const total = instVal * instCount;
+            setValue(formatAsBRL((total * 100).toString()));
+        }
+    };
 
     const isPersonalType = currentType === ExpenseType.PERSONAL_P1 || currentType === ExpenseType.PERSONAL_P2;
     const isReimbursement = currentType === ExpenseType.REIMBURSEMENT;
@@ -175,21 +208,48 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         />
                     </div>
 
-                    {/* 3. Valor Total */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                required
-                                value={value}
-                                onChange={e => setValue(formatAsBRL(e.target.value))}
-                                onFocus={e => e.target.select()}
-                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
-                                placeholder="0,00"
-                            />
+                    {/* 3. Valor Total e Parcela */}
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
+                                    <input
+                                        type="text"
+                                        inputMode="decimal"
+                                        required
+                                        value={value}
+                                        onChange={e => handleValueChange(e.target.value)}
+                                        onFocus={e => e.target.select()}
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
+                                        placeholder="0,00"
+                                    />
+                                </div>
+                            </div>
+
+                            {(parseInt(installments) > 1 || currentType === ExpenseType.FIXED) && (
+                                <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
+                                        {currentType === ExpenseType.FIXED ? 'Valor Mensal' : 'Valor da Parcela'}
+                                    </label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
+                                        <input
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={installmentValue}
+                                            onChange={e => handleInstallmentValueChange(e.target.value)}
+                                            onFocus={e => e.target.select()}
+                                            className="w-full bg-p1/5 border border-p1/20 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-p1 outline-none transition-all"
+                                            placeholder="0,00"
+                                        />
+                                    </div>
+                                    <p className="text-[9px] font-bold text-p1/60 px-1 uppercase italic">
+                                        Preencha um para calcular o outro
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
