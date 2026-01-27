@@ -202,12 +202,21 @@ const SidebarMenu: React.FC<Props> = ({
                   className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${splitMode === 'proportional' ? 'bg-slate-900 text-white dark:bg-p1' : 'text-slate-400'}`}
                 >Proporcional</button>
                 <button
-                  onClick={() => setSplitMode('fixed')}
-                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${splitMode === 'fixed' ? 'bg-slate-900 text-white dark:bg-p1' : 'text-slate-400'}`}
-                >Fixo (%)</button>
+                  onClick={() => {
+                    if (isPremium) setSplitMode('fixed');
+                    else {
+                      alert('O modo de divisão fixa (%) é um recurso PRO.');
+                      onShowPremium?.();
+                    }
+                  }}
+                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${splitMode === 'fixed' ? 'bg-slate-900 text-white dark:bg-p1' : 'text-slate-400'}`}
+                >
+                  Fixo (%)
+                  {!isPremium && <span>🔒</span>}
+                </button>
               </div>
 
-              {splitMode === 'fixed' && (
+              {splitMode === 'fixed' && isPremium && (
                 <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 px-1">
                   <div className="flex justify-between items-center text-[9px] font-black uppercase">
                     <span className="text-p1">{n1.split(' ')[0]} {manualPerc1}%</span>

@@ -360,6 +360,20 @@ export const useAppData = () => {
         }
     }, [user, householdId]);
 
+    const updatePremiumStatus = useCallback(async (status: boolean) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase
+                .from('user_profiles')
+                .update({ is_premium: status })
+                .eq('id', user.id);
+            if (error) throw error;
+            setIsPremium(status);
+        } catch (err: any) {
+            console.error('Error updating premium status:', err);
+        }
+    }, [user]);
+
     return {
         user,
         authLoading,
@@ -373,6 +387,7 @@ export const useAppData = () => {
         inviteCode,
         isPremium,
         setIsPremium,
+        updatePremiumStatus,
         summary,
         saveCoupleInfo,
         addExpense,

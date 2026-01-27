@@ -1,16 +1,70 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { Purchases, PACKAGE_TYPE } from '@revenuecat/purchases-capacitor';
 
 interface Props {
     isOpen: boolean;
     onClose: () => void;
+    onPurchaseSuccess?: () => void;
 }
 
-const PremiumModal: React.FC<Props> = ({ isOpen, onClose }) => {
+const PremiumModal: React.FC<Props> = ({ isOpen, onClose, onPurchaseSuccess }) => {
+    const [loading, setLoading] = useState(false);
+    const [price, setPrice] = useState('R$ 29,90');
+
+    useEffect(() => {
+        async function loadPlan() {
+            const isNative = (window as any).Capacitor?.isNative;
+            if (!isNative || !isOpen) return;
+
+            try {
+                const offerings = await Purchases.getOfferings();
+                if (offerings.current !== null && offerings.current.availablePackages.length !== 0) {
+                    // Find the lifetime package or just use the first available
+                    const pkg = offerings.current.availablePackages[0];
+                    setPrice(pkg.product.priceString);
+                }
+            } catch (e) {
+                console.log('RC Offerings fail:', e);
+            }
+        }
+        loadPlan();
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
+    const handlePurchase = async () => {
+        const isNative = (window as any).Capacitor?.isNative;
+
+        if (!isNative) {
+            alert('As compras nativas funcionam apenas no celular Android/iOS. No modo web, use o ambiente de testes.');
+            // Simulate success for development if desired, but better to keep it clean
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const offerings = await Purchases.getOfferings();
+            if (!offerings.current) throw new Error('No current offerings');
+
+            const { customerInfo } = await Purchases.purchasePackage({ aPackage: offerings.current.availablePackages[0] });
+
+            // Check if the entitlement is active
+            if (typeof customerInfo.entitlements.active['PRO'] !== "undefined") {
+                onPurchaseSuccess?.();
+                onClose();
+            }
+        } catch (e: any) {
+            if (!e.userCancelled) {
+                alert('Erro ao processar compra: ' + e.message);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const Feature = ({ icon, title, desc }: { icon: string, title: string, desc: string }) => (
-        <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 transition-all hover:scale-[1.02]">
+        <div className="flex gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
             <div className="w-12 h-12 rounded-xl bg-p1 flex items-center justify-center text-xl shrink-0 shadow-lg shadow-p1/20">{icon}</div>
             <div>
                 <h4 className="font-black text-sm text-slate-800 dark:text-slate-100 tracking-tight">{title}</h4>
@@ -32,35 +86,49 @@ const PremiumModal: React.FC<Props> = ({ isOpen, onClose }) => {
                     <div className="relative z-10">
                         <span className="px-4 py-1.5 bg-p1 text-white text-[10px] font-black rounded-full shadow-xl animate-bounce">OFERTA DE LANÇAMENTO</span>
                         <h2 className="text-4xl font-black text-white mt-4 tracking-tighter italic">FINANÇAS PRO</h2>
-                        <p className="text-slate-400 text-sm font-bold mt-2">Tudo o que seu casal precisa para prosperar</p>
+                        <p className="text-slate-400 text-sm font-bold mt-2">Sua vida financeira a dois sem limites</p>
                     </div>
                 </div>
 
                 <div className="p-8 space-y-4">
-                    <Feature icon="📊" title="Relatórios Ilimitados" desc="Acesse o histórico completo de todos os meses, sem restrições de visualização." />
-                    <Feature icon="📂" title="Exportação em PDF/Excel" desc="Gere arquivos profissionais dos seus fechamentos mensais com apenas um toque." />
-                    <Feature icon="🏷️" title="Super Categorias" desc="Adicione quantas categorias quiser para organizar seus gastos no seu estilo." />
-                    <Feature icon="☁️" title="Backup em Nuvem Prioritário" desc="Seus dados sincronizados instantaneamente entre dispositivos do casal." />
+                    <Feature icon="📊" title="Relatórios Ilimitados" desc="Histórico completo de todos os meses, sem qualquer restrição." />
+                    <Feature icon="📂" title="Exportação de PDF" desc="Gere relatórios profissionais para o casal orçar o futuro." />
+                    <Feature icon="🏷️" title="Super Categorias" desc="Categorias personalizadas e ilimitadas para tudo o que precisarem." />
+                    <Feature icon="🚫" title="Sem Anúncios" desc="Experiência 100% limpa, focada apenas na sua organização." />
                 </div>
 
                 <div className="p-8 bg-slate-50 dark:bg-slate-950/40 border-t border-slate-100 dark:border-white/5">
                     <div className="flex justify-between items-center mb-6">
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Plano Vitalício</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Acesso Vitalício</p>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-slate-800 dark:text-slate-100">R$ 29,90</span>
-                                <span className="text-xs text-slate-400 font-bold">/ único</span>
+                                <span className="text-2xl font-black text-slate-800 dark:text-slate-100">{price}</span>
+                                <span className="text-xs text-slate-400 font-bold">/ pagamento único</span>
                             </div>
                         </div>
                         <div className="text-right">
-                            <span className="text-[10px] text-emerald-500 font-black uppercase">Economize 50%</span>
-                            <p className="text-[8px] text-slate-400 font-bold line-through">De R$ 59,90</p>
+                            <span className="text-[10px] text-emerald-500 font-black uppercase">50% OFF</span>
                         </div>
                     </div>
 
                     <div className="flex gap-3">
-                        <button onClick={onClose} className="flex-1 py-4 text-slate-400 font-black text-xs uppercase hover:text-slate-600 transition-colors">Voltar</button>
-                        <button className="flex-[2] py-4 bg-slate-900 dark:bg-p1 text-white rounded-[1.25rem] font-black text-xs uppercase shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">Quero ser PRO</button>
+                        <button
+                            onClick={onClose}
+                            disabled={loading}
+                            className="flex-1 py-4 text-slate-400 font-black text-[10px] uppercase hover:text-slate-600 transition-colors disabled:opacity-30"
+                        >Voltar</button>
+
+                        <button
+                            onClick={handlePurchase}
+                            disabled={loading}
+                            className="flex-[2] py-4 bg-slate-900 dark:bg-p1 text-white rounded-[1.25rem] font-black text-[10px] uppercase shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {loading ? (
+                                'Processando...'
+                            ) : (
+                                <>Quero ser PRO ✨</>
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>

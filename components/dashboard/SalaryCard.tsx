@@ -7,12 +7,13 @@ interface SalaryCardProps {
     value: number;
     onChange: (v: number, isGlobal?: boolean) => void;
     color: 'p1' | 'p2';
+    isPremium?: boolean;
 }
 
-const SalaryCard: React.FC<SalaryCardProps> = ({ name, value, onChange, color }) => {
+const SalaryCard: React.FC<SalaryCardProps> = ({ name, value, onChange, color, isPremium }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [tempValue, setTempValue] = useState(formatAsBRL((value * 100).toString()));
-    const [applyToAll, setApplyToAll] = useState(false);
+    const [applyToAll, setApplyToAll] = useState(true); // Default to true as it's required for free users
 
     const handleSave = () => {
         setIsEditing(false);
@@ -59,12 +60,14 @@ const SalaryCard: React.FC<SalaryCardProps> = ({ name, value, onChange, color })
                         <input
                             type="checkbox"
                             id={`apply-all-${name}`}
-                            checked={applyToAll}
+                            checked={isPremium ? applyToAll : true}
+                            disabled={!isPremium}
                             onChange={e => setApplyToAll(e.target.checked)}
-                            className="w-4 h-4 rounded text-p1 focus:ring-p1 border-slate-300 dark:border-slate-700 dark:bg-slate-800"
+                            className={`w-4 h-4 rounded text-p1 focus:ring-p1 border-slate-300 dark:border-slate-700 dark:bg-slate-800 ${!isPremium ? 'opacity-50' : ''}`}
                         />
-                        <label htmlFor={`apply-all-${name}`} className="text-[10px] font-bold text-slate-500 uppercase cursor-pointer">
+                        <label htmlFor={`apply-all-${name}`} className="text-[10px] font-bold text-slate-500 uppercase cursor-pointer flex items-center gap-1">
                             Definir como padrão para próximos meses
+                            {!isPremium && <span title="Alteração mensal é um recurso PRO">🔒</span>}
                         </label>
                     </div>
 

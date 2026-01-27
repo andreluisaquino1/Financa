@@ -7,6 +7,7 @@ import BalanceCard from './dashboard/BalanceCard';
 import StatSmall from './dashboard/StatSmall';
 import ClosingBreakdown from './dashboard/ClosingBreakdown';
 import AdBanner from './AdBanner';
+import { exportMonthlyPDF } from '../pdfGenerator';
 
 interface Props {
   coupleInfo: CoupleInfo;
@@ -20,6 +21,8 @@ interface Props {
 
 const Dashboard: React.FC<Props> = ({
   coupleInfo,
+  expenses,
+  monthKey,
   onUpdateSalary1,
   onUpdateSalary2,
   summary,
@@ -44,12 +47,14 @@ const Dashboard: React.FC<Props> = ({
           value={coupleInfo.salary1}
           onChange={(v, global) => onUpdateSalary1(v, global)}
           color="p1"
+          isPremium={isPremium}
         />
         <SalaryCard
           name={coupleInfo.person2Name}
           value={coupleInfo.salary2}
           onChange={(v, global) => onUpdateSalary2(v, global)}
           color="p2"
+          isPremium={isPremium}
         />
       </div>
 
@@ -107,13 +112,26 @@ const Dashboard: React.FC<Props> = ({
                 </div>
               )}
 
-              <button
-                onClick={() => setShowBreakdown(!showBreakdown)}
-                className="p-3 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95"
-                title="Ver detalhes do cálculo"
-              >
-                <svg className={`w-6 h-6 transition-transform ${showBreakdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </button>
+              <div className="flex gap-2">
+                {isPremium && (
+                  <button
+                    onClick={() => exportMonthlyPDF(monthKey, coupleInfo, summary, expenses)}
+                    className="p-3 rounded-2xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all active:scale-95 flex items-center gap-2"
+                    title="Exportar PDF PRO"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <span className="text-[10px] font-black uppercase tracking-tighter hidden sm:inline">Exportar PDF</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setShowBreakdown(!showBreakdown)}
+                  className="p-3 rounded-2xl bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all active:scale-95"
+                  title="Ver detalhes do cálculo"
+                >
+                  <svg className={`w-6 h-6 transition-transform ${showBreakdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -205,7 +223,7 @@ const Dashboard: React.FC<Props> = ({
         </div>
       </div>
 
-    </div>
+    </div >
   );
 };
 

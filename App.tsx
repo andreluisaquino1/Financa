@@ -14,6 +14,11 @@ import PremiumModal from './components/PremiumModal';
 import { AuthProvider } from './AuthContext';
 import { getMonthYearKey } from './utils';
 import { useAppData } from './hooks/useAppData';
+import { AdMob } from '@capacitor-community/admob';
+import { Purchases } from '@revenuecat/purchases-capacitor';
+
+// REVENUECAT CONFIG (Get these from RevenueCat Dashboard)
+const RC_GOOGLE_KEY = 'test_fIsCaEeDXlEcVMOELSYGvFsbePm';
 
 const AppContent: React.FC = () => {
   const {
@@ -28,6 +33,7 @@ const AppContent: React.FC = () => {
     householdId,
     inviteCode,
     isPremium,
+    updatePremiumStatus,
     summary,
     saveCoupleInfo,
     addExpense,
@@ -55,6 +61,30 @@ const AppContent: React.FC = () => {
       document.documentElement.style.setProperty('--p2-color', coupleInfo.person2Color);
     }
   }, [coupleInfo.theme, coupleInfo.person1Color, coupleInfo.person2Color]);
+
+  // Inicializar AdMob
+  React.useEffect(() => {
+    AdMob.initialize({
+      testingDevices: ['2077ef9a63d2b398840261cdd221b406'],
+      initializeForTesting: true,
+    }).catch(e => console.log('AdMob Init Error:', e));
+  }, []);
+
+  // Inicializar RevenueCat
+  React.useEffect(() => {
+    const initRC = async () => {
+      const isNative = (window as any).Capacitor?.isNative;
+      if (!isNative) return;
+
+      try {
+        await Purchases.configure({ apiKey: RC_GOOGLE_KEY });
+        console.log('RevenueCat Configured');
+      } catch (e) {
+        console.log('RevenueCat Error:', e);
+      }
+    };
+    initRC();
+  }, []);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'help'>('summary');
@@ -308,6 +338,7 @@ const AppContent: React.FC = () => {
       <PremiumModal
         isOpen={isPremiumModalOpen}
         onClose={() => setIsPremiumModalOpen(false)}
+        onPurchaseSuccess={() => updatePremiumStatus(true)}
       />
     </div>
   );
