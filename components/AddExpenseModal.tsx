@@ -21,7 +21,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     isPremium,
     onShowPremium
 }) => {
-    // Estado local para o tipo, permitindo trocar entre FIXO e VARIÁVEL no modal
     const [currentType, setCurrentType] = useState<ExpenseType>(initialType);
 
     const [description, setDescription] = useState(initialData?.description || '');
@@ -30,16 +29,14 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const [paidBy, setPaidBy] = useState<'person1' | 'person2'>(initialData?.paidBy || 'person1');
     const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
     const [installments, setInstallments] = useState(initialData?.installments?.toString() || '1');
-    const [splitMethod, setSplitMethod] = useState<'proportional' | 'equal'>(initialData?.splitMethod || 'proportional');
-    const [reminderDay, setReminderDay] = useState<string>(initialData?.reminderDay?.toString() || '');
 
+    // Novo Estado de Divisão
+    const [splitMethod, setSplitMethod] = useState<'proportional' | 'custom'>(initialData?.splitMethod || 'proportional');
+    const [splitPercentage1, setSplitPercentage1] = useState<number>(initialData?.splitPercentage1 !== undefined ? initialData.splitPercentage1 : 50);
+
+    const [reminderDay, setReminderDay] = useState<string>(initialData?.reminderDay?.toString() || '');
     const [onlyThisMonth, setOnlyThisMonth] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-
-    // Ajustar splitMethod se o tipo inicial for EQUAL
-    useEffect(() => {
-        if (initialType === ExpenseType.EQUAL) setSplitMethod('equal');
-    }, [initialType]);
 
     const isPersonalType = currentType === ExpenseType.PERSONAL_P1 || currentType === ExpenseType.PERSONAL_P2;
     const isReimbursement = currentType === ExpenseType.REIMBURSEMENT;
@@ -74,21 +71,16 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 }
             }
 
-            // Normalizar o tipo antes de enviar: se for variável, usa COMMON ou EQUAL baseado no splitMethod
-            let finalType = currentType;
-            if (isJoint && currentType !== ExpenseType.FIXED) {
-                finalType = splitMethod === 'equal' ? ExpenseType.EQUAL : ExpenseType.COMMON;
-            }
-
             const expenseData = {
-                type: finalType,
+                type: currentType,
                 description,
                 totalValue: finalTotalValue,
                 category,
-                paidBy: currentType === ExpenseType.PERSONAL_P1 ? 'person1' : (currentType === ExpenseType.PERSONAL_P2 ? 'person2' : paidBy),
+                paidBy: isPersonalType ? (currentType === ExpenseType.PERSONAL_P1 ? 'person1' : 'person2') : paidBy,
                 date,
                 installments: currentType === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
-                splitMethod: currentType === ExpenseType.FIXED ? splitMethod : (finalType === ExpenseType.COMMON ? 'proportional' : (finalType === ExpenseType.EQUAL ? 'equal' : undefined)),
+                splitMethod: isJoint ? splitMethod : undefined,
+                splitPercentage1: (isJoint && splitMethod === 'custom') ? splitPercentage1 : undefined,
                 metadata: finalMetadata,
                 reminderDay: reminderDay ? parseInt(reminderDay) : undefined
             };
@@ -171,13 +163,36 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setSplitMethod('equal')}
-                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'equal' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                        onClick={() => setSplitMethod('custom')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'custom' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                     >
-                                        50% / 50%
+                                        Percentual (%)
                                     </button>
                                 </div>
                             </div>
+
+                            {splitMethod === 'custom' && (
+                                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase">
+                                        <span className="text-p1">{coupleInfo.person1Name.split(' ')[0]} {splitPercentage1}%</span>
+                                        <span className="text-p2">{coupleInfo.person2Name.split(' ')[0]} {100 - splitPercentage1}%</span>
+                                    </div>
+                                    <input
+                                        type="range" min="0" max="100" value={splitPercentage1}
+                                        onChange={(e) => setSplitPercentage1(Number(e.target.value))}
+                                        className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-p1"
+                                    />
+                                    <div className="flex justify-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => setSplitPercentage1(50)}
+                                            className="text-[9px] font-black uppercase text-slate-400 hover:text-p1 transition-colors"
+                                        >
+                                            Resetar para 50/50
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 

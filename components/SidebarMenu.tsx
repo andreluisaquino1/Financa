@@ -13,8 +13,6 @@ interface Props {
     n1: string,
     n2: string,
     cats?: string[],
-    mode?: 'proportional' | 'fixed',
-    mPerc1?: number,
     theme?: 'light' | 'dark',
     p1Color?: string,
     p2Color?: string
@@ -64,16 +62,13 @@ const SidebarMenu: React.FC<Props> = ({
   const [categories, setCategories] = useState<string[]>(initialCats);
   const [newCategory, setNewCategory] = useState('');
 
-  const [splitMode, setSplitMode] = useState<'proportional' | 'fixed'>(coupleInfo.customSplitMode || 'proportional');
-  const [manualPerc1, setManualPerc1] = useState(coupleInfo.manualPercentage1 !== undefined ? coupleInfo.manualPercentage1 : 50);
-
   const [theme, setTheme] = useState<'light' | 'dark'>(coupleInfo.theme || 'light');
   const [p1Color, setP1Color] = useState(coupleInfo.person1Color || '#2563eb');
   const [p2Color, setP2Color] = useState(coupleInfo.person2Color || '#ec4899');
 
   const handleSave = () => {
     // Free users can't change categories, so we pass back the static list or their saved list if premium
-    onUpdateSettings(n1, n2, categories, splitMode, manualPerc1, theme, p1Color, p2Color);
+    onUpdateSettings(n1, n2, categories, theme, p1Color, p2Color);
     onClose();
   };
 
@@ -216,48 +211,6 @@ const SidebarMenu: React.FC<Props> = ({
             </div>
           </section>
 
-          {/* 3. Divisão */}
-          <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
-              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Modo de Divisão
-            </h3>
-            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-5">
-              <div className="flex gap-2 bg-white dark:bg-slate-900 p-1 rounded-xl shadow-sm border border-slate-100 dark:border-white/5">
-                <button
-                  onClick={() => setSplitMode('proportional')}
-                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${splitMode === 'proportional' ? 'bg-slate-900 text-white dark:bg-p1' : 'text-slate-400'}`}
-                >Proporcional</button>
-                <button
-                  onClick={() => {
-                    if (isPremium) setSplitMode('fixed');
-                    else {
-                      alert('O modo de divisão fixa (%) é um recurso PRO.');
-                      onShowPremium?.();
-                    }
-                  }}
-                  className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all flex items-center justify-center gap-1 ${splitMode === 'fixed' ? 'bg-slate-900 text-white dark:bg-p1' : 'text-slate-400'}`}
-                >
-                  Fixo (%)
-                  {!isPremium && <span>🔒</span>}
-                </button>
-              </div>
-
-              {splitMode === 'fixed' && isPremium && (
-                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 px-1">
-                  <div className="flex justify-between items-center text-[9px] font-black uppercase">
-                    <span className="text-p1">{n1.split(' ')[0]} {manualPerc1}%</span>
-                    <span className="text-p2">{n2.split(' ')[0]} {100 - manualPerc1}%</span>
-                  </div>
-                  <input
-                    type="range" min="0" max="100" value={manualPerc1}
-                    onChange={(e) => setManualPerc1(Number(e.target.value))}
-                    className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-p1"
-                  />
-                </div>
-              )}
-            </div>
-          </section>
 
           {/* 4. Sincronização */}
           <section className="space-y-4">

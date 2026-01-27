@@ -132,8 +132,7 @@ const AppContent: React.FC = () => {
 
   const handleUpdateSettings = (
     n1: string, n2: string,
-    cats?: string[], customMode?: 'proportional' | 'fixed',
-    manualPerc?: number, theme?: 'light' | 'dark',
+    cats?: string[], theme?: 'light' | 'dark',
     p1Color?: string, p2Color?: string
   ) => {
     saveCoupleInfo({
@@ -141,8 +140,6 @@ const AppContent: React.FC = () => {
       person1Name: n1,
       person2Name: n2,
       categories: cats || coupleInfo.categories,
-      customSplitMode: customMode || coupleInfo.customSplitMode,
-      manualPercentage1: manualPerc !== undefined ? manualPerc : coupleInfo.manualPercentage1,
       theme: theme || coupleInfo.theme,
       person1Color: p1Color || coupleInfo.person1Color,
       person2Color: p2Color || coupleInfo.person2Color

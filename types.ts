@@ -20,8 +20,6 @@ export interface CoupleInfo {
   salary1: number;
   salary2: number;
   categories?: string[];
-  customSplitMode?: 'proportional' | 'fixed';
-  manualPercentage1?: number; // percentage for person1 (0-100)
   theme?: 'light' | 'dark';
   person1Color?: string; // hex code
   person2Color?: string; // hex code
@@ -51,7 +49,8 @@ export interface Expense {
   paidBy: 'person1' | 'person2';
   createdAt: string;
   household_id?: string;
-  splitMethod?: 'proportional' | 'equal';
+  splitMethod?: 'proportional' | 'custom';
+  splitPercentage1?: number; // Only used if splitMethod is 'custom'
   metadata?: {
     overrides?: Record<string, number>;
   };

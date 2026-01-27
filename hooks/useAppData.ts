@@ -102,7 +102,8 @@ export const useAppData = () => {
                         createdAt: e.created_at,
                         metadata: e.metadata,
                         household_id: e.household_id,
-                        splitMethod: e.split_method as 'proportional' | 'equal',
+                        splitMethod: e.split_method as 'proportional' | 'custom',
+                        splitPercentage1: e.metadata?.splitPercentage1,
                         reminderDay: e.reminder_day
                     })));
                 }
@@ -240,7 +241,10 @@ export const useAppData = () => {
                     total_value: exp.totalValue,
                     installments: exp.installments,
                     paid_by: exp.paidBy,
-                    metadata: exp.metadata || {},
+                    metadata: {
+                        ...(exp.metadata || {}),
+                        splitPercentage1: exp.splitPercentage1
+                    },
                     split_method: exp.splitMethod || null,
                     reminder_day: exp.reminderDay
                 })
@@ -262,7 +266,8 @@ export const useAppData = () => {
                     createdAt: data.created_at,
                     metadata: data.metadata,
                     household_id: data.household_id,
-                    splitMethod: data.split_method as 'proportional' | 'equal',
+                    splitMethod: data.split_method as 'proportional' | 'custom',
+                    splitPercentage1: data.metadata?.splitPercentage1,
                     reminderDay: data.reminder_day
                 };
 
@@ -287,7 +292,10 @@ export const useAppData = () => {
                     total_value: updates.totalValue,
                     installments: updates.installments,
                     paid_by: updates.paidBy,
-                    metadata: updates.metadata || {},
+                    metadata: {
+                        ...(updates.metadata || {}),
+                        splitPercentage1: updates.splitPercentage1
+                    },
                     split_method: updates.splitMethod || null,
                     reminder_day: updates.reminderDay
                 })
@@ -309,7 +317,8 @@ export const useAppData = () => {
                     createdAt: data.created_at,
                     metadata: data.metadata,
                     household_id: data.household_id,
-                    splitMethod: data.split_method as 'proportional' | 'equal',
+                    splitMethod: data.split_method as 'proportional' | 'custom',
+                    splitPercentage1: data.metadata?.splitPercentage1,
                     reminderDay: data.reminder_day
                 };
                 setExpenses(prev => prev.map(e => e.id === id ? updatedExp : e));

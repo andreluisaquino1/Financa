@@ -96,25 +96,13 @@ export const calculateSummary = (
   const combinedTotalIncome = roundMoney(totalIncome1 + totalIncome2);
   const combinedSalaries = roundMoney(p1Salary + p2Salary);
 
-  // Determinar a proporção baseada na configuração
-  let ratio1 = 0.5;
-  let ratio2 = 0.5;
+  // Proporção baseada no salário (usada como uma das opções individuais)
+  let salaryRatio1 = combinedSalaries > 0 ? p1Salary / combinedSalaries : 0.5;
+  let salaryRatio2 = combinedSalaries > 0 ? p2Salary / combinedSalaries : 0.5;
 
-  const { customSplitMode, manualPercentage1 } = coupleInfo;
-
-  if (customSplitMode === 'fixed' && manualPercentage1 !== undefined) {
-    ratio1 = manualPercentage1 / 100;
-    ratio2 = 1 - ratio1;
-  } else {
-    // SE FOR GRÁTIS: A proporção é baseada APENAS nas entradas de categoria 'Salário'
-    // SE FOR PRO: A proporção considera o TOTAL de todas as rendas (Investimentos, Bônus, etc)
-    if (isPremium) {
-      ratio1 = combinedTotalIncome > 0 ? totalIncome1 / combinedTotalIncome : 0.5;
-      ratio2 = combinedTotalIncome > 0 ? totalIncome2 / combinedTotalIncome : 0.5;
-    } else {
-      ratio1 = combinedSalaries > 0 ? p1Salary / combinedSalaries : 0.5;
-      ratio2 = combinedSalaries > 0 ? p2Salary / combinedSalaries : 0.5;
-    }
+  if (isPremium) {
+    salaryRatio1 = combinedTotalIncome > 0 ? totalIncome1 / combinedTotalIncome : 0.5;
+    salaryRatio2 = combinedTotalIncome > 0 ? totalIncome2 / combinedTotalIncome : 0.5;
   }
 
   let totalFixed = 0;
@@ -150,23 +138,23 @@ export const calculateSummary = (
     switch (exp.type) {
       case ExpenseType.FIXED:
       case ExpenseType.COMMON:
+      case ExpenseType.EQUAL: // EQUAL is now handled by splitMethod='custom' with 50%
         if (exp.type === ExpenseType.FIXED) totalFixed = roundMoney(totalFixed + monthlyValue);
         else totalCommon = roundMoney(totalCommon + monthlyValue);
 
-        const isActuallyEqual = exp.splitMethod === 'equal';
-        if (isActuallyEqual) {
-          p1Target = roundMoney(p1Target + (monthlyValue * 0.5));
-          p2Target = roundMoney(p2Target + (monthlyValue * 0.5));
+        // Lógica de Divisão Individual
+        if (exp.splitMethod === 'custom') {
+          const perc1 = (exp.splitPercentage1 !== undefined) ? exp.splitPercentage1 : 50;
+          const r1 = perc1 / 100;
+          const r2 = 1 - r1;
+          p1Target = roundMoney(p1Target + (monthlyValue * r1));
+          p2Target = roundMoney(p2Target + (monthlyValue * r2));
+          if (perc1 === 50) totalEqual = roundMoney(totalEqual + monthlyValue);
         } else {
-          p1Target = roundMoney(p1Target + (monthlyValue * ratio1));
-          p2Target = roundMoney(p2Target + (monthlyValue * ratio2));
+          // Default: Proporcional ao Salário
+          p1Target = roundMoney(p1Target + (monthlyValue * salaryRatio1));
+          p2Target = roundMoney(p2Target + (monthlyValue * salaryRatio2));
         }
-        break;
-
-      case ExpenseType.EQUAL:
-        totalEqual = roundMoney(totalEqual + monthlyValue);
-        p1Target = roundMoney(p1Target + (monthlyValue * 0.5));
-        p2Target = roundMoney(p2Target + (monthlyValue * 0.5));
         break;
 
       case ExpenseType.REIMBURSEMENT:

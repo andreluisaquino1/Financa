@@ -26,9 +26,6 @@ const ExpenseTabs: React.FC<Props> = ({
       const isMonthMatch = e.date.startsWith(monthKey);
 
       if (activeTab === 'expenses') {
-        // Mostra fixos (sempre) e variáveis (apenas deste mês)
-        // Note: Se for uma parcela de um gasto variável, date.startsWith pode não ser suficiente 
-        // mas a lógica do calculateSummary usa diffMonths. Para simplicidade na lista:
         return e.type === ExpenseType.FIXED ||
           ((e.type === ExpenseType.COMMON || e.type === ExpenseType.EQUAL) && isMonthMatch);
       }
@@ -41,31 +38,18 @@ const ExpenseTabs: React.FC<Props> = ({
     });
   }, [expenses, activeTab, monthKey]);
 
-  // Ao adicionar na aba de gastos, usamos COMMON como padrão
-  const defaultType = activeTab === 'expenses' ? ExpenseType.COMMON : ExpenseType.REIMBURSEMENT;
+  const fixedExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.FIXED), [filteredExpenses]);
+  const variableExpenses = useMemo(() => filteredExpenses.filter(e => e.type !== ExpenseType.FIXED && e.type !== ExpenseType.REIMBURSEMENT), [filteredExpenses]);
+  const reimbursementExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT), [filteredExpenses]);
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
-            {activeTab === 'expenses' ? 'Gastos Compartilhados' : 'Reembolsos'}
-          </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-            {activeTab === 'expenses'
-              ? 'Contas fixas e despesas variáveis do casal'
-              : 'Lançamentos para ressarcimento entre o casal'}
-          </p>
-        </div>
-        <button
-          onClick={() => onAddExpense(defaultType, null)}
-          className="bg-p1 hover:brightness-110 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-p1/10 flex items-center gap-2 transition-all active:scale-95"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-          <span className="hidden sm:inline">Adicionar</span>
-        </button>
-      </div>
-
+  const renderExpenseTable = (list: Expense[], title?: string, emptyMessage: string = "Nenhum gasto encontrado") => (
+    <div className="space-y-4">
+      {title && (
+        <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] px-1 flex items-center gap-3">
+          {title}
+          <div className="h-px bg-slate-100 dark:bg-white/5 flex-1"></div>
+        </h3>
+      )}
       <div className="bg-white dark:bg-slate-800/40 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -75,7 +59,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center sm:text-left min-w-[200px]">Descrição</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden sm:table-cell">Categoria</th>
                 {activeTab === 'expenses' && (
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell">Tipo / Divisão</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell">Divisão</th>
                 )}
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden lg:table-cell">Pago por</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right min-w-[120px]">Valor</th>
@@ -83,7 +67,7 @@ const ExpenseTabs: React.FC<Props> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-              {filteredExpenses.map(exp => {
+              {list.map(exp => {
                 const value = (exp.type === ExpenseType.FIXED && exp.metadata?.overrides?.[monthKey])
                   ? exp.metadata.overrides[monthKey]
                   : exp.totalValue;
@@ -109,7 +93,7 @@ const ExpenseTabs: React.FC<Props> = ({
                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">{exp.category}</span>
                         {activeTab === 'expenses' && (
                           <span className="text-[10px] font-black text-p1 uppercase opacity-60">
-                            • {exp.type === ExpenseType.FIXED ? 'Fixa' : (exp.splitMethod === 'equal' ? '50/50' : 'Prop.')}
+                            • {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Prop.'}
                           </span>
                         )}
                       </div>
@@ -120,22 +104,15 @@ const ExpenseTabs: React.FC<Props> = ({
 
                     {activeTab === 'expenses' && (
                       <td className="px-6 py-5 hidden md:table-cell">
-                        <div className="flex flex-col gap-1">
-                          <span className={`text-[9px] font-black uppercase tracking-tight px-2 py-1 rounded-lg w-fit ${exp.type === ExpenseType.FIXED ? 'bg-slate-900 text-white dark:bg-slate-700' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                            {exp.type === ExpenseType.FIXED ? 'Conta Fixa' : 'Variável'}
-                          </span>
-                          {exp.type !== ExpenseType.FIXED && (
-                            <span className="text-[9px] font-bold text-slate-400 uppercase">
-                              Divisão: {exp.splitMethod === 'equal' ? '50% / 50%' : 'Proporcional'}
-                            </span>
-                          )}
-                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200/50 dark:border-white/5">
+                          {exp.splitMethod === 'custom' ? `${exp.splitPercentage1}% / ${100 - (exp.splitPercentage1 || 50)}%` : 'Proporcional'}
+                        </span>
                       </td>
                     )}
 
                     <td className="px-6 py-5 hidden lg:table-cell">
                       <span className={`text-[10px] font-black uppercase tracking-tight px-3 py-1.5 rounded-xl ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
-                        {exp.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name}
+                        {exp.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right whitespace-nowrap">
@@ -155,13 +132,10 @@ const ExpenseTabs: React.FC<Props> = ({
                 );
               })}
 
-              {filteredExpenses.length === 0 && (
+              {list.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-20 text-center">
-                    <div className="flex flex-col items-center">
-                      <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center text-2xl mb-4 grayscale opacity-50">💸</div>
-                      <p className="text-slate-400 dark:text-slate-600 font-bold">Nenhum gasto encontrado</p>
-                    </div>
+                  <td colSpan={7} className="px-6 py-12 text-center">
+                    <p className="text-slate-400 dark:text-slate-600 text-[10px] font-black uppercase tracking-widest">{emptyMessage}</p>
                   </td>
                 </tr>
               )}
@@ -169,6 +143,39 @@ const ExpenseTabs: React.FC<Props> = ({
           </table>
         </div>
       </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-10 animate-in fade-in duration-500">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+            {activeTab === 'expenses' ? 'Gastos Compartilhados' : 'Reembolsos'}
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+            {activeTab === 'expenses'
+              ? 'Contas do casal organizadas por periodicidade'
+              : 'Lançamentos para ressarcimento entre o casal'}
+          </p>
+        </div>
+        <button
+          onClick={() => onAddExpense(activeTab === 'expenses' ? ExpenseType.COMMON : ExpenseType.REIMBURSEMENT, null)}
+          className="bg-p1 hover:brightness-110 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-p1/10 flex items-center gap-2 transition-all active:scale-95"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+          <span className="hidden sm:inline">Adicionar</span>
+        </button>
+      </div>
+
+      {activeTab === 'expenses' ? (
+        <div className="space-y-12">
+          {renderExpenseTable(fixedExpenses, "Contas Fixas", "Nenhuma conta fixa este mês")}
+          {renderExpenseTable(variableExpenses, "Gastos Variáveis", "Nenhum gasto variável este mês")}
+        </div>
+      ) : (
+        renderExpenseTable(reimbursementExpenses, undefined, "Nenhum reembolso este mês")
+      )}
     </div>
   );
 };
