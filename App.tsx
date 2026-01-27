@@ -213,7 +213,7 @@ const AppContent: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200 dark:border-white/5 rounded-2xl p-1 shadow-inner shrink-0 h-11">
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-white/5 rounded-2xl p-1 shadow-inner shrink-0 h-11">
               <button onClick={() => navigateMonth(-1)} className="p-2 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-xl text-slate-500 dark:text-slate-400 transition-all active:scale-90">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
               </button>
@@ -222,7 +222,7 @@ const AppContent: React.FC = () => {
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-slate-800 dark:text-slate-100 font-bold px-1 py-1 text-sm focus:outline-none cursor-pointer uppercase tracking-tight text-center w-[120px]"
+                  className="bg-transparent text-slate-800 dark:text-slate-100 font-bold px-1 py-1 text-sm focus:outline-none cursor-pointer uppercase tracking-tight text-center w-[160px]"
                 />
               </div>
               <button onClick={() => navigateMonth(1)} className="p-2 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-xl text-slate-500 dark:text-slate-400 transition-all active:scale-90">
