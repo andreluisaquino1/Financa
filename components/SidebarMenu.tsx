@@ -108,8 +108,8 @@ const SidebarMenu: React.FC<Props> = ({
 
   return (
     <>
-      <div className={`fixed inset-0 bg-slate-900/60 z-[140] transition-opacity backdrop-blur-sm ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
-      <div className={`fixed top-0 left-0 bottom-0 w-85 bg-white dark:bg-slate-900 z-[150] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed inset-0 bg-slate-900/60 z-[9998] transition-opacity backdrop-blur-sm ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose} />
+      <div className={`fixed top-0 left-0 bottom-0 w-85 bg-white dark:bg-slate-900 z-[9999] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
         <div className="p-8 bg-slate-900 text-white rounded-br-[4rem] relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-20"></div>
