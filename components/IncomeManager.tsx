@@ -214,17 +214,19 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 <td colSpan={4} className="px-6 py-12 text-center text-slate-400 font-bold italic">Nenhuma receita registrada este mês.</td>
                             </tr>
                         ) : monthIncomes.map(inc => (
-                            <tr key={inc.id} className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${(inc as any).isVirtual ? 'opacity-70 bg-slate-50/30' : ''}`}>
+                            <tr key={inc.id} className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${(inc as any).isVirtual ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''}`}>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm shadow-sm ${(inc as any).isVirtual ? 'bg-slate-100 dark:bg-slate-800 text-slate-400' : 'bg-slate-50 dark:bg-slate-800'}`}>
-                                            {CATEGORIES.find(c => c.label === inc.category)?.icon || '💰'}
+                                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm shadow-sm ${(inc as any).isVirtual ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-500' : 'bg-slate-50 dark:bg-slate-800'}`}>
+                                            {(inc as any).isVirtual ? '🔄' : (CATEGORIES.find(c => c.label === inc.category)?.icon || '💰')}
                                         </span>
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{inc.description}</p>
                                                 {(inc as any).isVirtual && (
-                                                    <span className="text-[8px] font-black bg-slate-200 dark:bg-slate-700 text-slate-500 px-1.5 py-0.5 rounded uppercase tracking-wider">Automático</span>
+                                                    <span className="text-[8px] font-black bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
+                                                        Fixo Mensal
+                                                    </span>
                                                 )}
                                             </div>
                                             <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{inc.category}</p>
