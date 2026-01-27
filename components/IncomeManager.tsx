@@ -8,8 +8,8 @@ interface IncomeManagerProps {
     coupleInfo: CoupleInfo;
     monthKey: string;
     isPremium: boolean;
-    onAddIncome: (inc: any) => void;
-    onUpdateIncome: (id: string, inc: any) => void;
+    onAddIncome: (inc: any) => Promise<void> | void;
+    onUpdateIncome: (id: string, inc: any) => Promise<void> | void;
     onDeleteIncome: (id: string) => void;
     onUpdateBaseSalary: (person: 'person1' | 'person2', value: number, description?: string) => void;
     onShowPremium: () => void;
@@ -41,6 +41,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     const [paidBy, setPaidBy] = useState<'person1' | 'person2'>('person1');
     const [category, setCategory] = useState('Salário');
     const [setAsDefault, setSetAsDefault] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Filter real incomes first
     const realMonthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
@@ -145,7 +146,9 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
         setIsModalOpen(true);
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        if (isSubmitting) return;
+
         const payload = {
             description,
             value: parseBRL(value),
@@ -154,17 +157,25 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
             date: editingIncome?.date || `${monthKey}-01`
         };
 
-        if (editingIncome) {
-            onUpdateIncome(editingIncome.id, payload);
-        } else {
-            onAddIncome(payload);
-        }
+        setIsSubmitting(true);
+        try {
+            if (editingIncome) {
+                await onUpdateIncome(editingIncome.id, payload);
+            } else {
+                await onAddIncome(payload);
+            }
 
-        if (setAsDefault && category === 'Salário') {
-            onUpdateBaseSalary(paidBy, payload.value, description);
-        }
+            if (setAsDefault && category === 'Salário') {
+                await onUpdateBaseSalary(paidBy, payload.value, description);
+            }
 
-        setIsModalOpen(false);
+            setIsModalOpen(false);
+        } catch (err) {
+            console.error('Error saving income:', err);
+            alert('Erro ao salvar receita. Tente novamente.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -382,10 +393,20 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                             </button>
                             <button
                                 onClick={handleSave}
-                                disabled={!description || !value}
-                                className="w-full py-4 bg-slate-900 dark:bg-p1 text-white rounded-2xl font-black text-[10px] uppercase transition-all hover:scale-[1.02] shadow-xl disabled:opacity-50 disabled:hover:scale-100"
+                                disabled={!description || !value || isSubmitting}
+                                className={`w-full py-4 bg-slate-900 dark:bg-p1 text-white rounded-2xl font-black text-[10px] uppercase transition-all hover:scale-[1.02] shadow-xl disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2`}
                             >
-                                Salvar Receita 🚀
+                                {isSubmitting ? (
+                                    <>
+                                        <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Salvando...
+                                    </>
+                                ) : (
+                                    <>Salvar Receita 🚀</>
+                                )}
                             </button>
                         </div>
                     </div>

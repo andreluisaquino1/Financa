@@ -1,16 +1,14 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Expense, ExpenseType, CoupleInfo } from '../types';
 import { formatCurrency, parseSafeDate } from '../utils';
-import AddExpenseModal from './AddExpenseModal';
 
 interface Props {
   activeTab: 'fixed' | 'common' | 'equal' | 'reimbursement';
   expenses: Expense[];
   monthKey: string;
   coupleInfo: CoupleInfo;
-  onAddExpense: (exp: Omit<Expense, 'id' | 'createdAt'>) => void;
-  onUpdateExpense: (id: string, exp: Omit<Expense, 'id' | 'createdAt'>) => void;
+  onAddExpense: (type: ExpenseType, exp: Expense | null) => void;
+  onUpdateExpense: (id: string, exp: Expense) => void;
   onDeleteExpense: (id: string) => void;
 }
 
@@ -23,9 +21,6 @@ const ExpenseTabs: React.FC<Props> = ({
   onUpdateExpense,
   onDeleteExpense
 }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-
   const filteredExpenses = useMemo(() => {
     return expenses.filter(e => {
       if (activeTab === 'fixed') return e.type === ExpenseType.FIXED;
@@ -37,11 +32,6 @@ const ExpenseTabs: React.FC<Props> = ({
       return false;
     });
   }, [expenses, activeTab, monthKey]);
-
-  const handleEdit = (exp: Expense) => {
-    setEditingExpense(exp);
-    setIsModalOpen(true);
-  };
 
   const currentType = {
     fixed: ExpenseType.FIXED,
@@ -64,7 +54,7 @@ const ExpenseTabs: React.FC<Props> = ({
           </p>
         </div>
         <button
-          onClick={() => { setEditingExpense(null); setIsModalOpen(true); }}
+          onClick={() => onAddExpense(currentType!, null)}
           className="bg-p1 hover:brightness-110 text-white font-bold py-3 px-6 rounded-2xl shadow-lg shadow-p1/10 flex items-center gap-2 transition-all active:scale-95"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
@@ -123,7 +113,7 @@ const ExpenseTabs: React.FC<Props> = ({
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEdit(exp)} className="p-2 text-slate-400 hover:text-p1 hover:bg-p1/5 rounded-xl transition-all">
+                        <button onClick={() => onUpdateExpense(exp.id, exp)} className="p-2 text-slate-400 hover:text-p1 hover:bg-p1/5 rounded-xl transition-all">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </button>
                         <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all">
@@ -149,20 +139,6 @@ const ExpenseTabs: React.FC<Props> = ({
           </table>
         </div>
       </div>
-
-      {isModalOpen && (
-        <AddExpenseModal
-          type={currentType!}
-          coupleInfo={coupleInfo}
-          initialData={editingExpense}
-          isPremium={true}
-          onClose={() => { setIsModalOpen(false); setEditingExpense(null); }}
-          onAdd={(exp) => {
-            if (editingExpense) onUpdateExpense(editingExpense.id, exp);
-            else onAddExpense(exp);
-          }}
-        />
-      )}
     </div>
   );
 };

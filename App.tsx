@@ -350,8 +350,8 @@ const AppContent: React.FC = () => {
                 coupleInfo={coupleInfo}
                 expenses={expenses}
                 monthKey={selectedMonth}
-                onAddExpense={(exp) => openAddExpense(ExpenseType.PERSONAL_P1)}
-                onUpdateExpense={(id, exp) => openAddExpense(ExpenseType.PERSONAL_P1, { ...exp, id } as Expense)}
+                onAddExpense={(type) => openAddExpense(type)}
+                onUpdateExpense={(id, exp) => openAddExpense(exp.type, exp)}
                 onDeleteExpense={deleteExpense}
               />
             )}
@@ -361,8 +361,8 @@ const AppContent: React.FC = () => {
                 coupleInfo={coupleInfo}
                 expenses={expenses}
                 monthKey={selectedMonth}
-                onAddExpense={(exp) => openAddExpense(ExpenseType.PERSONAL_P2)}
-                onUpdateExpense={(id, exp) => openAddExpense(ExpenseType.PERSONAL_P2, { ...exp, id } as Expense)}
+                onAddExpense={(type) => openAddExpense(type)}
+                onUpdateExpense={(id, exp) => openAddExpense(exp.type, exp)}
                 onDeleteExpense={deleteExpense}
               />
             )}
@@ -372,13 +372,8 @@ const AppContent: React.FC = () => {
                 expenses={expenses}
                 monthKey={selectedMonth}
                 coupleInfo={coupleInfo}
-                onAddExpense={(exp) => openAddExpense({
-                  'fixed': ExpenseType.FIXED,
-                  'common': ExpenseType.COMMON,
-                  'equal': ExpenseType.EQUAL,
-                  'reimbursement': ExpenseType.REIMBURSEMENT
-                }[currentTab as 'fixed' | 'common' | 'equal' | 'reimbursement'])}
-                onUpdateExpense={(id, exp) => openAddExpense(exp.type, { ...exp, id } as Expense)}
+                onAddExpense={(type) => openAddExpense(type)}
+                onUpdateExpense={(id, exp) => openAddExpense(exp.type, exp)}
                 onDeleteExpense={deleteExpense}
               />
             )}
