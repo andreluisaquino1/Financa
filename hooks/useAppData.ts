@@ -241,22 +241,28 @@ export const useAppData = () => {
         setExpenses(prev => [optimisticExp, ...prev]);
 
         try {
+            const insertPayload: any = {
+                user_id: user.id,
+                household_id: activeHouseholdId,
+                date: exp.date,
+                type: exp.type,
+                category: exp.category,
+                description: exp.description,
+                total_value: exp.totalValue,
+                installments: exp.installments,
+                paid_by: exp.paidBy,
+                metadata: exp.metadata || {},
+                split_method: exp.splitMethod || null
+            };
+
+            // Only add reminder_day if it has a value, to avoid errors if column is missing
+            if (exp.reminderDay) {
+                insertPayload.reminder_day = exp.reminderDay;
+            }
+
             const { data, error } = await supabase
                 .from('expenses')
-                .insert({
-                    user_id: user.id,
-                    household_id: activeHouseholdId,
-                    date: exp.date,
-                    type: exp.type,
-                    category: exp.category,
-                    description: exp.description,
-                    total_value: exp.totalValue,
-                    installments: exp.installments,
-                    paid_by: exp.paidBy,
-                    metadata: exp.metadata || {},
-                    split_method: exp.splitMethod || null,
-                    reminder_day: exp.reminderDay || null
-                })
+                .insert(insertPayload)
                 .select()
                 .single();
 
@@ -354,20 +360,26 @@ export const useAppData = () => {
     const updateExpense = useCallback(async (id: string, updates: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
         try {
+            const updatePayload: any = {
+                date: updates.date,
+                type: updates.type,
+                category: updates.category,
+                description: updates.description,
+                total_value: updates.totalValue,
+                installments: updates.installments,
+                paid_by: updates.paidBy,
+                metadata: updates.metadata || {},
+                split_method: updates.splitMethod || null
+            };
+
+            // Only add reminder_day if it has a value
+            if (updates.reminderDay) {
+                updatePayload.reminder_day = updates.reminderDay;
+            }
+
             const { data, error } = await supabase
                 .from('expenses')
-                .update({
-                    date: updates.date,
-                    type: updates.type,
-                    category: updates.category,
-                    description: updates.description,
-                    total_value: updates.totalValue,
-                    installments: updates.installments,
-                    paid_by: updates.paidBy,
-                    metadata: updates.metadata || {},
-                    split_method: updates.splitMethod || null,
-                    reminder_day: updates.reminderDay || null
-                })
+                .update(updatePayload)
                 .eq('id', id)
                 .select()
                 .single();
@@ -398,6 +410,47 @@ export const useAppData = () => {
                 }
             }
         } catch (err: any) {
+            // Fallback for column errors
+            if (err.message && (err.message.includes('reminder_day') || err.message.includes('column'))) {
+                try {
+                    const { data: fallbackData } = await supabase
+                        .from('expenses')
+                        .update({
+                            date: updates.date,
+                            type: updates.type,
+                            category: updates.category,
+                            description: updates.description,
+                            total_value: updates.totalValue,
+                            installments: updates.installments,
+                            paid_by: updates.paidBy,
+                            metadata: updates.metadata || {},
+                            split_method: updates.splitMethod || null
+                        })
+                        .eq('id', id)
+                        .select()
+                        .single();
+
+                    if (fallbackData) {
+                        const fallbackExp: Expense = {
+                            id: fallbackData.id,
+                            date: fallbackData.date,
+                            type: fallbackData.type as ExpenseType,
+                            category: fallbackData.category,
+                            description: fallbackData.description,
+                            totalValue: Number(fallbackData.total_value),
+                            installments: fallbackData.installments,
+                            paidBy: fallbackData.paid_by as 'person1' | 'person2',
+                            createdAt: fallbackData.created_at,
+                            metadata: fallbackData.metadata,
+                            household_id: fallbackData.household_id,
+                            splitMethod: fallbackData.split_method as 'proportional' | 'equal',
+                            reminderDay: undefined
+                        };
+                        setExpenses(prev => prev.map(e => e.id === id ? fallbackExp : e));
+                        return;
+                    }
+                } catch (fbErr) { console.error(fbErr); }
+            }
             alert('Erro ao atualizar: ' + err.message);
         }
     }, [user]);

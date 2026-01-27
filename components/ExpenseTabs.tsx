@@ -155,6 +155,7 @@ const ExpenseTabs: React.FC<Props> = ({
           type={currentType!}
           coupleInfo={coupleInfo}
           initialData={editingExpense}
+          isPremium={true}
           onClose={() => { setIsModalOpen(false); setEditingExpense(null); }}
           onAdd={(exp) => {
             if (editingExpense) onUpdateExpense(editingExpense.id, exp);
