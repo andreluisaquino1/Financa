@@ -196,9 +196,9 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="h-screen w-full bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 overflow-hidden">
+    <div className="h-screen w-full bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 overflow-hidden relative">
       {/* Header fixo sem sobreposição */}
-      <header className="bg-white dark:bg-slate-900 border-b dark:border-white/5 flex-shrink-0 z-[50] relative">
+      <header className="bg-white dark:bg-slate-900 border-b dark:border-white/5 flex-shrink-0 relative">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between py-3 md:py-4 gap-4">
             <div className="flex items-center space-x-3 shrink-0">
@@ -247,7 +247,7 @@ const AppContent: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 md:px-6 py-6 md:py-8 lg:pb-12">
+      <main className="flex-1 overflow-y-auto px-4 md:px-6 py-6 md:py-8 lg:pb-12 scroll-smooth no-scrollbar">
         <div className="max-w-7xl mx-auto animate-in fade-in duration-500">
           {currentTab === 'summary' && (
             <Dashboard
@@ -311,7 +311,7 @@ const AppContent: React.FC = () => {
         </div>
       </main>
 
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl border-t dark:border-white/5 flex items-center p-2 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar scroll-smooth">
+      <nav className="lg:hidden flex-shrink-0 bg-white/90 dark:bg-slate-900/95 backdrop-blur-2xl border-t dark:border-white/5 flex items-center p-2 z-40 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar scroll-smooth">
         <div className="flex min-w-max space-x-1 px-2 mx-auto">
           <MobileTab active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" label="Início" />
           <MobileTab active={currentTab === 'fixed'} onClick={() => setCurrentTab('fixed')} icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" label="Fixos" />
@@ -324,6 +324,7 @@ const AppContent: React.FC = () => {
         </div>
       </nav>
 
+      {/* Sidebar e Modais movidos para fora do fluxo principal para garantir z-index absoluto */}
       <SidebarMenu
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
@@ -344,7 +345,6 @@ const AppContent: React.FC = () => {
         selectedMonth={selectedMonth}
       />
 
-      {/* Global Modal - Outside of scaling/scrolling main content to ensure visibility */}
       {isGlobalModalOpen && (
         <AddExpenseModal
           type={modalType}
@@ -359,7 +359,6 @@ const AppContent: React.FC = () => {
         />
       )}
 
-      {/* Premium Sales Modal */}
       <PremiumModal
         isOpen={isPremiumModalOpen}
         onClose={() => setIsPremiumModalOpen(false)}
