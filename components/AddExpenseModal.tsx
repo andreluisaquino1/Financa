@@ -133,8 +133,143 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     </div>
                 )}
 
-                <form onSubmit={handleFinalSubmit} className="space-y-6">
-                    {/* 1. Data e Lembrete */}
+                <form onSubmit={handleFinalSubmit} className="space-y-5">
+                    {isJoint && (
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Periodicidade</label>
+                                <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentType(ExpenseType.COMMON)}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${currentType !== ExpenseType.FIXED ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Variável
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentType(ExpenseType.FIXED)}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${currentType === ExpenseType.FIXED ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Fixo (Mensal)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Método de Divisão</label>
+                                <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setSplitMethod('proportional')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'proportional' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Proporcional
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSplitMethod('custom')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'custom' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Percentual (%)
+                                    </button>
+                                </div>
+                            </div>
+
+                            {splitMethod === 'custom' && (
+                                <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase">
+                                        <span className="text-p1">{coupleInfo.person1Name.split(' ')[0]} {splitPercentage1}%</span>
+                                        <span className="text-p2">{coupleInfo.person2Name.split(' ')[0]} {100 - splitPercentage1}%</span>
+                                    </div>
+                                    <input
+                                        type="range" min="0" max="100" value={splitPercentage1}
+                                        onChange={(e) => setSplitPercentage1(Number(e.target.value))}
+                                        className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-p1"
+                                    />
+                                    <div className="flex justify-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => setSplitPercentage1(50)}
+                                            className="text-[9px] font-black uppercase text-slate-400 hover:text-p1 transition-colors"
+                                        >
+                                            Resetar para 50/50
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {isJoint && (
+                        <div className="space-y-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowAdvancedSplit(!showAdvancedSplit)}
+                                className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 hover:text-p1 transition-colors px-1"
+                            >
+                                <svg className={`w-3 h-3 transition-transform ${showAdvancedSplit ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                                </svg>
+                                {showAdvancedSplit ? 'Ocultar partes específicas' : 'Adicionar partes específicas'}
+                            </button>
+
+                            {showAdvancedSplit && (
+                                <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-100 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-p1 uppercase tracking-wider px-1">Parte de {coupleInfo.person1Name.split(' ')[0]}</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold">R$</span>
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={specValue1}
+                                                onChange={e => setSpecValue1(formatAsBRL(e.target.value))}
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 focus:border-p1 rounded-xl pl-8 pr-3 py-2.5 font-bold text-xs text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                                placeholder="0,00"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-p2 uppercase tracking-wider px-1">Parte de {coupleInfo.person2Name.split(' ')[0]}</label>
+                                        <div className="relative">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold">R$</span>
+                                            <input
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={specValue2}
+                                                onChange={e => setSpecValue2(formatAsBRL(e.target.value))}
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 focus:border-p2 rounded-xl pl-8 pr-3 py-2.5 font-bold text-xs text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                                placeholder="0,00"
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="col-span-2 text-[9px] text-slate-400 font-medium px-1">
+                                        * Estes valores serão atribuídos integralmente a cada pessoa antes de dividir o restante.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                required
+                                value={value}
+                                onChange={e => setValue(formatAsBRL(e.target.value))}
+                                onFocus={e => e.target.select()}
+                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                placeholder="0,00"
+                            />
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 h-4 flex items-center">Data</label>
@@ -162,7 +297,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         </div>
                     </div>
 
-                    {/* 2. Descrição */}
                     <div className="space-y-1">
                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Descrição</label>
                         <input
@@ -175,25 +309,6 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         />
                     </div>
 
-                    {/* 3. Valor Total */}
-                    <div className="space-y-1">
-                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>
-                        <div className="relative">
-                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
-                            <input
-                                type="text"
-                                inputMode="decimal"
-                                required
-                                value={value}
-                                onChange={e => setValue(formatAsBRL(e.target.value))}
-                                onFocus={e => e.target.select()}
-                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
-                                placeholder="0,00"
-                            />
-                        </div>
-                    </div>
-
-                    {/* 4. Categoria e Parcelas */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Categoria</label>
@@ -222,119 +337,27 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         )}
                     </div>
 
-                    {/* Configurações Avançadas (Periodicidade, Divisão, Quem Pagou) */}
-                    <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-5">
-                        {isJoint && (
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Periodicidade</label>
-                                    <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
-                                        <button
-                                            type="button"
-                                            onClick={() => setCurrentType(ExpenseType.COMMON)}
-                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${currentType !== ExpenseType.FIXED ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            Variável
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setCurrentType(ExpenseType.FIXED)}
-                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${currentType === ExpenseType.FIXED ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            Fixo (Mensal)
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Divisão</label>
-                                    <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
-                                        <button
-                                            type="button"
-                                            onClick={() => setSplitMethod('proportional')}
-                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'proportional' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            Proporcional
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setSplitMethod('custom')}
-                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${splitMethod === 'custom' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            Percentual (%)
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {splitMethod === 'custom' && (
-                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
-                                        <div className="flex justify-between items-center text-[10px] font-black uppercase">
-                                            <span className="text-p1">{coupleInfo.person1Name.split(' ')[0]} {splitPercentage1}%</span>
-                                            <span className="text-p2">{coupleInfo.person2Name.split(' ')[0]} {100 - splitPercentage1}%</span>
-                                        </div>
-                                        <input
-                                            type="range" min="0" max="100" value={splitPercentage1}
-                                            onChange={(e) => setSplitPercentage1(Number(e.target.value))}
-                                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-p1"
-                                        />
-                                    </div>
-                                )}
-
+                    {!isPersonalType && (
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Quem pagou?</label>
+                            <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1.5 rounded-2xl border border-slate-100 dark:border-white/5">
                                 <button
                                     type="button"
-                                    onClick={() => setShowAdvancedSplit(!showAdvancedSplit)}
-                                    className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 hover:text-p1 transition-colors px-1"
+                                    onClick={() => setPaidBy('person1')}
+                                    className={`flex-1 py-3.5 rounded-xl font-black transition-all ${paidBy === 'person1' ? 'bg-p1 text-white shadow-lg' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
                                 >
-                                    {showAdvancedSplit ? 'Ocultar partes específicas' : 'Adicionar partes específicas'}
+                                    {coupleInfo.person1Name.split(' ')[0]}
                                 </button>
-
-                                {showAdvancedSplit && (
-                                    <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 dark:bg-slate-950/40 rounded-2xl border border-slate-100 dark:border-white/5 animate-in fade-in slide-in-from-top-2">
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-p1 uppercase px-1">Parte de {coupleInfo.person1Name.split(' ')[0]}</label>
-                                            <input
-                                                type="text" inputMode="decimal"
-                                                value={specValue1} onChange={e => setSpecValue1(formatAsBRL(e.target.value))}
-                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 font-bold text-xs outline-none"
-                                                placeholder="R$ 0,00"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-p2 uppercase px-1">Parte de {coupleInfo.person2Name.split(' ')[0]}</label>
-                                            <input
-                                                type="text" inputMode="decimal"
-                                                value={specValue2} onChange={e => setSpecValue2(formatAsBRL(e.target.value))}
-                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 font-bold text-xs outline-none"
-                                                placeholder="R$ 0,00"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => setPaidBy('person2')}
+                                    className={`flex-1 py-3.5 rounded-xl font-black transition-all ${paidBy === 'person2' ? 'bg-p2 text-white shadow-lg' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
+                                >
+                                    {coupleInfo.person2Name.split(' ')[0]}
+                                </button>
                             </div>
-                        )}
-
-                        {!isPersonalType && (
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Quem pagou?</label>
-                                <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1.5 rounded-2xl border border-slate-100 dark:border-white/5">
-                                    <button
-                                        type="button"
-                                        onClick={() => setPaidBy('person1')}
-                                        className={`flex-1 py-3.5 rounded-xl font-black transition-all ${paidBy === 'person1' ? 'bg-p1 text-white shadow-lg' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                                    >
-                                        {coupleInfo.person1Name.split(' ')[0]}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPaidBy('person2')}
-                                        className={`flex-1 py-3.5 rounded-xl font-black transition-all ${paidBy === 'person2' ? 'bg-p2 text-white shadow-lg' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                                    >
-                                        {coupleInfo.person2Name.split(' ')[0]}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     <div className="flex gap-3 pt-4">
                         <button
