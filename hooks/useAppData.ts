@@ -23,7 +23,10 @@ export const useAppData = () => {
     const [dataLoading, setDataLoading] = useState(true);
     const [householdId, setHouseholdId] = useState<string | null>(null);
     const [inviteCode, setInviteCode] = useState<string | null>(null);
-    const [isPremium, setIsPremium] = useState(false);
+    const [isPremium, setIsPremium] = useState<boolean>(() => {
+        const saved = localStorage.getItem('isPremium');
+        return saved ? JSON.parse(saved) : false;
+    });
 
     const loadData = useCallback(async () => {
         if (!user) {
@@ -65,6 +68,7 @@ export const useAppData = () => {
                 if (!hhError && householdProfiles) {
                     const isHouseholdPremium = householdProfiles.some(h => !!h.is_premium);
                     setIsPremium(isHouseholdPremium);
+                    localStorage.setItem('isPremium', JSON.stringify(isHouseholdPremium));
                 }
 
                 if (!profile.invite_code) {
