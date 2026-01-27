@@ -52,35 +52,31 @@ const ExpenseTabs: React.FC<Props> = ({
 
         return (
           <div key={exp.id} className="bg-white dark:bg-slate-800/60 p-5 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4">
-            {/* Linha 1: Data - Lembrete */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg">
-                {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
-              </span>
-              {exp.reminderDay && (
-                <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
-                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.64 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z" /></svg>
-                  Dia {exp.reminderDay}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg">
+                  {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                 </span>
-              )}
+                {exp.reminderDay && (
+                  <span className="flex items-center gap-0.5 bg-p1/10 text-p1 text-[9px] px-1.5 py-0.5 rounded-lg font-black uppercase">
+                    <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2.98 2.98 0 0 0 2.818-2H9.182A2.98 2.98 0 0 0 12 22zm7-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C8.64 5.36 7 7.92 7 11v5l-2 2v1h14v-1l-2-2z" /></svg>
+                    Dia {exp.reminderDay}
+                  </span>
+                )}
+              </div>
+              <p className="font-black text-slate-900 dark:text-slate-100 text-lg">{formatCurrency(value)}</p>
             </div>
 
-            {/* Linha 2: Descrição */}
-            <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base leading-tight">{exp.description}</h4>
-
-            {/* Linha 3: Valor */}
-            <div>
-              <p className="font-black text-slate-900 dark:text-slate-100 text-xl tracking-tight">{formatCurrency(value)}</p>
-            </div>
-
-            {/* Linha 4: Categoria - Parcelas */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-slate-500 uppercase">{exp.category}</span>
-              {instInfo && (
-                <span className="text-[10px] font-black text-p1 bg-p1/10 px-2 py-0.5 rounded-lg uppercase">
-                  {instInfo.current}/{instInfo.total}
-                </span>
-              )}
+            <div className="space-y-1">
+              <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">{exp.category}</span>
+                {instInfo && (
+                  <span className="text-[10px] font-black text-p1 bg-p1/10 px-2 py-0.5 rounded-lg uppercase">
+                    {instInfo.current}/{instInfo.total}
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-3 border-t border-slate-50 dark:border-white/5">
@@ -135,14 +131,14 @@ const ExpenseTabs: React.FC<Props> = ({
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/5">
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[140px]">Data - Lembrete</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[140px]">Data / Lembrete</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descrição</th>
                 <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest min-w-[120px]">Valor</th>
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria - Parcelas</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Categoria / Parcelas</th>
                 {activeTab === 'expenses' && (
-                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell text-center text-xs">Divisão</th>
+                  <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest hidden md:table-cell text-center">Divisão</th>
                 )}
-                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center text-xs">Pago por</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Pago por</th>
                 <th className="px-6 py-4"></th>
               </tr>
             </thead>
