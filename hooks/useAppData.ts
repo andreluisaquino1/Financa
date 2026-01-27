@@ -251,7 +251,8 @@ export const useAppData = () => {
                     installments: exp.installments,
                     paid_by: exp.paidBy,
                     metadata: exp.metadata || {},
-                    split_method: exp.splitMethod || null
+                    split_method: exp.splitMethod || null,
+                    reminder_day: exp.reminderDay
                 })
                 .select()
                 .single();
@@ -302,7 +303,8 @@ export const useAppData = () => {
                     installments: updates.installments,
                     paid_by: updates.paidBy,
                     metadata: updates.metadata || {},
-                    split_method: updates.splitMethod || null
+                    split_method: updates.splitMethod || null,
+                    reminder_day: updates.reminderDay
                 })
                 .eq('id', id)
                 .select()
@@ -323,7 +325,7 @@ export const useAppData = () => {
                     metadata: data.metadata,
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'equal',
-                    reminderDay: undefined // Desativado por agora
+                    reminderDay: data.reminder_day
                 };
                 setExpenses(prev => prev.map(e => e.id === id ? updatedExp : e));
             }

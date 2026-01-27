@@ -430,10 +430,15 @@ const AppContent: React.FC = () => {
           isPremium={true}
           onShowPremium={() => setIsPremiumModalOpen(true)}
           onClose={() => { setIsGlobalModalOpen(false); setEditingExpense(null); }}
-          onAdd={(exp) => {
-            if (editingExpense) updateExpense(editingExpense.id, exp);
-            else addExpense(exp);
-            setIsGlobalModalOpen(false);
+          onAdd={async (exp) => {
+            try {
+              if (editingExpense) await updateExpense(editingExpense.id, exp);
+              else await addExpense(exp);
+              setIsGlobalModalOpen(false);
+              setEditingExpense(null);
+            } catch (err) {
+              console.error('Error in onAdd:', err);
+            }
           }}
         />
       )}

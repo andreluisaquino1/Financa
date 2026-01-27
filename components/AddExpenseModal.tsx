@@ -8,7 +8,7 @@ interface AddExpenseModalProps {
     coupleInfo: CoupleInfo;
     initialData?: Expense | null;
     onClose: () => void;
-    onAdd: (exp: any) => void;
+    onAdd: (exp: any) => Promise<void> | void;
     isPremium?: boolean;
     onShowPremium?: () => void;
 }
@@ -32,46 +32,70 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const [reminderDay, setReminderDay] = useState<string>(initialData?.reminderDay?.toString() || '');
 
     const [onlyThisMonth, setOnlyThisMonth] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isPersonalType = type === ExpenseType.PERSONAL_P1 || type === ExpenseType.PERSONAL_P2;
 
-    const handleFinalSubmit = (e: React.FormEvent) => {
+    const handleFinalSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const finalValue = parseBRL(value);
-        const monthKey = date.substring(0, 7);
+        if (isSubmitting) return;
 
-        let finalMetadata = initialData?.metadata || {};
-        let finalTotalValue = finalValue;
+        console.log('🎯 handleFinalSubmit INICIADO');
+        setIsSubmitting(true);
 
-        if (type === ExpenseType.FIXED && initialData && onlyThisMonth) {
-            finalTotalValue = initialData.totalValue;
-            finalMetadata = {
-                ...finalMetadata,
-                overrides: {
-                    ...(finalMetadata.overrides || {}),
-                    [monthKey]: finalValue
+        try {
+            const finalValue = parseBRL(value);
+            console.log('💰 Valor parseado:', finalValue, 'do input:', value);
+
+            const monthKey = date.substring(0, 7);
+
+            let finalMetadata = initialData?.metadata || {};
+            let finalTotalValue = finalValue;
+
+            if (type === ExpenseType.FIXED && initialData && onlyThisMonth) {
+                finalTotalValue = initialData.totalValue;
+                finalMetadata = {
+                    ...finalMetadata,
+                    overrides: {
+                        ...(finalMetadata.overrides || {}),
+                        [monthKey]: finalValue
+                    }
+                };
+            } else if (type === ExpenseType.FIXED && initialData && !onlyThisMonth) {
+                if (finalMetadata.overrides) {
+                    const { [monthKey]: _, ...rest } = finalMetadata.overrides;
+                    finalMetadata = { ...finalMetadata, overrides: rest };
                 }
-            };
-        } else if (type === ExpenseType.FIXED && initialData && !onlyThisMonth) {
-            if (finalMetadata.overrides) {
-                const { [monthKey]: _, ...rest } = finalMetadata.overrides;
-                finalMetadata = { ...finalMetadata, overrides: rest };
             }
-        }
 
-        onAdd({
-            type,
-            description,
-            totalValue: finalTotalValue,
-            category,
-            paidBy: type === ExpenseType.PERSONAL_P1 ? 'person1' : (type === ExpenseType.PERSONAL_P2 ? 'person2' : paidBy),
-            date,
-            installments: type === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
-            splitMethod: type === ExpenseType.FIXED ? splitMethod : (type === ExpenseType.COMMON ? 'proportional' : (type === ExpenseType.EQUAL ? 'equal' : undefined)),
-            metadata: finalMetadata,
-            reminderDay: reminderDay ? parseInt(reminderDay) : undefined
-        });
-        onClose();
+            const expenseData = {
+                type,
+                description,
+                totalValue: finalTotalValue,
+                category,
+                paidBy: type === ExpenseType.PERSONAL_P1 ? 'person1' : (type === ExpenseType.PERSONAL_P2 ? 'person2' : paidBy),
+                date,
+                installments: type === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
+                splitMethod: type === ExpenseType.FIXED ? splitMethod : (type === ExpenseType.COMMON ? 'proportional' : (type === ExpenseType.EQUAL ? 'equal' : undefined)),
+                metadata: finalMetadata,
+                reminderDay: reminderDay ? parseInt(reminderDay) : undefined
+            };
+
+            console.log('📦 Dados do gasto a enviar:', expenseData);
+            console.log('📞 Chamando onAdd...');
+
+            await onAdd(expenseData);
+
+            console.log('✅ onAdd finalizado com sucesso');
+            // O modal é fechado pelo componente pai (App.tsx) via trigger do onAdd
+            // Mas caso o onAdd não feche o modal por algum motivo, poderíamos chamar onClose() aqui.
+            // No App.tsx atual, onAdd chama setIsGlobalModalOpen(false).
+        } catch (err) {
+            console.error('❌ Erro no envio:', err);
+            alert('Erro ao salvar lançamento. Tente novamente.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -239,9 +263,20 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     <div className="flex gap-3 pt-4">
                         <button
                             type="submit"
-                            className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4.5 rounded-[1.25rem] shadow-xl shadow-slate-200 dark:shadow-none hover:bg-black dark:hover:brightness-110 active:scale-[0.98] transition-all"
+                            disabled={isSubmitting}
+                            className={`w-full bg-slate-900 dark:bg-p1 text-white font-black py-4.5 rounded-[1.25rem] shadow-xl shadow-slate-200 dark:shadow-none hover:bg-black dark:hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
-                            {initialData ? 'Atualizar Gasto' : 'Confirmar Lançamento'}
+                            {isSubmitting ? (
+                                <>
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Salvando...</span>
+                                </>
+                            ) : (
+                                initialData ? 'Atualizar Gasto' : 'Confirmar Lançamento'
+                            )}
                         </button>
                     </div>
                 </form>

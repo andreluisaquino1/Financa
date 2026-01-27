@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     paid_by TEXT NOT NULL,
     metadata JSONB DEFAULT '{}',
     split_method TEXT,
+    reminder_day INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
