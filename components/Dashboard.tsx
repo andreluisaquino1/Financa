@@ -7,6 +7,7 @@ import BalanceCard from './dashboard/BalanceCard';
 import StatSmall from './dashboard/StatSmall';
 import ClosingBreakdown from './dashboard/ClosingBreakdown';
 import AdBanner from './AdBanner';
+import CategoryChart from './dashboard/CategoryChart';
 import { exportMonthlyPDF } from '../pdfGenerator';
 
 interface Props {
@@ -199,7 +200,9 @@ const Dashboard: React.FC<Props> = ({
           <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-xl grayscale opacity-50">🧭</div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <CategoryChart data={summary.categoryTotals} />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
           {Object.entries(summary.categoryTotals)
             .sort((a, b) => b[1] - a[1])
             .map(([category, total]) => (

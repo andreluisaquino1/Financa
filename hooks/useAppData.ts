@@ -360,6 +360,27 @@ export const useAppData = () => {
         }
     }, [user, householdId]);
 
+    const deleteMonthData = useCallback(async (monthKey: string) => {
+        if (!user) return;
+        setDataLoading(true);
+        try {
+            // Delete expenses where date starts with 'YYYY-MM'
+            const { error } = await supabase
+                .from('expenses')
+                .delete()
+                .eq('household_id', householdId || user.id)
+                .like('date', `${monthKey}%`);
+
+            if (error) throw error;
+
+            setExpenses(prev => prev.filter(e => !e.date.startsWith(monthKey)));
+        } catch (err: any) {
+            alert('Erro ao apagar dados do mês: ' + err.message);
+        } finally {
+            setDataLoading(false);
+        }
+    }, [user, householdId]);
+
     const updatePremiumStatus = useCallback(async (status: boolean) => {
         if (!user) return;
         try {
@@ -397,6 +418,7 @@ export const useAppData = () => {
         updateGoal,
         deleteGoal,
         deleteAllData,
+        deleteMonthData,
         signOut,
         refreshData: loadData
     };

@@ -26,10 +26,13 @@ interface Props {
   onNavigateToHelp?: () => void;
   onShowHouseholdLink?: () => void;
   onShowPremium?: () => void;
+  onDeleteMonthData?: () => void;
+  onRestorePurchases?: () => void;
   householdId?: string | null;
   userId?: string;
   inviteCode?: string | null;
   isPremium?: boolean;
+  selectedMonth?: string;
 }
 
 const DEFAULT_FREE_CATEGORIES = ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde'];
@@ -45,10 +48,13 @@ const SidebarMenu: React.FC<Props> = ({
   onNavigateToHelp,
   onShowHouseholdLink,
   onShowPremium,
+  onDeleteMonthData,
+  onRestorePurchases,
   householdId,
   userId,
   inviteCode,
-  isPremium
+  isPremium,
+  selectedMonth
 }) => {
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
@@ -279,9 +285,35 @@ const SidebarMenu: React.FC<Props> = ({
 
           {/* Footer Actions */}
           <div className="space-y-1 pt-6 border-t border-slate-100 dark:border-white/5 pb-10">
+            {!isPremium && <SidebarBtn icon="🔄" label="Restaurar Assinatura" onClick={onRestorePurchases} />}
             <SidebarBtn icon="?" label="Central de Ajuda" onClick={() => { onNavigateToHelp?.(); onClose(); }} />
             <SidebarBtn icon="↩" label="Sair da Conta" onClick={onSignOut} />
-            <SidebarBtn icon="×" label="Apagar Todos os Dados" onClick={onDeleteAccount} variant="danger" />
+
+            <SidebarBtn
+              icon="📅"
+              label={`Limpar Mês (${selectedMonth})`}
+              onClick={() => {
+                if (confirm(`Isso apagará TODAS as despesas de ${selectedMonth}. Continuar?`)) {
+                  onDeleteMonthData?.();
+                  onClose();
+                }
+              }}
+              variant="danger"
+            />
+
+            <SidebarBtn
+              icon="×"
+              label="Apagar Todos os Dados"
+              onClick={() => {
+                if (!isPremium) {
+                  alert('A opção de apagar TODO o histórico de uma vez é exclusiva para usuários PRO. No plano gratuito você pode apagar mês a mês.');
+                  onShowPremium?.();
+                  return;
+                }
+                onDeleteAccount();
+              }}
+              variant="danger"
+            />
           </div>
         </div>
 

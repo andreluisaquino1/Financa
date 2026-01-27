@@ -43,6 +43,7 @@ const AppContent: React.FC = () => {
     updateGoal,
     deleteGoal,
     deleteAllData,
+    deleteMonthData,
     signOut
   } = useAppData();
 
@@ -85,6 +86,26 @@ const AppContent: React.FC = () => {
     };
     initRC();
   }, []);
+
+  const handleRestore = async () => {
+    const isNative = (window as any).Capacitor?.isNative;
+    if (!isNative) {
+      alert('Restauração disponível apenas no aplicativo móvel.');
+      return;
+    }
+
+    try {
+      const { customerInfo } = await Purchases.restorePurchases();
+      if (typeof customerInfo.entitlements.active['PRO'] !== "undefined") {
+        await updatePremiumStatus(true);
+        alert('Assinatura restaurada com sucesso! ✨');
+      } else {
+        alert('Nenhuma assinatura ativa encontrada para esta conta da Google Play.');
+      }
+    } catch (e: any) {
+      alert('Erro ao restaurar: ' + e.message);
+    }
+  };
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState<'summary' | 'fixed' | 'common' | 'equal' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'help'>('summary');
@@ -306,6 +327,8 @@ const AppContent: React.FC = () => {
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onDeleteAccount={deleteAllData}
+        onDeleteMonthData={() => deleteMonthData(selectedMonth)}
+        onRestorePurchases={handleRestore}
         coupleInfo={coupleInfo}
         onUpdateSettings={handleUpdateSettings}
         userEmail={user.email}
@@ -317,6 +340,7 @@ const AppContent: React.FC = () => {
         userId={user.id}
         inviteCode={inviteCode}
         isPremium={isPremium}
+        selectedMonth={selectedMonth}
       />
 
       {/* Global Modal - Outside of scaling/scrolling main content to ensure visibility */}
