@@ -86,6 +86,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
     const isPersonalType = currentType === ExpenseType.PERSONAL_P1 || currentType === ExpenseType.PERSONAL_P2;
     const isReimbursement = currentType === ExpenseType.REIMBURSEMENT || currentType === ExpenseType.REIMBURSEMENT_FIXED;
+    const isFixed = currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED;
     const isJoint = !isPersonalType && !isReimbursement;
 
     const handleFinalSubmit = async (e: React.FormEvent) => {
@@ -222,7 +223,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     <div className="space-y-3">
                         <div className="grid grid-cols-1 gap-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
+                                    {isFixed ? 'Valor Mensal' : 'Valor Total'}
+                                </label>
                                 <div className="relative">
                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
                                     <input
@@ -238,10 +241,10 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 </div>
                             </div>
 
-                            {(parseInt(installments) > 1 || currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
+                            {parseInt(installments) > 1 && !isFixed && (
                                 <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                                        {(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) ? 'Valor Mensal' : 'Valor da Parcela'}
+                                        Valor da Parcela
                                     </label>
                                     <div className="relative">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
