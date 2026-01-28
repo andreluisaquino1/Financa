@@ -32,7 +32,7 @@ export interface TripExpense {
   id: string;
   description: string;
   value: number;
-  paidBy: 'person1' | 'person2';
+  paidBy: 'person1' | 'person2' | 'fund';
   date: string;
   category: string;
 }

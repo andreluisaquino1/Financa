@@ -177,11 +177,17 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
     // Form inputs
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
-    const [person, setPerson] = useState<'person1' | 'person2'>('person1');
+    const [person, setPerson] = useState<'person1' | 'person2' | 'fund'>('person1');
 
     const totalExpenses = trip.expenses.reduce((acc, curr) => acc + curr.value, 0);
     const totalDepositsP1 = trip.deposits.filter(d => d.person === 'person1').reduce((acc, curr) => acc + curr.value, 0);
     const totalDepositsP2 = trip.deposits.filter(d => d.person === 'person2').reduce((acc, curr) => acc + curr.value, 0);
+
+    const totalPaidP1 = trip.expenses.filter(e => e.paidBy === 'person1').reduce((acc, curr) => acc + curr.value, 0);
+    const totalPaidP2 = trip.expenses.filter(e => e.paidBy === 'person2').reduce((acc, curr) => acc + curr.value, 0);
+
+    const totalAportadoP1 = totalDepositsP1 + totalPaidP1;
+    const totalAportadoP2 = totalDepositsP2 + totalPaidP2;
 
     // Calcula Proporção
     let p1Percent = 50;
@@ -198,8 +204,8 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
     const responsibilityP1 = totalExpenses * (p1Percent / 100);
     const responsibilityP2 = totalExpenses * (p2Percent / 100);
 
-    const balanceP1 = responsibilityP1 - totalDepositsP1;
-    const balanceP2 = responsibilityP2 - totalDepositsP2;
+    const balanceP1 = responsibilityP1 - totalAportadoP1;
+    const balanceP2 = responsibilityP2 - totalAportadoP2;
 
     const handleSubmitItem = (e: React.FormEvent) => {
         e.preventDefault();
@@ -222,11 +228,14 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
 
             onUpdate({ expenses: newExpenses });
         } else {
+            // Se for depósito, o 'person' não pode ser 'fund'
+            const depositPerson = (person === 'fund' ? 'person1' : person) as 'person1' | 'person2';
+
             const depositData: TripDeposit = {
                 id: editingId || Date.now().toString(),
                 description,
                 value: numValue,
-                person: person,
+                person: depositPerson,
                 date: new Date().toISOString().split('T')[0]
             };
 
@@ -245,11 +254,12 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
         setValue('');
         setEditingId(null);
         setIsAdding(false);
+        setPerson('person1');
     };
 
     const handleStartEdit = (item: TripExpense | TripDeposit) => {
         setEditingId(item.id);
-        setDescription(item.description);
+        setDescription(item.description || '');
         setValue(formatAsBRL(Math.round(item.value * 100).toString()));
         setPerson('paidBy' in item ? item.paidBy : item.person);
         setIsAdding(true);
@@ -292,7 +302,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                     <BalanceCard
                         name={coupleInfo.person1Name}
                         responsibility={responsibilityP1}
-                        deposited={totalDepositsP1}
+                        deposited={totalAportadoP1}
                         balance={balanceP1}
                         colorClass="text-p1"
                         bgColorClass="bg-p1/5"
@@ -300,7 +310,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                     <BalanceCard
                         name={coupleInfo.person2Name}
                         responsibility={responsibilityP2}
-                        deposited={totalDepositsP2}
+                        deposited={totalAportadoP2}
                         balance={balanceP2}
                         colorClass="text-p2"
                         bgColorClass="bg-p2/5"
@@ -310,13 +320,13 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                 <div className="space-y-6">
                     <div className="flex gap-2 p-1.5 bg-slate-50 dark:bg-slate-950/40 rounded-2xl w-full sm:w-fit">
                         <button
-                            onClick={() => { setView('expenses'); setIsAdding(false); }}
+                            onClick={() => { setView('expenses'); setIsAdding(false); setPerson('person1'); }}
                             className={`px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all ${view === 'expenses' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1' : 'text-slate-400'}`}
                         >
                             Gastos
                         </button>
                         <button
-                            onClick={() => { setView('deposits'); setIsAdding(false); }}
+                            onClick={() => { setView('deposits'); setIsAdding(false); setPerson('person1'); }}
                             className={`px-6 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-wider transition-all ${view === 'deposits' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1' : 'text-slate-400'}`}
                         >
                             Aportes/Depósitos
@@ -351,10 +361,15 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                         <input type="text" inputMode="decimal" value={value} onChange={e => setValue(formatAsBRL(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" placeholder="R$ 0,00" required />
                                     </div>
                                     <div className="sm:col-span-2 space-y-1">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase px-1">{view === 'expenses' ? 'Quem pagou?' : 'Quem depositou?'}</label>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase px-1">
+                                            {view === 'expenses' ? 'Quem pagou?' : 'Quem depositou?'}
+                                        </label>
                                         <div className="flex gap-2">
-                                            <button type="button" onClick={() => setPerson('person1')} className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${person === 'person1' ? 'bg-p1 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{coupleInfo.person1Name.split(' ')[0]}</button>
-                                            <button type="button" onClick={() => setPerson('person2')} className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${person === 'person2' ? 'bg-p2 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{coupleInfo.person2Name.split(' ')[0]}</button>
+                                            <button type="button" onClick={() => setPerson('person1')} className={`flex-1 py-3 rounded-xl font-bold text-[10px] uppercase transition-all ${person === 'person1' ? 'bg-p1 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{coupleInfo.person1Name.split(' ')[0]}</button>
+                                            <button type="button" onClick={() => setPerson('person2')} className={`flex-1 py-3 rounded-xl font-bold text-[10px] uppercase transition-all ${person === 'person2' ? 'bg-p2 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{coupleInfo.person2Name.split(' ')[0]}</button>
+                                            {view === 'expenses' && (
+                                                <button type="button" onClick={() => setPerson('fund')} className={`flex-1 py-3 rounded-xl font-bold text-[10px] uppercase transition-all ${person === 'fund' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>Fundo</button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -374,7 +389,10 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                 trip.expenses.map(exp => (
                                     <div key={exp.id} className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' :
+                                                    exp.paidBy === 'person2' ? 'bg-p2/10 text-p2' :
+                                                        'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                                }`}>
                                                 {exp.description.toLowerCase().includes('uber') || exp.description.toLowerCase().includes('combust') ? '🚗' :
                                                     exp.description.toLowerCase().includes('jantar') || exp.description.toLowerCase().includes('almoço') || exp.description.toLowerCase().includes('comida') ? '🍕' :
                                                         exp.description.toLowerCase().includes('hotel') || exp.description.toLowerCase().includes('pousada') || exp.description.toLowerCase().includes('airbnb') ? '🏨' :
@@ -383,7 +401,9 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                             <div>
                                                 <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">{exp.description}</p>
                                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest mt-0.5">
-                                                    {exp.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
+                                                    {exp.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] :
+                                                        exp.paidBy === 'person2' ? coupleInfo.person2Name.split(' ')[0] :
+                                                            'Fundo da Viagem'}
                                                     <span className="opacity-30 mx-1.5">•</span>
                                                     {new Date(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                                                 </p>
