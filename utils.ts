@@ -50,7 +50,7 @@ export const isExpenseInMonth = (exp: Expense, monthKey: string): boolean => {
 };
 
 export const getMonthlyExpenseValue = (exp: Expense, monthKey: string): number => {
-  if (exp.type === ExpenseType.FIXED && exp.metadata?.overrides?.[monthKey]) {
+  if ((exp.type === ExpenseType.FIXED || exp.type === ExpenseType.REIMBURSEMENT_FIXED) && exp.metadata?.overrides?.[monthKey]) {
     return exp.metadata.overrides[monthKey];
   }
   return roundMoney(exp.totalValue / (exp.installments || 1));

@@ -39,9 +39,11 @@ const ExpenseTabs: React.FC<Props> = ({
     });
   }, [expenses, activeTab, monthKey]);
 
-  const fixedExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.FIXED || e.type === ExpenseType.REIMBURSEMENT_FIXED), [filteredExpenses]);
+  const fixedExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.FIXED), [filteredExpenses]);
   const variableExpenses = useMemo(() => filteredExpenses.filter(e => e.type !== ExpenseType.FIXED && e.type !== ExpenseType.REIMBURSEMENT_FIXED && e.type !== ExpenseType.REIMBURSEMENT), [filteredExpenses]);
-  const reimbursementExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT || e.type === ExpenseType.REIMBURSEMENT_FIXED), [filteredExpenses]);
+
+  const fixedReimbursements = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT_FIXED), [filteredExpenses]);
+  const variableReimbursements = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT), [filteredExpenses]);
 
   const renderMobileList = (list: Expense[], emptyMessage: string) => (
     <div className="space-y-4">
@@ -234,7 +236,10 @@ const ExpenseTabs: React.FC<Props> = ({
           {renderExpenseTable(variableExpenses, "Gastos Variáveis", "Nenhum gasto variável este mês")}
         </div>
       ) : (
-        renderExpenseTable(reimbursementExpenses, undefined, "Nenhum reembolso este mês")
+        <div className="space-y-12">
+          {renderExpenseTable(fixedReimbursements, "Reembolsos Fixos (Mensais)", "Nenhum reembolso fixo este mês")}
+          {renderExpenseTable(variableReimbursements, "Reembolsos Pontuais", "Nenhum reembolso pontual este mês")}
+        </div>
       )}
     </div>
   );
