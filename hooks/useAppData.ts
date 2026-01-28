@@ -349,7 +349,7 @@ export const useAppData = () => {
         }
     }, [user]);
 
-    const addGoal = useCallback(async (title: string, target: number, monthly: number, rate: number, deadline?: string, icon?: string) => {
+    const addGoal = useCallback(async (title: string, target: number, monthly: number, rate: number, deadline?: string, icon?: string, startDate?: string) => {
         if (!user) return;
         try {
             const { data, error } = await supabase
@@ -361,6 +361,7 @@ export const useAppData = () => {
                     target_value: target,
                     monthly_contribution: monthly,
                     interest_rate: rate,
+                    start_date: startDate || null,
                     deadline: deadline || null,
                     icon: icon || '💰',
                     current_value: 0,

@@ -133,6 +133,7 @@ export interface SavingsGoal {
   current_value: number;
   monthly_contribution?: number;
   interest_rate?: number;
+  start_date?: string; // When to start contributing
   deadline?: string;
   icon?: string;
   is_completed: boolean;

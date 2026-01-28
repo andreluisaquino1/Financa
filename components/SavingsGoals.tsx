@@ -5,7 +5,7 @@ import { formatCurrency, formatAsBRL, parseBRL } from '../utils';
 
 interface Props {
     goals: SavingsGoal[];
-    onAddGoal: (title: string, target: number, monthly: number, rate: number, deadline?: string, icon?: string) => void;
+    onAddGoal: (title: string, target: number, monthly: number, rate: number, deadline?: string, icon?: string, startDate?: string) => void;
     onUpdateGoal: (id: string, updates: Partial<SavingsGoal>) => void;
     onDeleteGoal: (id: string) => void;
     isPremium?: boolean;
@@ -20,6 +20,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     const [target, setTarget] = useState('');
     const [monthly, setMonthly] = useState('500,00');
     const [rate, setRate] = useState('10,00');
+    const [startDate, setStartDate] = useState('');
     const [deadline, setDeadline] = useState('');
     const [icon, setIcon] = useState('💰');
 
@@ -32,6 +33,16 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     const totalMonthlyInvestment = goals.reduce((acc, goal) => acc + (goal.monthly_contribution || 0), 0);
     const investmentRatio = totalSurplus > 0 ? (totalMonthlyInvestment / totalSurplus) * 100 : 0;
     const remainingFree = totalSurplus - totalMonthlyInvestment;
+
+    // Individual savings for each person
+    const p1Surplus = summary.person1TotalIncome - summary.person1Responsibility - summary.person1PersonalTotal;
+    const p2Surplus = summary.person2TotalIncome - summary.person2Responsibility - summary.person2PersonalTotal;
+
+    // Suggested contribution based on income ratio
+    const p1IncomeRatio = totalIncome > 0 ? summary.person1TotalIncome / totalIncome : 0.5;
+    const p2IncomeRatio = totalIncome > 0 ? summary.person2TotalIncome / totalIncome : 0.5;
+    const p1SuggestedContribution = totalMonthlyInvestment * p1IncomeRatio;
+    const p2SuggestedContribution = totalMonthlyInvestment * p2IncomeRatio;
 
     const handleSubmit = (e: React.FormEvent) => {
         // ... (existing submit logic)
@@ -49,10 +60,12 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             parseBRL(monthly),
             parseFloat(rate.replace(',', '.')) || 0,
             deadline || undefined,
-            icon
+            icon,
+            startDate || undefined
         );
         setTitle('');
         setTarget('');
+        setStartDate('');
         setIsAdding(false);
     };
 
@@ -131,6 +144,181 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                 </div>
             </div>
 
+            {/* Future Timeline - Only show if there are goals with future start dates */}
+            {(() => {
+                const currentDate = new Date();
+                const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+
+                // Generate next 6 months
+                const next6Months = Array.from({ length: 6 }, (_, i) => {
+                    const d = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+                    return {
+                        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+                        label: d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).toUpperCase()
+                    };
+                });
+
+                // Calculate cumulative investment for each month
+                const monthlyData = next6Months.map(month => {
+                    const activeGoals = goals.filter(g => {
+                        if (g.is_completed) return false;
+                        if (!g.start_date) return true; // No start date = starts now
+                        return g.start_date <= month.key;
+                    });
+                    const monthlyTotal = activeGoals.reduce((sum, g) => sum + (g.monthly_contribution || 0), 0);
+                    const startingGoals = goals.filter(g => g.start_date === month.key);
+                    return { ...month, total: monthlyTotal, starting: startingGoals };
+                });
+
+                const hasFutureGoals = goals.some(g => g.start_date && g.start_date > currentMonth);
+
+                if (!hasFutureGoals && goals.length === 0) return null;
+
+                return (
+                    <div className="bg-white dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-500/10 rounded-xl flex items-center justify-center text-lg">📅</div>
+                            <div>
+                                <h4 className="font-black text-slate-800 dark:text-slate-100">Cronograma de Investimentos</h4>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase">Previsão dos próximos 6 meses</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                            {monthlyData.map((month, idx) => (
+                                <div
+                                    key={month.key}
+                                    className={`p-4 rounded-xl text-center transition-all ${idx === 0
+                                            ? 'bg-p1/10 border-2 border-p1/30'
+                                            : 'bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/5'
+                                        }`}
+                                >
+                                    <p className={`text-[9px] font-black uppercase tracking-widest mb-2 ${idx === 0 ? 'text-p1' : 'text-slate-400'}`}>
+                                        {month.label}
+                                    </p>
+                                    <p className={`text-sm font-black ${month.total > totalSurplus ? 'text-red-500' : idx === 0 ? 'text-p1' : 'text-slate-700 dark:text-slate-200'}`}>
+                                        {formatCurrency(month.total)}
+                                    </p>
+                                    {month.starting.length > 0 && (
+                                        <div className="mt-2 pt-2 border-t border-slate-100 dark:border-white/10">
+                                            <p className="text-[8px] font-black text-emerald-500 uppercase">
+                                                +{month.starting.length} {month.starting.length === 1 ? 'meta inicia' : 'metas iniciam'}
+                                            </p>
+                                            <div className="flex justify-center gap-1 mt-1">
+                                                {month.starting.slice(0, 3).map(g => (
+                                                    <span key={g.id} className="text-sm" title={g.title}>{g.icon}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {monthlyData.some(m => m.total > totalSurplus) && (
+                            <div className="mt-4 p-3 bg-red-50 dark:bg-red-500/10 rounded-xl border border-red-100 dark:border-red-500/20">
+                                <p className="text-xs font-bold text-red-600 dark:text-red-400">
+                                    ⚠️ Alguns meses terão aportes maiores que sua sobra atual. Considere ajustar as datas de início ou valores.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
+
+            {/* Individual Savings Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Person 1 Card */}
+                <div className="bg-white dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 bg-p1/10 rounded-2xl flex items-center justify-center">
+                            <span className="text-2xl">👤</span>
+                        </div>
+                        <div>
+                            <h4 className="font-black text-slate-800 dark:text-slate-100">{coupleInfo.person1Name.split(' ')[0]}</h4>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Capacidade de Poupança</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-500">Sobra Mensal</span>
+                            <span className={`font-black ${p1Surplus >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                {formatCurrency(p1Surplus)}
+                            </span>
+                        </div>
+
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-black text-p1 uppercase">Contribuição Sugerida</span>
+                                <span className="font-black text-p1">{formatCurrency(p1SuggestedContribution)}</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div
+                                    style={{ width: `${p1Surplus > 0 ? Math.min((p1SuggestedContribution / p1Surplus) * 100, 100) : 0}%` }}
+                                    className={`h-full rounded-full transition-all duration-500 ${p1SuggestedContribution > p1Surplus ? 'bg-red-400' : 'bg-p1'}`}
+                                ></div>
+                            </div>
+                            <p className="text-[9px] text-slate-400">
+                                {p1SuggestedContribution > p1Surplus
+                                    ? `⚠️ Contribuição excede a sobra em ${formatCurrency(p1SuggestedContribution - p1Surplus)}`
+                                    : `Restaria ${formatCurrency(p1Surplus - p1SuggestedContribution)} após contribuir`
+                                }
+                            </p>
+                        </div>
+
+                        <div className="text-[9px] font-bold text-slate-400 text-center pt-2">
+                            Proporção da renda: <span className="text-p1">{(p1IncomeRatio * 100).toFixed(0)}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Person 2 Card */}
+                <div className="bg-white dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-12 h-12 bg-p2/10 rounded-2xl flex items-center justify-center">
+                            <span className="text-2xl">👤</span>
+                        </div>
+                        <div>
+                            <h4 className="font-black text-slate-800 dark:text-slate-100">{coupleInfo.person2Name.split(' ')[0]}</h4>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Capacidade de Poupança</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <span className="text-xs font-bold text-slate-500">Sobra Mensal</span>
+                            <span className={`font-black ${p2Surplus >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                {formatCurrency(p2Surplus)}
+                            </span>
+                        </div>
+
+                        <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-[10px] font-black text-p2 uppercase">Contribuição Sugerida</span>
+                                <span className="font-black text-p2">{formatCurrency(p2SuggestedContribution)}</span>
+                            </div>
+                            <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                <div
+                                    style={{ width: `${p2Surplus > 0 ? Math.min((p2SuggestedContribution / p2Surplus) * 100, 100) : 0}%` }}
+                                    className={`h-full rounded-full transition-all duration-500 ${p2SuggestedContribution > p2Surplus ? 'bg-red-400' : 'bg-p2'}`}
+                                ></div>
+                            </div>
+                            <p className="text-[9px] text-slate-400">
+                                {p2SuggestedContribution > p2Surplus
+                                    ? `⚠️ Contribuição excede a sobra em ${formatCurrency(p2SuggestedContribution - p2Surplus)}`
+                                    : `Restaria ${formatCurrency(p2Surplus - p2SuggestedContribution)} após contribuir`
+                                }
+                            </p>
+                        </div>
+
+                        <div className="text-[9px] font-bold text-slate-400 text-center pt-2">
+                            Proporção da renda: <span className="text-p2">{(p2IncomeRatio * 100).toFixed(0)}%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {isAdding && (
                 <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-md space-y-6 animate-in zoom-in-95 duration-300">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -151,7 +339,12 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                             <input type="text" value={rate} onChange={e => setRate(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-2xl px-5 py-4 outline-none transition-all font-bold dark:text-slate-100" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Prazo (Opcional)</label>
+                            <label className="text-[10px] font-black text-emerald-500 uppercase tracking-widest px-1">⏰ Começar a Poupar em</label>
+                            <input type="month" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-500/30 focus:border-emerald-500 rounded-2xl px-5 py-4 outline-none transition-all font-bold text-emerald-600 dark:text-emerald-400" />
+                            <p className="text-[9px] text-slate-400 px-1">Deixe vazio para começar este mês</p>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Prazo Final (Opcional)</label>
                             <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-2xl px-5 py-4 outline-none transition-all font-bold text-slate-500 dark:text-slate-400" />
                         </div>
                         <div className="space-y-2">
