@@ -100,7 +100,9 @@ const ExpenseTabs: React.FC<Props> = ({
                 <div>
                   <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{exp.category}</span>
+                    <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+                      {typeof exp.category === 'string' ? exp.category : (exp.category as any)?.name || 'Outros'}
+                    </span>
                     <span className="text-[9px] font-black text-slate-300 dark:text-slate-600">•</span>
                     <span className="text-[9px] font-black text-slate-400 uppercase">
                       {parseSafeDate(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}

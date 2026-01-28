@@ -281,7 +281,9 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 </span>
                                 <div>
                                     <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{inc.description}</h4>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{inc.category}</p>
+                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
+                                        {typeof inc.category === 'string' ? inc.category : (inc.category as any)?.name || 'Outros'}
+                                    </p>
                                 </div>
                             </div>
                             <div className="text-right">

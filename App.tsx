@@ -431,7 +431,7 @@ const AppContent: React.FC = () => {
           type={modalType}
           coupleInfo={coupleInfo}
           initialData={editingExpense}
-          isPremium={true}
+          isPremium={isPremium}
           onShowPremium={() => setIsPremiumModalOpen(true)}
           onClose={() => { setIsGlobalModalOpen(false); setEditingExpense(null); }}
           onAdd={async (exp) => {

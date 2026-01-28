@@ -12,7 +12,7 @@ interface AddExpenseModalProps {
     onShowPremium?: () => void;
 }
 
-export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
+const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     type: initialType,
     coupleInfo,
     initialData,
@@ -28,7 +28,9 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
     // Fix: Handle both string and Category object for initial category
     const initialCategory = useMemo(() => {
-        if (initialData?.category) return initialData.category;
+        if (initialData?.category) {
+            return typeof initialData.category === 'string' ? initialData.category : (initialData.category as any).name;
+        }
         const firstCat = coupleInfo.categories?.[0];
         if (!firstCat) return 'Outros';
         return typeof firstCat === 'string' ? firstCat : firstCat.name;
@@ -443,3 +445,5 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         </div>
     );
 };
+
+export default AddExpenseModal;
