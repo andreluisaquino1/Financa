@@ -43,6 +43,10 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     const [setAsDefault, setSetAsDefault] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [search, setSearch] = useState('');
+    const [filterPayer, setFilterPayer] = useState('all');
+    const [filterCategory, setFilterCategory] = useState('all');
+
     // Filter real incomes first
     const realMonthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
 
@@ -105,13 +109,18 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
         }
     });
 
-    const monthIncomes = [...realMonthIncomes, ...virtualIncomes].sort((a, b) => {
-        // Sort: Real first, then virtual? Or just by date/created?
-        // Let's put Salário first usually.
-        if (a.category === 'Salário' && b.category !== 'Salário') return -1;
-        if (a.category !== 'Salário' && b.category === 'Salário') return 1;
-        return 0;
-    });
+    const monthIncomes = [...realMonthIncomes, ...virtualIncomes]
+        .filter(inc => {
+            if (filterPayer !== 'all' && inc.paidBy !== filterPayer) return false;
+            if (filterCategory !== 'all' && inc.category !== filterCategory) return false;
+            if (search && !inc.description.toLowerCase().includes(search.toLowerCase())) return false;
+            return true;
+        })
+        .sort((a, b) => {
+            if (a.category === 'Salário' && b.category !== 'Salário') return -1;
+            if (a.category !== 'Salário' && b.category === 'Salário') return 1;
+            return 0;
+        });
 
     const totalP1 = monthIncomes.filter(i => i.paidBy === 'person1').reduce((sum, i) => sum + i.value, 0);
     const totalP2 = monthIncomes.filter(i => i.paidBy === 'person2').reduce((sum, i) => sum + i.value, 0);
@@ -198,9 +207,57 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                 </button>
             </div>
 
+            {/* Filtros e Busca */}
+            <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-4 rounded-3xl shadow-sm">
+                    <div className="relative flex-1 min-w-[240px]">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Buscar por descrição..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-11 pr-5 py-3 text-sm font-bold outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
+                        />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                        <select
+                            value={filterPayer}
+                            onChange={(e) => setFilterPayer(e.target.value)}
+                            className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
+                        >
+                            <option value="all">Pessoa: Todas</option>
+                            <option value="person1">{coupleInfo.person1Name.split(' ')[0]}</option>
+                            <option value="person2">{coupleInfo.person2Name.split(' ')[0]}</option>
+                        </select>
+
+                        <select
+                            value={filterCategory}
+                            onChange={(e) => setFilterCategory(e.target.value)}
+                            className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
+                        >
+                            <option value="all">Categoria: Todas</option>
+                            {CATEGORIES.map(cat => (
+                                <option key={cat.label} value={cat.label}>{cat.label}</option>
+                            ))}
+                        </select>
+
+                        {(search || filterPayer !== 'all' || filterCategory !== 'all') && (
+                            <button
+                                onClick={() => { setSearch(''); setFilterPayer('all'); setFilterCategory('all'); }}
+                                className="text-[10px] font-black uppercase text-p1 hover:underline px-2"
+                            >
+                                Limpar
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 p-5 rounded-2xl shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Renda Total {coupleInfo.person1Name}</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total {coupleInfo.person1Name} (Filtro)</p>
                     <p className="text-2xl font-black text-p1">{formatCurrency(totalP1)}</p>
                 </div>
                 <div className="bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 p-5 rounded-2xl shadow-sm">

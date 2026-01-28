@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Expense, ExpenseType, CoupleInfo } from '../types';
 import { formatCurrency, parseSafeDate, isExpenseInMonth, getMonthlyExpenseValue, getInstallmentInfo } from '../utils';
+import TabFilter from './common/TabFilter';
 
 interface Props {
   activeTab: 'expenses' | 'reimbursement';
@@ -21,29 +22,50 @@ const ExpenseTabs: React.FC<Props> = ({
   onUpdateExpense,
   onDeleteExpense
 }) => {
+  const [filterPeriod, setFilterPeriod] = useState('all');
+  const [filterPayer, setFilterPayer] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [search, setSearch] = useState('');
+
+  const categories = useMemo(() => {
+    const cats = (coupleInfo.categories || []).map(c => typeof c === 'string' ? c : c.name);
+    return ['all', ...cats];
+  }, [coupleInfo.categories]);
+
   const filteredExpenses = useMemo(() => {
     return expenses.filter(e => {
       const isInMonth = isExpenseInMonth(e, monthKey);
+      if (!isInMonth) return false;
 
+      // Tab Type Filter
       if (activeTab === 'expenses') {
-        return (e.type === ExpenseType.FIXED ||
-          e.type === ExpenseType.COMMON ||
-          e.type === ExpenseType.EQUAL) && isInMonth;
+        if (![ExpenseType.FIXED, ExpenseType.COMMON, ExpenseType.EQUAL].includes(e.type)) return false;
+      } else {
+        if (![ExpenseType.REIMBURSEMENT, ExpenseType.REIMBURSEMENT_FIXED].includes(e.type)) return false;
       }
 
-      if (activeTab === 'reimbursement') {
-        return (e.type === ExpenseType.REIMBURSEMENT || e.type === ExpenseType.REIMBURSEMENT_FIXED) && isInMonth;
+      // Period Filter
+      if (filterPeriod === 'fixed') {
+        if (e.type !== ExpenseType.FIXED && e.type !== ExpenseType.REIMBURSEMENT_FIXED) return false;
+      } else if (filterPeriod === 'variable') {
+        if (e.type === ExpenseType.FIXED || e.type === ExpenseType.REIMBURSEMENT_FIXED) return false;
       }
 
-      return false;
+      // Payer Filter
+      if (filterPayer !== 'all' && e.paidBy !== filterPayer) return false;
+
+      // Category Filter
+      if (filterCategory !== 'all' && e.category !== filterCategory) return false;
+
+      // Search
+      if (search && !e.description.toLowerCase().includes(search.toLowerCase()) && !e.category?.toLowerCase().includes(search.toLowerCase())) return false;
+
+      return true;
     });
-  }, [expenses, activeTab, monthKey]);
+  }, [expenses, activeTab, monthKey, filterPeriod, filterPayer, filterCategory, search]);
 
-  const fixedExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.FIXED), [filteredExpenses]);
-  const variableExpenses = useMemo(() => filteredExpenses.filter(e => e.type !== ExpenseType.FIXED && e.type !== ExpenseType.REIMBURSEMENT_FIXED && e.type !== ExpenseType.REIMBURSEMENT), [filteredExpenses]);
-
-  const fixedReimbursements = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT_FIXED), [filteredExpenses]);
-  const variableReimbursements = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT), [filteredExpenses]);
+  const fixedExpensesList = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.FIXED || e.type === ExpenseType.REIMBURSEMENT_FIXED), [filteredExpenses]);
+  const variableExpensesList = useMemo(() => filteredExpenses.filter(e => e.type !== ExpenseType.FIXED && e.type !== ExpenseType.REIMBURSEMENT_FIXED), [filteredExpenses]);
 
   const renderMobileList = (list: Expense[], emptyMessage: string) => (
     <div className="space-y-4">
@@ -249,17 +271,77 @@ const ExpenseTabs: React.FC<Props> = ({
         </button>
       </div>
 
-      {activeTab === 'expenses' ? (
-        <div className="space-y-8">
-          {renderExpenseTable(fixedExpenses, "Contas Fixas", "Nenhuma conta fixa este mês")}
-          {renderExpenseTable(variableExpenses, "Gastos Variáveis", "Nenhum gasto variável este mês")}
+      {/* Filtros e Busca */}
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-4 rounded-3xl shadow-sm">
+          <div className="relative flex-1 min-w-[240px]">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+            <input
+              type="text"
+              placeholder="Buscar por descrição ou categoria..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-11 pr-5 py-3 text-sm font-bold outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={filterPeriod}
+              onChange={(e) => setFilterPeriod(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
+            >
+              <option value="all">Frequência: Tudo</option>
+              <option value="fixed">Fixos / Mensais</option>
+              <option value="variable">Pontuais / Variáveis</option>
+            </select>
+
+            <select
+              value={filterPayer}
+              onChange={(e) => setFilterPayer(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
+            >
+              <option value="all">Pagador: Todos</option>
+              <option value="person1">{coupleInfo.person1Name.split(' ')[0]}</option>
+              <option value="person2">{coupleInfo.person2Name.split(' ')[0]}</option>
+            </select>
+
+            <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100 max-w-[150px]"
+            >
+              {categories.map(cat => (
+                <option key={cat} value={cat}>
+                  {cat === 'all' ? 'Categoria: Todas' : cat}
+                </option>
+              ))}
+            </select>
+
+            {(search || filterPeriod !== 'all' || filterPayer !== 'all' || filterCategory !== 'all') && (
+              <button
+                onClick={() => { setSearch(''); setFilterPeriod('all'); setFilterPayer('all'); setFilterCategory('all'); }}
+                className="text-[10px] font-black uppercase text-p1 hover:underline px-2"
+              >
+                Limpar
+              </button>
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="space-y-8">
-          {renderExpenseTable(fixedReimbursements, "Reembolsos Fixos (Mensais)", "Nenhum reembolso fixo este mês")}
-          {renderExpenseTable(variableReimbursements, "Reembolsos Pontuais", "Nenhum reembolso pontual este mês")}
-        </div>
-      )}
+      </div>
+
+      <div className="space-y-8">
+        {renderExpenseTable(
+          fixedExpensesList,
+          activeTab === 'expenses' ? "Contas Fixas" : "Reembolsos Fixos",
+          "Nenhum registro fixo encontrado com estes filtros"
+        )}
+        {renderExpenseTable(
+          variableExpensesList,
+          activeTab === 'expenses' ? "Gastos Variáveis" : "Reembolsos Pontuais",
+          "Nenhum registro variável encontrado com estes filtros"
+        )}
+      </div>
     </div>
   );
 };
