@@ -60,7 +60,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         const instCount = parseInt(installments) || 1;
         if (instCount > 1) {
             const instVal = total / instCount;
-            setInstallmentValue(formatAsBRL((instVal * 100).toString()));
+            // Round to avoid floating point precision issues when converting to string for formatAsBRL
+            setInstallmentValue(formatAsBRL(Math.round(instVal * 100).toString()));
         }
     };
 
@@ -70,7 +71,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         const instCount = parseInt(installments) || 1;
         if (instCount >= 1) {
             const total = instVal * instCount;
-            setValue(formatAsBRL((total * 100).toString()));
+            // Round to avoid floating point precision issues when converting to string for formatAsBRL
+            setValue(formatAsBRL(Math.round(total * 100).toString()));
         }
     };
 
