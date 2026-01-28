@@ -93,6 +93,7 @@ export const useAppData = () => {
                 const { data: expensesData } = await supabase
                     .from('expenses')
                     .select('*')
+                    .is('deleted_at', null)
                     .eq('household_id', activeHouseholdId)
                     .order('created_at', { ascending: false });
 
@@ -121,6 +122,7 @@ export const useAppData = () => {
                 const { data: goalsData } = await supabase
                     .from('savings_goals')
                     .select('*')
+                    .is('deleted_at', null)
                     .eq('household_id', activeHouseholdId)
                     .order('created_at', { ascending: false });
 
@@ -132,6 +134,7 @@ export const useAppData = () => {
                 const { data: incomesData } = await supabase
                     .from('incomes')
                     .select('*')
+                    .is('deleted_at', null)
                     .eq('household_id', activeHouseholdId)
                     .order('created_at', { ascending: false });
 
@@ -347,7 +350,7 @@ export const useAppData = () => {
         if (!user) return;
         try {
             await cancelReminder(id);
-            const { error } = await supabase.from('expenses').delete().eq('id', id);
+            const { error } = await supabase.from('expenses').update({ deleted_at: new Date().toISOString() }).eq('id', id);
             if (error) throw error;
             setExpenses(prev => prev.filter(e => e.id !== id));
         } catch (err: any) {
@@ -414,7 +417,7 @@ export const useAppData = () => {
     const deleteGoal = useCallback(async (id: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('savings_goals').delete().eq('id', id);
+            const { error } = await supabase.from('savings_goals').update({ deleted_at: new Date().toISOString() }).eq('id', id);
             if (error) throw error;
             setGoals(prev => prev.filter(g => g.id !== id));
         } catch (err: any) {
@@ -431,9 +434,10 @@ export const useAppData = () => {
 
         setDataLoading(true);
         try {
-            await supabase.from('expenses').delete().eq('household_id', activeHouseholdId);
-            await supabase.from('incomes').delete().eq('household_id', activeHouseholdId);
-            await supabase.from('savings_goals').delete().eq('household_id', activeHouseholdId);
+            const now = new Date().toISOString();
+            await supabase.from('expenses').update({ deleted_at: now }).eq('household_id', activeHouseholdId);
+            await supabase.from('incomes').update({ deleted_at: now }).eq('household_id', activeHouseholdId);
+            await supabase.from('savings_goals').update({ deleted_at: now }).eq('household_id', activeHouseholdId);
             await supabase.from('monthly_configs').delete().eq('household_id', activeHouseholdId);
 
             const defaultInfo: CoupleInfo = {
@@ -468,8 +472,9 @@ export const useAppData = () => {
 
         setDataLoading(true);
         try {
-            await supabase.from('expenses').delete().eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
-            await supabase.from('incomes').delete().eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
+            const now = new Date().toISOString();
+            await supabase.from('expenses').update({ deleted_at: now }).eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
+            await supabase.from('incomes').update({ deleted_at: now }).eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
 
             setExpenses(prev => prev.filter(e => !e.date.startsWith(monthKey)));
             setIncomes(prev => prev.filter(i => !i.date.startsWith(monthKey)));
@@ -558,7 +563,7 @@ export const useAppData = () => {
     const deleteIncome = useCallback(async (id: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('incomes').delete().eq('id', id);
+            const { error } = await supabase.from('incomes').update({ deleted_at: new Date().toISOString() }).eq('id', id);
             if (error) throw error;
             setIncomes(prev => prev.filter(i => i.id !== id));
         } catch (err: any) {
@@ -579,6 +584,30 @@ export const useAppData = () => {
             console.error('Error updating premium status:', err);
         }
     }, [user]);
+
+    const restoreData = useCallback(async () => {
+        if (!user || !householdId) return;
+        const proceed = confirm("Deseja restaurar os últimos dados enviados para a lixeira?");
+        if (!proceed) return;
+
+        setDataLoading(true);
+        try {
+            // Find the most recent deletion timestamp to restore as a batch, 
+            // or just restore EVERYTHING that was deleted. 
+            // Usually simpler to restore everything deleted in the last hour or just everything.
+            // Let's restore everything for now as a "Recycle Bin" feature.
+            await supabase.from('expenses').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+            await supabase.from('incomes').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+            await supabase.from('savings_goals').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+
+            await loadData();
+            alert('Dados restaurados com sucesso! ♻️');
+        } catch (err: any) {
+            alert('Erro ao restaurar dados: ' + err.message);
+        } finally {
+            setDataLoading(false);
+        }
+    }, [user, householdId, loadData]);
 
     return {
         user,
@@ -608,6 +637,7 @@ export const useAppData = () => {
         deleteIncome,
         deleteAllData,
         deleteMonthData,
+        restoreData,
         signOut,
         refreshData: loadData
     };

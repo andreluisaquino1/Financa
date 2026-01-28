@@ -52,6 +52,7 @@ const AppContent: React.FC = () => {
     deleteIncome,
     deleteAllData,
     deleteMonthData,
+    restoreData,
     signOut
   } = useAppData();
 
@@ -428,6 +429,7 @@ const AppContent: React.FC = () => {
         onNavigateToIncomes={() => setCurrentTab('incomes')}
         onShowHouseholdLink={() => setShowHouseholdLink(true)}
         onShowPremium={() => setIsPremiumModalOpen(true)}
+        onRestoreData={restoreData}
         householdId={householdId}
         userId={user.id}
         inviteCode={inviteCode}

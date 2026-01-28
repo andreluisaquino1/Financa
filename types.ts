@@ -101,6 +101,7 @@ export interface Expense {
     overrides?: Record<string, number>;
   };
   reminderDay?: number; // 1-31
+  deletedAt?: string;
 }
 
 export interface Income {
@@ -113,6 +114,7 @@ export interface Income {
   household_id?: string;
   user_id?: string;
   createdAt: string;
+  deletedAt?: string;
 }
 
 export interface MonthlySummary {
@@ -174,5 +176,6 @@ export interface SavingsGoal {
   initial_withdrawal_p2?: number; // How much was taken from bank balance at start
 
   created_at: string;
+  deletedAt?: string;
 }
 

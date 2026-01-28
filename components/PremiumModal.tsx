@@ -34,30 +34,14 @@ const PremiumModal: React.FC<Props> = ({ isOpen, onClose, onPurchaseSuccess }) =
     if (!isOpen) return null;
 
     const handlePurchase = async () => {
-        const isNative = (window as any).Capacitor?.isNative;
-
-        if (!isNative) {
-            alert('As compras nativas funcionam apenas no celular Android/iOS. No modo web, use o ambiente de testes.');
-            // Simulate success for development if desired, but better to keep it clean
-            return;
-        }
-
         setLoading(true);
         try {
-            const offerings = await Purchases.getOfferings();
-            if (!offerings.current) throw new Error('No current offerings');
-
-            const { customerInfo } = await Purchases.purchasePackage({ aPackage: offerings.current.availablePackages[0] });
-
-            // Check if the entitlement is active
-            if (typeof customerInfo.entitlements.active['PRO'] !== "undefined") {
-                onPurchaseSuccess?.();
-                onClose();
-            }
+            // Simulate a delay for "processing"
+            await new Promise(resolve => setTimeout(resolve, 800));
+            onPurchaseSuccess?.();
+            onClose();
         } catch (e: any) {
-            if (!e.userCancelled) {
-                alert('Erro ao processar compra: ' + e.message);
-            }
+            alert('Erro ao processar ativação: ' + e.message);
         } finally {
             setLoading(false);
         }
@@ -84,7 +68,7 @@ const PremiumModal: React.FC<Props> = ({ isOpen, onClose, onPurchaseSuccess }) =
                         <div className="absolute bottom-10 right-10 w-32 h-32 bg-p2 rounded-full blur-[80px]"></div>
                     </div>
                     <div className="relative z-10">
-                        <span className="px-4 py-1.5 bg-p1 text-white text-[10px] font-black rounded-full shadow-xl animate-bounce">OFERTA DE LANÇAMENTO</span>
+                        <span className="px-4 py-1.5 bg-p1 text-white text-[10px] font-black rounded-full shadow-xl animate-bounce">Faça um pix para André de 100 reais kkkk</span>
                         <h2 className="text-4xl font-black text-white mt-4 tracking-tighter italic">FINANÇAS PRO</h2>
                         <p className="text-slate-400 text-sm font-bold mt-2">Sua vida financeira a dois sem limites</p>
                     </div>
@@ -126,7 +110,7 @@ const PremiumModal: React.FC<Props> = ({ isOpen, onClose, onPurchaseSuccess }) =
                             {loading ? (
                                 'Processando...'
                             ) : (
-                                <>Quero ser PRO ✨</>
+                                <>Mude para PRO</>
                             )}
                         </button>
                     </div>
