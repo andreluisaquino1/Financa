@@ -73,6 +73,7 @@ const SidebarMenu: React.FC<Props> = ({
   const [categories, setCategories] = useState<Category[]>(initialCats);
   const [newCategory, setNewCategory] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('📦');
+  const [editingCategoryIndex, setEditingCategoryIndex] = useState<number | null>(null);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(coupleInfo.theme || 'light');
   const [p1Color, setP1Color] = useState(coupleInfo.person1Color || '#2563eb');
@@ -219,31 +220,81 @@ const SidebarMenu: React.FC<Props> = ({
               )}
 
               <div className="flex flex-col gap-2">
-                {categories.map((cat, index) => (
-                  <div key={cat.name} className="group flex items-center justify-between bg-white dark:bg-slate-800/60 px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm transition-all hover:shadow-md">
-                    <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-sm shadow-inner">{cat.icon || '📦'}</span>
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{cat.name}</span>
-                    </div>
-                    {isPremium && (
-                      <div className="flex items-center gap-1">
-                        <div className="flex flex-col gap-0.5">
+                {categories.map((cat, index) => {
+                  const isEditing = editingCategoryIndex === index;
+                  return (
+                    <div key={cat.name} className={`group flex flex-col bg-white dark:bg-slate-800/60 p-2 rounded-2xl border transition-all ${isEditing ? 'border-p1 shadow-lg' : 'border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md'}`}>
+                      <div className="flex items-center justify-between px-2 py-1">
+                        <div className="flex items-center gap-3">
                           <button
-                            onClick={() => moveCategory(index, 'up')}
-                            disabled={index === 0}
-                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
-                          >▲</button>
-                          <button
-                            onClick={() => moveCategory(index, 'down')}
-                            disabled={index === categories.length - 1}
-                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
-                          >▼</button>
+                            onClick={() => isPremium && setEditingCategoryIndex(isEditing ? null : index)}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner transition-colors ${isEditing ? 'bg-p1 text-white' : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300'}`}
+                          >
+                            {cat.icon || '📦'}
+                          </button>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={cat.name}
+                              onChange={(e) => {
+                                const newCats = [...categories];
+                                newCats[index].name = e.target.value;
+                                setCategories(newCats);
+                              }}
+                              className="bg-slate-100 dark:bg-slate-900 border-none rounded-lg px-2 py-1 text-xs font-bold outline-none dark:text-slate-100 w-32"
+                              autoFocus
+                            />
+                          ) : (
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{cat.name}</span>
+                          )}
                         </div>
-                        <button onClick={() => removeCategory(cat.name)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all ml-1">×</button>
+                        {isPremium && (
+                          <div className="flex items-center gap-1">
+                            {!isEditing ? (
+                              <>
+                                <div className="flex flex-col gap-0.5">
+                                  <button
+                                    onClick={() => moveCategory(index, 'up')}
+                                    disabled={index === 0}
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                                  >▲</button>
+                                  <button
+                                    onClick={() => moveCategory(index, 'down')}
+                                    disabled={index === categories.length - 1}
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                                  >▼</button>
+                                </div>
+                                <button onClick={() => setEditingCategoryIndex(index)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-p1 hover:bg-p1/5 rounded-xl font-bold transition-all">📝</button>
+                                <button onClick={() => removeCategory(cat.name)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all">×</button>
+                              </>
+                            ) : (
+                              <button onClick={() => setEditingCategoryIndex(null)} className="px-3 py-1 bg-p1 text-white rounded-lg text-[10px] font-black uppercase">OK</button>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      {isEditing && (
+                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-xl grid grid-cols-6 gap-1 border border-slate-100 dark:border-white/5">
+                          {RECOMMENDED_ICONS.map(icon => (
+                            <button
+                              key={icon}
+                              type="button"
+                              onClick={() => {
+                                const newCats = [...categories];
+                                newCats[index].icon = icon;
+                                setCategories(newCats);
+                              }}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-white dark:hover:bg-slate-800 transition-colors ${cat.icon === icon ? 'bg-white dark:bg-slate-800 ring-1 ring-p1' : ''}`}
+                            >
+                              {icon}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>
