@@ -170,7 +170,9 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
 
 const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => void, onUpdate: (updates: Partial<Trip>) => void }> = ({ trip, coupleInfo, onBack, onUpdate }) => {
     const [view, setView] = useState<'expenses' | 'deposits'>('expenses');
+    // State for Adding/Editing
     const [isAdding, setIsAdding] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     // Form inputs
     const [description, setDescription] = useState('');
@@ -199,35 +201,59 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
     const balanceP1 = responsibilityP1 - totalDepositsP1;
     const balanceP2 = responsibilityP2 - totalDepositsP2;
 
-    const handleAddItem = (e: React.FormEvent) => {
+    const handleSubmitItem = (e: React.FormEvent) => {
         e.preventDefault();
         const numValue = parseBRL(value);
         if (numValue <= 0) return;
 
         if (view === 'expenses') {
-            const newExpense: TripExpense = {
-                id: Date.now().toString(),
+            const expenseData: TripExpense = {
+                id: editingId || Date.now().toString(),
                 description,
                 value: numValue,
                 paidBy: person,
                 date: new Date().toISOString().split('T')[0],
                 category: 'Viagem'
             };
-            onUpdate({ expenses: [...trip.expenses, newExpense] });
+
+            const newExpenses = editingId
+                ? trip.expenses.map(e => e.id === editingId ? expenseData : e)
+                : [...trip.expenses, expenseData];
+
+            onUpdate({ expenses: newExpenses });
         } else {
-            const newDeposit: TripDeposit = {
-                id: Date.now().toString(),
+            const depositData: TripDeposit = {
+                id: editingId || Date.now().toString(),
                 description,
                 value: numValue,
                 person: person,
                 date: new Date().toISOString().split('T')[0]
             };
-            onUpdate({ deposits: [...trip.deposits, newDeposit] });
+
+            const newDeposits = editingId
+                ? trip.deposits.map(d => d.id === editingId ? depositData : d)
+                : [...trip.deposits, depositData];
+
+            onUpdate({ deposits: newDeposits });
         }
 
+        resetForm();
+    };
+
+    const resetForm = () => {
         setDescription('');
         setValue('');
+        setEditingId(null);
         setIsAdding(false);
+    };
+
+    const handleStartEdit = (item: TripExpense | TripDeposit) => {
+        setEditingId(item.id);
+        setDescription(item.description);
+        setValue(formatAsBRL((item.value * 100).toString()));
+        setPerson('paidBy' in item ? item.paidBy : item.person);
+        setIsAdding(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleDeleteItem = (id: string, type: 'expenses' | 'deposits') => {
@@ -303,7 +329,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                 {view === 'expenses' ? 'Lista de Gastos' : 'Aportes para o fundo'}
                             </h4>
                             <button
-                                onClick={() => setIsAdding(!isAdding)}
+                                onClick={() => { if (isAdding) resetForm(); else setIsAdding(true); }}
                                 className={`p-2 rounded-xl transition-all ${isAdding ? 'bg-slate-200 dark:bg-slate-800 text-slate-600' : 'bg-p1 text-white shadow-lg ring-4 ring-p1/10 shadow-p1/20'}`}
                             >
                                 <svg className={`w-5 h-5 transition-transform ${isAdding ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" /></svg>
@@ -311,7 +337,10 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                         </div>
 
                         {isAdding && (
-                            <form onSubmit={handleAddItem} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm space-y-4 mb-6 animate-in slide-in-from-top-4">
+                            <form onSubmit={handleSubmitItem} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-p1/20 dark:border-p1/10 shadow-lg space-y-4 mb-6 animate-in slide-in-from-top-4">
+                                <h5 className="text-[10px] font-black uppercase text-p1 tracking-widest flex items-center gap-2">
+                                    {editingId ? '📝 Editando Registro' : '✨ Novo Registro'}
+                                </h5>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-black text-slate-400 uppercase px-1">Descrição</label>
@@ -329,9 +358,14 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                         </div>
                                     </div>
                                 </div>
-                                <button type="submit" className="w-full bg-slate-900 dark:bg-slate-950 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                                    Lançar {view === 'expenses' ? 'Gasto' : 'Aporte'}
+                                <button type="submit" className="w-full bg-p1 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                                    {editingId ? 'Salvar Alterações' : `Lançar ${view === 'expenses' ? 'Gasto' : 'Aporte'}`}
                                 </button>
+                                {editingId && (
+                                    <button type="button" onClick={resetForm} className="w-full bg-slate-100 dark:bg-slate-900 text-slate-500 font-black py-3 rounded-xl text-xs uppercase tracking-widest">
+                                        Cancelar Edição
+                                    </button>
+                                )}
                             </form>
                         )}
 
@@ -348,8 +382,11 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">{new Date(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} • Pago por {coupleInfo[exp.paidBy + 'Name' as keyof CoupleInfo]?.toString().split(' ')[0]}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1">
                                             <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(exp.value)}</p>
+                                            <button onClick={() => handleStartEdit(exp)} className="p-2 text-slate-300 hover:text-p1 transition-colors opacity-0 group-hover:opacity-100">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                            </button>
                                             <button onClick={() => handleDeleteItem(exp.id, 'expenses')} className="p-2 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
@@ -368,10 +405,13 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">{new Date(dep.date).toLocaleDateString()} • Por {coupleInfo[dep.person + 'Name' as keyof CoupleInfo]?.toString().split(' ')[0]}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1">
                                             <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(dep.value)}</p>
+                                            <button onClick={() => handleStartEdit(dep)} className="p-2 text-slate-300 hover:text-p1 transition-colors opacity-0 group-hover:opacity-100">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                            </button>
                                             <button onClick={() => handleDeleteItem(dep.id, 'deposits')} className="p-2 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </div>
                                     </div>
