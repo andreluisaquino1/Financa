@@ -24,6 +24,7 @@ interface Props {
   onNavigateToIncomes?: () => void;
   onShowHouseholdLink?: () => void;
   onShowPremium?: () => void;
+  onShowPresentation?: () => void;
   onDeleteMonthData?: () => void;
   onRestorePurchases?: () => void;
   onRestoreData?: () => void;
@@ -56,6 +57,7 @@ const SidebarMenu: React.FC<Props> = ({
   onNavigateToIncomes,
   onShowHouseholdLink,
   onShowPremium,
+  onShowPresentation,
   onDeleteMonthData,
   onRestorePurchases,
   onRestoreData,
@@ -473,6 +475,7 @@ const SidebarMenu: React.FC<Props> = ({
             {(!isPremium && (window as any).Capacitor?.isNative) && (
               <SidebarBtn icon="🔄" label="Restaurar Assinatura" onClick={onRestorePurchases} />
             )}
+            <SidebarBtn icon="✨" label="Ver Apresentação" onClick={() => { onShowPresentation?.(); onClose(); }} />
             <SidebarBtn icon="?" label="Central de Ajuda" onClick={() => { onNavigateToHelp?.(); onClose(); }} />
             <SidebarBtn icon="↩" label="Sair da Conta" onClick={onSignOut} />
 

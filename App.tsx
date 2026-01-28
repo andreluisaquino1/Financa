@@ -6,6 +6,7 @@ import Auth from './components/Auth';
 import HouseholdLink from './components/HouseholdLink';
 import AddExpenseModal from './components/AddExpenseModal';
 import PremiumModal from './components/PremiumModal';
+import Presentation from './components/Presentation';
 import { AuthProvider } from './AuthContext';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -120,6 +121,7 @@ const AppContent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<'summary' | 'incomes' | 'expenses' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'trip' | 'help'>('summary');
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+  const [isPresentationOpen, setIsPresentationOpen] = useState(false);
 
   const handleTabChange = (tab: typeof currentTab) => {
     if ((tab === 'goals' || tab === 'trip') && !isPremium) {
@@ -354,7 +356,7 @@ const AppContent: React.FC = () => {
                 onShowPremium={() => setIsPremiumModalOpen(true)}
               />
             )}
-            {currentTab === 'help' && <HelpSupport />}
+            {currentTab === 'help' && <HelpSupport onShowPresentation={() => setIsPresentationOpen(true)} />}
             {currentTab === 'goals' && (
               <SavingsGoals
                 goals={goals}
@@ -429,6 +431,7 @@ const AppContent: React.FC = () => {
         onNavigateToIncomes={() => setCurrentTab('incomes')}
         onShowHouseholdLink={() => setShowHouseholdLink(true)}
         onShowPremium={() => setIsPremiumModalOpen(true)}
+        onShowPresentation={() => setIsPresentationOpen(true)}
         onRestoreData={restoreData}
         householdId={householdId}
         userId={user.id}
@@ -463,6 +466,10 @@ const AppContent: React.FC = () => {
         onClose={() => setIsPremiumModalOpen(false)}
         onPurchaseSuccess={() => updatePremiumStatus(true)}
       />
+
+      {isPresentationOpen && (
+        <Presentation onClose={() => setIsPresentationOpen(false)} />
+      )}
     </div>
   );
 };

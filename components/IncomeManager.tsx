@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Income, CoupleInfo } from '../types';
 import { formatCurrency, formatAsBRL, parseBRL } from '../utils';
 
@@ -369,10 +370,10 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                 </table>
             </div>
 
-            {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {isModalOpen && createPortal(
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-                    <div className="relative bg-white dark:bg-slate-800/60 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-lg animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                    <div className="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl p-5 sm:p-6 shadow-lg animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
                         <div className="mb-6">
                             <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
                                 {editingIncome ? 'Editar Entrada' : 'Nova Entrada de Renda'}
@@ -508,7 +509,8 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

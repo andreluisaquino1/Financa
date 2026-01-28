@@ -37,7 +37,11 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer }) => {
     );
 };
 
-const HelpSupport: React.FC = () => {
+interface HelpSupportProps {
+    onShowPresentation?: () => void;
+}
+
+const HelpSupport: React.FC<HelpSupportProps> = ({ onShowPresentation }) => {
     const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'success'>('idle');
 
     const handleReportError = (e: React.FormEvent) => {
@@ -72,6 +76,19 @@ const HelpSupport: React.FC = () => {
 
             {/* FAQ Grid */}
             <div className="space-y-4">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-blue-100 dark:border-blue-900/30 flex items-center justify-between gap-6 shadow-sm mb-8">
+                    <div className="space-y-1">
+                        <h4 className="font-black text-slate-800 dark:text-slate-100 uppercase tracking-tight text-sm">Novo por aqui?</h4>
+                        <p className="text-xs text-slate-500 font-medium">Veja uma apresentação rápida de tudo o que o app pode fazer por você.</p>
+                    </div>
+                    <button
+                        onClick={onShowPresentation}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all shrink-0"
+                    >
+                        Ver Tour ✨
+                    </button>
+                </div>
+
                 <h3 className="font-black text-gray-400 uppercase tracking-widest text-xs px-2">Perguntas Frequentes</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FAQItem
