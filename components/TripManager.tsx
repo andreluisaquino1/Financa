@@ -250,7 +250,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
     const handleStartEdit = (item: TripExpense | TripDeposit) => {
         setEditingId(item.id);
         setDescription(item.description);
-        setValue(formatAsBRL((item.value * 100).toString()));
+        setValue(formatAsBRL(Math.round(item.value * 100).toString()));
         setPerson('paidBy' in item ? item.paidBy : item.person);
         setIsAdding(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });

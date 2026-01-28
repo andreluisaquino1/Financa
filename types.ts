@@ -1,4 +1,9 @@
 
+export interface Category {
+  name: string;
+  icon?: string;
+}
+
 export enum ExpenseType {
   FIXED = 'FIXED',
   COMMON = 'COMMON',
@@ -49,7 +54,7 @@ export interface CoupleInfo {
   person2Name: string;
   salary1: number;
   salary2: number;
-  categories?: string[];
+  categories?: (string | Category)[];
   theme?: 'light' | 'dark';
   person1Color?: string; // hex code
   person2Color?: string; // hex code

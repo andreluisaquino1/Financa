@@ -124,8 +124,8 @@ const GoalCard: React.FC<{ goal: SavingsGoal, onUpdate: (id: string, updates: Pa
     const [contribution, setContribution] = useState('');
 
     const [editTitle, setEditTitle] = useState(goal.title);
-    const [editTarget, setEditTarget] = useState(formatAsBRL((goal.target_value * 100).toString()));
-    const [editMonthly, setEditMonthly] = useState(formatAsBRL(((goal.monthly_contribution || 0) * 100).toString()));
+    const [editTarget, setEditTarget] = useState(formatAsBRL(Math.round(goal.target_value * 100).toString()));
+    const [editMonthly, setEditMonthly] = useState(formatAsBRL(Math.round((goal.monthly_contribution || 0) * 100).toString()));
     const [editRate, setEditRate] = useState((goal.interest_rate || 0).toString().replace('.', ','));
 
     const percent = Math.min(Math.round((goal.current_value / goal.target_value) * 100), 100);

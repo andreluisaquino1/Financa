@@ -24,7 +24,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const [currentType, setCurrentType] = useState<ExpenseType>(initialType);
 
     const [description, setDescription] = useState(initialData?.description || '');
-    const [value, setValue] = useState(initialData?.totalValue ? formatAsBRL((initialData.totalValue * 100).toString()) : '');
+    const [value, setValue] = useState(initialData?.totalValue ? formatAsBRL(Math.round(initialData.totalValue * 100).toString()) : '');
     const [category, setCategory] = useState(initialData?.category || (coupleInfo.categories?.[0] || 'Outros'));
     const [paidBy, setPaidBy] = useState<'person1' | 'person2'>(initialData?.paidBy || 'person1');
     const [date, setDate] = useState(initialData?.date || new Date().toISOString().split('T')[0]);
@@ -33,8 +33,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     // Novo Estado de Divisão
     const [splitMethod, setSplitMethod] = useState<'proportional' | 'custom'>(initialData?.splitMethod || 'proportional');
     const [splitPercentage1, setSplitPercentage1] = useState<number>(initialData?.splitPercentage1 !== undefined ? initialData.splitPercentage1 : 50);
-    const [specValue1, setSpecValue1] = useState(initialData?.specificValueP1 ? formatAsBRL((initialData.specificValueP1 * 100).toString()) : '');
-    const [specValue2, setSpecValue2] = useState(initialData?.specificValueP2 ? formatAsBRL((initialData.specificValueP2 * 100).toString()) : '');
+    const [specValue1, setSpecValue1] = useState(initialData?.specificValueP1 ? formatAsBRL(Math.round(initialData.specificValueP1 * 100).toString()) : '');
+    const [specValue2, setSpecValue2] = useState(initialData?.specificValueP2 ? formatAsBRL(Math.round(initialData.specificValueP2 * 100).toString()) : '');
     const [showAdvancedSplit, setShowAdvancedSplit] = useState(!!(initialData?.specificValueP1 || initialData?.specificValueP2));
 
     const [installmentValue, setInstallmentValue] = useState('');
@@ -48,7 +48,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         const instCount = parseInt(installments) || 1;
         if (instCount > 1 && total > 0) {
             const instVal = total / instCount;
-            setInstallmentValue(formatAsBRL((instVal * 100).toString()));
+            const cents = Math.round(instVal * 100);
+            setInstallmentValue(formatAsBRL(cents.toString()));
         } else {
             setInstallmentValue('');
         }

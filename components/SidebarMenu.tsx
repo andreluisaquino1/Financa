@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { CoupleInfo } from '../types';
+import { Category, CoupleInfo } from '../types';
 import { parseBRL, formatAsBRL } from '../utils';
 import AdBanner from './AdBanner';
 
@@ -12,7 +12,7 @@ interface Props {
   onUpdateSettings: (
     n1: string,
     n2: string,
-    cats?: string[],
+    cats?: (string | Category)[],
     theme?: 'light' | 'dark',
     p1Color?: string,
     p2Color?: string
@@ -32,7 +32,15 @@ interface Props {
   selectedMonth?: string;
 }
 
-const DEFAULT_FREE_CATEGORIES = ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde'];
+const DEFAULT_FREE_CATEGORIES: Category[] = [
+  { name: 'Moradia', icon: '🏠' },
+  { name: 'Alimentação', icon: '🥗' },
+  { name: 'Transporte', icon: '🚗' },
+  { name: 'Lazer', icon: '🎮' },
+  { name: 'Saúde', icon: '🏥' }
+];
+
+const RECOMMENDED_ICONS = ['💰', '🏠', '🛒', '🚗', '🎮', '🏥', '🎓', '🛍️', '✈️', '🏖️', '🏰', '📦', '🍔', '👗', '💊', '🔋'];
 
 const SidebarMenu: React.FC<Props> = ({
   isOpen,
@@ -58,21 +66,24 @@ const SidebarMenu: React.FC<Props> = ({
   const [n2, setN2] = useState(coupleInfo.person2Name);
 
   // Logic: if not premium, use hardcoded categories. If premium, use saved ones.
-  const initialCats = isPremium ? (coupleInfo.categories || []) : DEFAULT_FREE_CATEGORIES;
-  const [categories, setCategories] = useState<string[]>(initialCats);
+  const initialCats = isPremium
+    ? (coupleInfo.categories || []).map(c => typeof c === 'string' ? { name: c } : c)
+    : DEFAULT_FREE_CATEGORIES;
+
+  const [categories, setCategories] = useState<Category[]>(initialCats);
   const [newCategory, setNewCategory] = useState('');
+  const [selectedIcon, setSelectedIcon] = useState('📦');
 
   const [theme, setTheme] = useState<'light' | 'dark'>(coupleInfo.theme || 'light');
   const [p1Color, setP1Color] = useState(coupleInfo.person1Color || '#2563eb');
   const [p2Color, setP2Color] = useState(coupleInfo.person2Color || '#ec4899');
 
   const handleSave = () => {
-    // Free users can't change categories, so we pass back the static list or their saved list if premium
     onUpdateSettings(n1, n2, categories, theme, p1Color, p2Color);
     onClose();
   };
 
-  const handleUpdateCategories = (updatedCats: string[]) => {
+  const handleUpdateCategories = (updatedCats: Category[]) => {
     if (!isPremium) return;
     setCategories(updatedCats);
   };
@@ -82,20 +93,21 @@ const SidebarMenu: React.FC<Props> = ({
       onShowPremium?.();
       return;
     }
-    if (newCategory.trim() && !categories.includes(newCategory.trim())) {
-      const updated = [...categories, newCategory.trim()];
+    if (newCategory.trim() && !categories.some(c => c.name === newCategory.trim())) {
+      const updated = [...categories, { name: newCategory.trim(), icon: selectedIcon }];
       handleUpdateCategories(updated);
       setNewCategory('');
+      setSelectedIcon('📦');
     }
   };
 
-  const removeCategory = (cat: string) => {
+  const removeCategory = (name: string) => {
     if (!isPremium) {
       onShowPremium?.();
       return;
     }
-    if (confirm(`Remover "${cat}"?`)) {
-      handleUpdateCategories(categories.filter(c => c !== cat));
+    if (confirm(`Remover "${name}"?`)) {
+      handleUpdateCategories(categories.filter(c => c.name !== name));
     }
   };
 
@@ -170,13 +182,35 @@ const SidebarMenu: React.FC<Props> = ({
             </h3>
             <div className="space-y-3">
               {isPremium ? (
-                <div className="flex gap-2">
-                  <input
-                    type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)}
-                    placeholder="Ex: Pets, Farmácia..."
-                    className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-4 py-2.5 text-xs font-bold outline-none dark:text-slate-100"
-                  />
-                  <button onClick={addCategory} className="bg-slate-900 border border-transparent dark:border-white/10 text-white px-4 rounded-xl font-black text-[10px] uppercase">Add</button>
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <div className="relative group">
+                      <button
+                        type="button"
+                        className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-xl shadow-inner border border-slate-200 dark:border-white/5 hover:border-p1 transition-all"
+                      >
+                        {selectedIcon}
+                      </button>
+                      <div className="absolute left-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-2 z-[100] grid grid-cols-4 gap-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
+                        {RECOMMENDED_ICONS.map(icon => (
+                          <button
+                            key={icon}
+                            type="button"
+                            onClick={() => setSelectedIcon(icon)}
+                            className={`w-10 h-10 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${selectedIcon === icon ? 'bg-p1/10 ring-1 ring-p1' : ''}`}
+                          >
+                            {icon}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <input
+                      type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)}
+                      placeholder="Ex: Pets, Farmácia..."
+                      className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl px-5 text-sm font-bold outline-none dark:text-slate-100"
+                    />
+                  </div>
+                  <button onClick={addCategory} className="w-full bg-slate-900 dark:bg-p1 border hover:brightness-110 border-transparent text-white py-3.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-p1/10 active:scale-95 transition-all">Adicionar Categoria</button>
                 </div>
               ) : (
                 <div className="p-3 bg-p1/5 rounded-xl border border-p1/10 text-center">
@@ -186,23 +220,26 @@ const SidebarMenu: React.FC<Props> = ({
 
               <div className="flex flex-col gap-2">
                 {categories.map((cat, index) => (
-                  <div key={cat} className="group flex items-center justify-between bg-white dark:bg-slate-800/60 px-3 py-2 rounded-lg border border-slate-100 dark:border-white/5 shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-800">
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">{cat}</span>
+                  <div key={cat.name} className="group flex items-center justify-between bg-white dark:bg-slate-800/60 px-4 py-3 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm transition-all hover:shadow-md">
+                    <div className="flex items-center gap-3">
+                      <span className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-900 flex items-center justify-center text-sm shadow-inner">{cat.icon || '📦'}</span>
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{cat.name}</span>
+                    </div>
                     {isPremium && (
                       <div className="flex items-center gap-1">
                         <div className="flex flex-col gap-0.5">
                           <button
                             onClick={() => moveCategory(index, 'up')}
                             disabled={index === 0}
-                            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
                           >▲</button>
                           <button
                             onClick={() => moveCategory(index, 'down')}
                             disabled={index === categories.length - 1}
-                            className="p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
                           >▼</button>
                         </div>
-                        <button onClick={() => removeCategory(cat)} className="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded font-bold transition-all ml-1">×</button>
+                        <button onClick={() => removeCategory(cat.name)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all ml-1">×</button>
                       </div>
                     )}
                   </div>

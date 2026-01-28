@@ -132,7 +132,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                 setEditingIncome(inc);
             }
             setDescription(inc.description);
-            setValue(formatAsBRL((inc.value * 100).toString()));
+            setValue(formatAsBRL(Math.round(inc.value * 100).toString()));
             setPaidBy(inc.paidBy);
             setCategory(inc.category || 'Salário');
         } else {

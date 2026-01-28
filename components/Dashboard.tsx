@@ -223,17 +223,38 @@ const Dashboard: React.FC<Props> = ({
         <CategoryChart data={summary.categoryTotals} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
-          {sortedCategories.map(([category, total]) => (
-            <div key={category} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md group">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm group-hover:bg-p1 group-hover:text-white transition-colors">
-                  <span className="text-xs font-bold">#</span>
+          {sortedCategories.map(([category, total]) => {
+            // Find if there's a custom icon for this category
+            const customCat = (coupleInfo.categories || []).find(c =>
+              typeof c === 'string' ? c === category : c.name === category
+            );
+            const customIcon = typeof customCat === 'object' ? customCat.icon : null;
+
+            return (
+              <div key={category} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-white/5 transition-all hover:bg-white dark:hover:bg-slate-800 hover:shadow-md group">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-2xl bg-white dark:bg-slate-950 border border-slate-100 dark:border-white/5 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform text-lg">
+                    <span>
+                      {customIcon ? customIcon : (
+                        category === 'Moradia' ? '🏠' :
+                          category === 'Alimentação' ? '🥗' :
+                            category === 'Transporte' ? '🚗' :
+                              category === 'Lazer' ? '🎮' :
+                                category === 'Saúde' ? '🏥' :
+                                  category === 'Educação' ? '🎓' :
+                                    category === 'Compras' ? '🛍️' :
+                                      category === 'Viagem' ? '✈️' :
+                                        category === 'Barreirinhas' ? '🏖️' :
+                                          category === 'Europa' ? '🏰' : '📦'
+                      )}
+                    </span>
+                  </div>
+                  <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">{category}</span>
                 </div>
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">{category}</span>
+                <span className="text-sm font-black text-slate-900 dark:text-slate-200">{formatCurrency(total)}</span>
               </div>
-              <span className="text-sm font-black text-slate-900 dark:text-slate-200">{formatCurrency(total)}</span>
-            </div>
-          ))}
+            );
+          })}
 
           {sortedCategories.length === 0 && (
             <div className="col-span-full py-16 text-center">
