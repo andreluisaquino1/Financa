@@ -161,7 +161,7 @@ const Dashboard: React.FC<Props> = ({
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-slate-50 dark:divide-white/5 bg-slate-50/30 dark:bg-transparent">
             <StatSmall label="Contas Fixas" value={summary.totalFixed} />
-            <StatSmall label="Variáveis" value={summary.totalCommon + summary.totalEqual} />
+            <StatSmall label="Variáveis" value={summary.totalCommon} />
             <StatSmall label="Reembolsos" value={summary.totalReimbursement} />
             <StatSmall label="Média Diária" value={totalExpenses / 30} />
           </div>

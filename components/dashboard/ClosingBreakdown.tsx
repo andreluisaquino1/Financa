@@ -14,11 +14,9 @@ const ClosingBreakdown: React.FC<Props> = ({ coupleInfo, summary }) => {
 
     const totalIncomeCombined = summary.person1TotalIncome + summary.person2TotalIncome;
 
-    // Percentual médio de responsabilidade (excluindo reembolsos que são 100% de um lado)
-    const avgRatio1 = totalSharedRaw > 0 ? (summary.person1Responsibility - (summary.whoTransfers === 'person2' ? 0 : 0)) : (totalIncomeCombined > 0 ? summary.person1TotalIncome / totalIncomeCombined : 0.5);
-    // Na verdade, é melhor mostrar a responsabilidade total sobre o gasto total compartilhado
-    const effectiveRatio1 = totalSharedPlusReimb > 0 ? (summary.person1Responsibility / totalSharedPlusReimb) : 0.5;
-    const effectiveRatio2 = totalSharedPlusReimb > 0 ? (summary.person2Responsibility / totalSharedPlusReimb) : 0.5;
+    // Percentual médio de responsabilidade sobre o gasto compartilhado (incluindo reembolsos)
+    const effectiveRatio1 = totalSharedPlusReimb > 0 ? (summary.person1Responsibility / totalSharedPlusReimb) : (totalIncomeCombined > 0 ? summary.person1TotalIncome / totalIncomeCombined : 0.5);
+    const effectiveRatio2 = totalSharedPlusReimb > 0 ? (summary.person2Responsibility / totalSharedPlusReimb) : (totalIncomeCombined > 0 ? summary.person2TotalIncome / totalIncomeCombined : 0.5);
 
     const BreakdownItem = ({ name, ratio, paid, responsibility, color }: any) => {
         const isDebtor = responsibility > paid;

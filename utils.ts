@@ -136,12 +136,12 @@ export const calculateSummary = (
   const combinedSalaries = roundMoney(p1Salary + p2Salary);
 
   // Proporção baseada no salário (usada como uma das opções individuais)
-  let salaryRatio1 = combinedSalaries > 0 ? roundMoney(p1Salary / combinedSalaries) : 0.5;
-  let salaryRatio2 = combinedSalaries > 0 ? roundMoney(1 - salaryRatio1) : 0.5;
+  let salaryRatio1 = combinedSalaries > 0 ? p1Salary / combinedSalaries : 0.5;
+  let salaryRatio2 = combinedSalaries > 0 ? 1 - salaryRatio1 : 0.5;
 
   if (isPremium) {
-    salaryRatio1 = combinedTotalIncome > 0 ? roundMoney(totalIncome1 / combinedTotalIncome) : 0.5;
-    salaryRatio2 = combinedTotalIncome > 0 ? roundMoney(1 - salaryRatio1) : 0.5;
+    salaryRatio1 = combinedTotalIncome > 0 ? totalIncome1 / combinedTotalIncome : 0.5;
+    salaryRatio2 = combinedTotalIncome > 0 ? 1 - salaryRatio1 : 0.5;
   }
 
   let totalFixed = 0;
@@ -194,14 +194,22 @@ export const calculateSummary = (
         if (exp.splitMethod === 'custom') {
           const perc1 = (exp.splitPercentage1 !== undefined) ? exp.splitPercentage1 : 50;
           const r1 = perc1 / 100;
-          const r2 = 1 - r1;
-          p1Target = roundMoney(p1Target + (sharedValue * r1));
-          p2Target = roundMoney(p2Target + (sharedValue * r2));
-          if (perc1 === 50 && spec1Total === 0 && spec2Total === 0) totalEqual = roundMoney(totalEqual + monthlyValue);
+          const share1 = roundMoney(sharedValue * r1);
+          const share2 = roundMoney(sharedValue - share1);
+
+          p1Target = roundMoney(p1Target + share1);
+          p2Target = roundMoney(p2Target + share2);
+
+          if (perc1 === 50 && spec1Total === 0 && spec2Total === 0) {
+            totalEqual = roundMoney(totalEqual + monthlyValue);
+          }
         } else {
           // Default: Proporcional ao Salário
-          p1Target = roundMoney(p1Target + (sharedValue * salaryRatio1));
-          p2Target = roundMoney(p2Target + (sharedValue * salaryRatio2));
+          const share1 = roundMoney(sharedValue * salaryRatio1);
+          const share2 = roundMoney(sharedValue - share1);
+
+          p1Target = roundMoney(p1Target + share1);
+          p2Target = roundMoney(p2Target + share2);
         }
         break;
 
