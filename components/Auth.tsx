@@ -78,15 +78,15 @@ const Auth: React.FC = () => {
           <div className="space-y-2">
             <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">E-mail</label>
             <div className="relative group">
-              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-p1 transition-colors">
+              <div className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center text-slate-300 group-focus-within:text-p1 transition-colors pointer-events-none">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" /></svg>
-              </span>
+              </div>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl pl-14 pr-5 py-4 focus:bg-white dark:focus:bg-slate-900 focus:border-p1 outline-none transition-all duration-300 font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-800"
+                className="w-full bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl pl-12 pr-5 py-4 focus:bg-white dark:focus:bg-slate-900 focus:border-p1 outline-none transition-all duration-300 font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-700"
                 placeholder="nome@exemplo.com"
               />
             </div>
@@ -107,16 +107,16 @@ const Auth: React.FC = () => {
                 )}
               </div>
               <div className="relative group">
-                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-p1 transition-colors">
+                <div className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center text-slate-300 group-focus-within:text-p1 transition-colors pointer-events-none">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                </span>
+                </div>
                 <input
                   type="password"
                   required
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl pl-14 pr-5 py-4 focus:bg-white dark:focus:bg-slate-900 focus:border-p1 outline-none transition-all duration-300 font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-800"
+                  className="w-full bg-slate-100/50 dark:bg-slate-950/50 border border-slate-200 dark:border-white/5 rounded-2xl pl-12 pr-5 py-4 focus:bg-white dark:focus:bg-slate-900 focus:border-p1 outline-none transition-all duration-300 font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-700"
                   placeholder="••••••••"
                 />
               </div>
