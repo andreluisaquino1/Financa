@@ -18,6 +18,7 @@ type GoalType = 'couple' | 'individual_p1' | 'individual_p2';
 const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDeleteGoal, isPremium, coupleInfo, summary }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [whatIfContributions, setWhatIfContributions] = useState<Record<string, number>>({});
 
     // Form state
     const [title, setTitle] = useState('');
@@ -43,6 +44,13 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     const p1Surplus = summary.person1TotalIncome - summary.person1Responsibility - summary.person1PersonalTotal;
     const p2Surplus = summary.person2TotalIncome - summary.person2Responsibility - summary.person2PersonalTotal;
     const totalSurplus = p1Surplus + p2Surplus;
+
+    const monthlySpending = summary.totalFixed + summary.totalCommon + summary.totalEqual;
+    const suggestedEmergencyFund = monthlySpending * 6;
+
+    const hasEmergencyGoal = useMemo(() => {
+        return goals.some(g => g.title.toLowerCase().includes('emergência') || g.title.toLowerCase().includes('reserva'));
+    }, [goals]);
 
     // Calculate total contributions from all goals
     const goalSummary = useMemo(() => {
@@ -129,6 +137,22 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         setIsAdding(false);
     };
 
+    const createEmergencyGoal = () => {
+        const goalData: Partial<SavingsGoal> = {
+            title: 'Reserva de Emergência',
+            goal_type: 'couple',
+            target_value: suggestedEmergencyFund,
+            monthly_contribution_p1: Math.round(totalSurplus * 0.1 * (summary.person1TotalIncome / (summary.person1TotalIncome + summary.person2TotalIncome || 1))),
+            monthly_contribution_p2: Math.round(totalSurplus * 0.1 * (summary.person2TotalIncome / (summary.person1TotalIncome + summary.person2TotalIncome || 1))),
+            interest_rate: 10,
+            icon: '🛡️',
+            priority: 'high',
+            is_completed: false
+        };
+        onAddGoal(goalData);
+        alert('Meta de Reserva de Emergência criada com sucesso! 🛡️');
+    };
+
     const loadGoalForEdit = (goal: SavingsGoal) => {
         setEditingId(goal.id);
         setTitle(goal.title);
@@ -156,8 +180,8 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     };
 
     // Calculate time to reach goal
-    const calculateTimeToGoal = (goal: SavingsGoal) => {
-        const totalMonthly = (goal.monthly_contribution_p1 || 0) + (goal.monthly_contribution_p2 || 0);
+    const calculateTimeToGoal = (goal: SavingsGoal, overriddenMonthly?: number) => {
+        const totalMonthly = overriddenMonthly !== undefined ? overriddenMonthly : ((goal.monthly_contribution_p1 || 0) + (goal.monthly_contribution_p2 || 0));
         const currentTotal = (goal.current_savings_p1 || 0) + (goal.current_savings_p2 || 0) + (goal.current_value || 0);
         const remaining = goal.target_value - currentTotal;
 
@@ -251,6 +275,29 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                     {isAdding ? 'Cancelar' : '+ Nova Meta'}
                 </button>
             </div>
+
+            {/* Emergency Fund Suggestion */}
+            {!hasEmergencyGoal && (
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-1 rounded-2xl shadow-xl shadow-emerald-500/20">
+                    <div className="bg-white dark:bg-slate-900 p-5 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-500/20 rounded-2xl flex items-center justify-center text-3xl shadow-inner">🛡️</div>
+                            <div>
+                                <h3 className="font-black text-slate-800 dark:text-slate-100 uppercase tracking-tighter">Reserva de Emergência Recomendada</h3>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                    Baseado em seus gastos de <span className="font-bold text-emerald-500">{formatCurrency(monthlySpending)}/mês</span>, sua reserva ideal é de <span className="font-bold text-emerald-500">{formatCurrency(suggestedEmergencyFund)}</span> (6 meses).
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={createEmergencyGoal}
+                            className="w-full md:w-auto px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-xl transition-all shadow-lg shadow-emerald-500/30 active:scale-95 text-sm uppercase"
+                        >
+                            Criar Meta Agora
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -602,13 +649,20 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             {/* Goals Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {goals.filter(g => !g.is_completed).map(goal => {
+                    const extraP1 = whatIfContributions[`${goal.id}_p1`] || 0;
+                    const extraP2 = whatIfContributions[`${goal.id}_p2`] || 0;
+
+                    const originalContribution = (goal.monthly_contribution_p1 || 0) + (goal.monthly_contribution_p2 || 0);
+                    const whatIfContribution = originalContribution + extraP1 + extraP2;
+
                     const timeToGoal = calculateTimeToGoal(goal);
-                    const totalContribution = (goal.monthly_contribution_p1 || 0) + (goal.monthly_contribution_p2 || 0);
+                    const whatIfTimeToGoal = calculateTimeToGoal(goal, whatIfContribution);
+
                     const totalSaved = (goal.current_savings_p1 || 0) + (goal.current_savings_p2 || 0) + (goal.current_value || 0);
                     const progress = goal.target_value > 0 ? (totalSaved / goal.target_value) * 100 : 0;
 
                     return (
-                        <div key={goal.id} className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-md transition-all">
+                        <div key={goal.id} className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-md transition-all group/card">
                             {/* Header */}
                             <div className="p-5 pb-4 flex items-start justify-between">
                                 <div className="flex items-center gap-3">
@@ -725,7 +779,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl">
                                     <p className="text-[9px] font-black text-slate-400 uppercase">Aporte Mensal</p>
-                                    <p className="font-black text-p1">{formatCurrency(totalContribution)}</p>
+                                    <p className="font-black text-p1">{formatCurrency(originalContribution)}</p>
                                 </div>
                             </div>
 
@@ -760,10 +814,65 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                 </div>
                             )}
 
+                            {/* What-If Simulator (Quick Toggle) */}
+                            <div className="px-5 pb-4">
+                                <details className="bg-blue-50 dark:bg-blue-500/5 rounded-xl transition-all">
+                                    <summary className="p-2 text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-500/10 list-none flex items-center gap-2">
+                                        <span>🔍 Simulador "What If"</span>
+                                        {(extraP1 + extraP2 > 0) && <span className="bg-blue-500 text-white px-1.5 rounded-full text-[8px]">Ativo</span>}
+                                    </summary>
+                                    <div className="p-3 space-y-4 animate-in fade-in slide-in-from-top-1">
+                                        <p className="text-[8px] font-medium text-slate-400 uppercase tracking-widest">E se você aumentasse o aporte?</p>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {goal.goal_type !== 'individual_p2' && (
+                                                <div className="space-y-1">
+                                                    <div className="flex justify-between items-center text-[10px]">
+                                                        <span className="font-bold text-p1">{p1Name} +{formatCurrency(extraP1)}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range" min="0" max="2000" step="50"
+                                                        value={extraP1}
+                                                        onChange={(e) => setWhatIfContributions(prev => ({ ...prev, [`${goal.id}_p1`]: parseInt(e.target.value) }))}
+                                                        className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-p1"
+                                                    />
+                                                </div>
+                                            )}
+                                            {goal.goal_type !== 'individual_p1' && (
+                                                <div className="space-y-1">
+                                                    <div className="flex justify-between items-center text-[10px]">
+                                                        <span className="font-bold text-p2">{p2Name} +{formatCurrency(extraP2)}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range" min="0" max="2000" step="50"
+                                                        value={extraP2}
+                                                        onChange={(e) => setWhatIfContributions(prev => ({ ...prev, [`${goal.id}_p2`]: parseInt(e.target.value) }))}
+                                                        className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-p2"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {(extraP1 + extraP2 > 0) && (
+                                            <div className="bg-white dark:bg-slate-900 border border-blue-100 dark:border-blue-500/20 p-2 rounded-lg">
+                                                <div className="flex items-center justify-between text-[10px]">
+                                                    <span className="text-slate-500">Novo tempo:</span>
+                                                    <span className="font-black text-blue-500">
+                                                        {whatIfTimeToGoal.months} meses
+                                                        <span className="text-emerald-500 ml-1">
+                                                            (-{timeToGoal.months - whatIfTimeToGoal.months} meses!)
+                                                        </span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </details>
+                            </div>
+
                             {/* Time Estimate and Check-in */}
                             <div className="px-5 pb-5 flex flex-col sm:flex-row gap-2">
                                 <div className="flex-1 flex items-center justify-between bg-slate-900 dark:bg-slate-700 text-white p-3 rounded-xl">
-                                    <span className="text-xs font-bold">Tempo:</span>
+                                    <span className="text-xs font-bold">Tempo Real:</span>
                                     <span className="font-black text-xs">
                                         {timeToGoal.reached ? '✅ Ok!' : timeToGoal.months === Infinity ? '♾️' : `${timeToGoal.months}m`}
                                     </span>
@@ -774,11 +883,11 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                         onClick={() => handleCheckIn(goal)}
                                         disabled={goal.last_contribution_month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`}
                                         className={`flex-[2] p-3 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${goal.last_contribution_month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
-                                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 cursor-not-allowed'
-                                                : 'bg-emerald-500 text-white hover:brightness-110'
+                                            ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 cursor-not-allowed'
+                                            : 'bg-emerald-500 text-white hover:brightness-110 shadow-lg shadow-emerald-500/20'
                                             }`}
                                     >
-                                        {goal.last_contribution_month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` ? '✓ Feito' : '💰 Aporte'}
+                                        {goal.last_contribution_month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` ? '✓ Mês Pago' : '💰 Pagar Aporte'}
                                     </button>
                                 )}
                             </div>
