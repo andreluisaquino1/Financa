@@ -1246,15 +1246,43 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             {/* Completed Goals */}
             {goals.filter(g => g.is_completed).length > 0 && (
                 <div className="mt-8">
-                    <h3 className="text-lg font-black text-slate-400 dark:text-slate-600 mb-4">✅ Metas Concluídas</h3>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-black text-slate-400 dark:text-slate-600">✅ Metas Concluídas</h3>
+                        <button
+                            onClick={() => {
+                                if (confirm('Excluir todas as metas concluídas? Esta ação não pode ser desfeita.')) {
+                                    goals.filter(g => g.is_completed).forEach(g => onDeleteGoal(g.id));
+                                }
+                            }}
+                            className="text-[10px] font-black text-red-400 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center gap-1"
+                        >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            Limpar Histórico
+                        </button>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {goals.filter(g => g.is_completed).map(goal => (
-                            <div key={goal.id} className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl flex items-center gap-3 opacity-60">
-                                <span className="text-2xl">{goal.icon || '💰'}</span>
-                                <div>
-                                    <p className="font-bold text-slate-600 dark:text-slate-400 line-through">{goal.title}</p>
-                                    <p className="text-xs text-slate-400">{formatCurrency(goal.target_value)}</p>
+                            <div key={goal.id} className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl flex items-center justify-between group/completed opacity-60 hover:opacity-100 transition-opacity">
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl">{goal.icon || '💰'}</span>
+                                    <div>
+                                        <p className="font-bold text-slate-600 dark:text-slate-400 line-through">{goal.title}</p>
+                                        <p className="text-xs text-slate-400">{formatCurrency(goal.target_value)}</p>
+                                    </div>
                                 </div>
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Excluir esta meta concluída?')) {
+                                            onDeleteGoal(goal.id);
+                                        }
+                                    }}
+                                    className="p-2 text-slate-300 hover:text-red-500 opacity-0 group-hover/completed:opacity-100 transition-all rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10"
+                                    title="Excluir meta concluída"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
                             </div>
                         ))}
                     </div>
