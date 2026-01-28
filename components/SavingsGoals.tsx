@@ -32,6 +32,9 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     const [startDate, setStartDate] = useState('');
     const [deadline, setDeadline] = useState('');
     const [icon, setIcon] = useState('💰');
+    const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
+    const [investmentLocationP1, setInvestmentLocationP1] = useState('');
+    const [investmentLocationP2, setInvestmentLocationP2] = useState('');
 
     // Calculations
     const p1Name = coupleInfo.person1Name.split(' ')[0];
@@ -82,6 +85,9 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         setStartDate('');
         setDeadline('');
         setIcon('💰');
+        setPriority('medium');
+        setInvestmentLocationP1('');
+        setInvestmentLocationP2('');
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -106,6 +112,9 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             start_date: startDate || undefined,
             deadline: deadline || undefined,
             icon,
+            priority,
+            investment_location_p1: investmentLocationP1,
+            investment_location_p2: investmentLocationP2,
             current_value: parseBRL(savingsP1) + parseBRL(savingsP2),
             is_completed: false
         };
@@ -134,6 +143,9 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         setStartDate(goal.start_date || '');
         setDeadline(goal.deadline || '');
         setIcon(goal.icon || '💰');
+        setPriority(goal.priority || 'medium');
+        setInvestmentLocationP1(goal.investment_location_p1 || '');
+        setInvestmentLocationP2(goal.investment_location_p2 || '');
         setIsAdding(true);
     };
 
@@ -176,6 +188,45 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             case 'couple': return 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300';
             case 'individual_p1': return 'bg-p1/10 text-p1';
             case 'individual_p2': return 'bg-p2/10 text-p2';
+        }
+    };
+
+    const getPriorityLabel = (p: string) => {
+        switch (p) {
+            case 'low': return 'Baixa';
+            case 'medium': return 'Média';
+            case 'high': return 'Alta';
+            default: return 'Média';
+        }
+    };
+
+    const getPriorityColor = (p: string) => {
+        switch (p) {
+            case 'low': return 'bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-400';
+            case 'medium': return 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400';
+            case 'high': return 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400';
+            default: return 'bg-blue-100 text-blue-600';
+        }
+    };
+
+    const handleCheckIn = (goal: SavingsGoal) => {
+        const now = new Date();
+        const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+        if (goal.last_contribution_month === monthKey) {
+            alert('Você já realizou o aporte deste mês para esta meta! ✨');
+            return;
+        }
+
+        const p1Aporte = goal.monthly_contribution_p1 || 0;
+        const p2Aporte = goal.monthly_contribution_p2 || 0;
+
+        if (confirm(`Confirmar aporte mensal de ${formatCurrency(p1Aporte + p2Aporte)}?`)) {
+            onUpdateGoal(goal.id, {
+                current_savings_p1: (goal.current_savings_p1 || 0) + p1Aporte,
+                current_savings_p2: (goal.current_savings_p2 || 0) + p2Aporte,
+                last_contribution_month: monthKey
+            });
         }
     };
 
@@ -342,6 +393,26 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                         </div>
                     </div>
 
+                    {/* Priority Selector */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Prioridade (Termômetro)</label>
+                        <div className="grid grid-cols-3 gap-2">
+                            {(['low', 'medium', 'high'] as const).map(p => (
+                                <button
+                                    key={p}
+                                    type="button"
+                                    onClick={() => setPriority(p)}
+                                    className={`p-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${priority === p
+                                        ? p === 'high' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : p === 'medium' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-600 text-white shadow-lg'
+                                        : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+                                        }`}
+                                >
+                                    {p === 'high' ? '🔥' : p === 'medium' ? '⚡' : '❄️'} {getPriorityLabel(p)}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {/* Basic Info */}
                         <div className="space-y-2">
@@ -413,34 +484,58 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                         </div>
                     </div>
 
-                    {/* Current Savings Section */}
+                    {/* Current Savings and Investment Locations */}
                     <div className="bg-emerald-50 dark:bg-emerald-500/10 p-4 rounded-xl space-y-4">
-                        <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">💰 Poupança Já Existente</p>
+                        <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">💰 Poupança e Investimento</p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {goalType !== 'individual_p2' && (
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{p1Name} - Valor Guardado</label>
-                                    <input
-                                        type="text"
-                                        inputMode="decimal"
-                                        value={savingsP1}
-                                        onChange={e => setSavingsP1(formatAsBRL(e.target.value))}
-                                        placeholder="R$ 0,00"
-                                        className="w-full bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/30 focus:border-emerald-500 rounded-xl px-4 py-3 outline-none transition-all font-bold"
-                                    />
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{p1Name} - Valor Guardado</label>
+                                        <input
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={savingsP1}
+                                            onChange={e => setSavingsP1(formatAsBRL(e.target.value))}
+                                            placeholder="R$ 0,00"
+                                            className="w-full bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/30 focus:border-emerald-500 rounded-xl px-4 py-3 outline-none transition-all font-bold"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Onde {p1Name} investe?</label>
+                                        <input
+                                            type="text"
+                                            value={investmentLocationP1}
+                                            onChange={e => setInvestmentLocationP1(e.target.value)}
+                                            placeholder="Ex: NuBank, Corretora..."
+                                            className="w-full bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/10 focus:border-emerald-500 rounded-xl px-4 py-3 outline-none transition-all font-bold text-xs"
+                                        />
+                                    </div>
                                 </div>
                             )}
                             {goalType !== 'individual_p1' && (
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{p2Name} - Valor Guardado</label>
-                                    <input
-                                        type="text"
-                                        inputMode="decimal"
-                                        value={savingsP2}
-                                        onChange={e => setSavingsP2(formatAsBRL(e.target.value))}
-                                        placeholder="R$ 0,00"
-                                        className="w-full bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/30 focus:border-emerald-500 rounded-xl px-4 py-3 outline-none transition-all font-bold"
-                                    />
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{p2Name} - Valor Guardado</label>
+                                        <input
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={savingsP2}
+                                            onChange={e => setSavingsP2(formatAsBRL(e.target.value))}
+                                            placeholder="R$ 0,00"
+                                            className="w-full bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/30 focus:border-emerald-500 rounded-xl px-4 py-3 outline-none transition-all font-bold"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Onde {p2Name} investe?</label>
+                                        <input
+                                            type="text"
+                                            value={investmentLocationP2}
+                                            onChange={e => setInvestmentLocationP2(e.target.value)}
+                                            placeholder="Ex: CDB, Caixinha..."
+                                            className="w-full bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/10 focus:border-emerald-500 rounded-xl px-4 py-3 outline-none transition-all font-bold text-xs"
+                                        />
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -458,7 +553,6 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                 placeholder="R$ 0,00 (opcional)"
                                 className="w-full bg-orange-50 dark:bg-orange-500/10 border-2 border-orange-200 dark:border-orange-500/30 focus:border-orange-500 rounded-xl px-4 py-3 outline-none transition-all font-bold"
                             />
-                            <p className="text-[9px] text-slate-400">Ex: custo mensal após comprar um carro</p>
                         </div>
 
                         <div className="space-y-2">
@@ -523,9 +617,14 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                     </div>
                                     <div>
                                         <h4 className="font-black text-slate-800 dark:text-slate-100">{goal.title}</h4>
-                                        <span className={`text-[9px] font-black uppercase px-2 py-1 rounded-full ${getGoalTypeColor(goal.goal_type || 'couple')}`}>
-                                            {getGoalTypeLabel(goal.goal_type || 'couple')}
-                                        </span>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${getGoalTypeColor(goal.goal_type || 'couple')}`}>
+                                                {getGoalTypeLabel(goal.goal_type || 'couple')}
+                                            </span>
+                                            <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-full ${getPriorityColor(goal.priority || 'medium')}`}>
+                                                {goal.priority === 'high' ? '🔥 Alta' : goal.priority === 'low' ? '❄️ Baixa' : '⚡ Média'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -567,6 +666,27 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                 </div>
                             </div>
 
+                            {/* Milestone Badge */}
+                            <div className="px-5 mb-2">
+                                {progress >= 100 ? (
+                                    <div className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase py-1 px-3 rounded-lg">
+                                        🏆 Meta Alcançada! Incrível!
+                                    </div>
+                                ) : progress >= 75 ? (
+                                    <div className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase py-1 px-3 rounded-lg">
+                                        ⭐ Quase lá! 75% concluído!
+                                    </div>
+                                ) : progress >= 50 ? (
+                                    <div className="bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-black uppercase py-1 px-3 rounded-lg">
+                                        ⚡ Metade do caminho conquistada!
+                                    </div>
+                                ) : progress >= 25 ? (
+                                    <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase py-1 px-3 rounded-lg">
+                                        🎯 Primeiros passos firmes! 25% +
+                                    </div>
+                                ) : null}
+                            </div>
+
                             {/* Progress */}
                             <div className="px-5 pb-4">
                                 <div className="flex justify-between text-xs mb-2">
@@ -593,13 +713,11 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                                 if (extra) {
                                                     const val = parseBRL(extra);
                                                     if (val > 0) {
-                                                        // Update current_value (which we use for generic savings)
                                                         onUpdateGoal(goal.id, { current_value: (goal.current_value || 0) + val });
                                                     }
                                                 }
                                             }}
                                             className="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover/stat:opacity-100 transition-opacity"
-                                            title="Adicionar valor rápido"
                                         >
                                             +
                                         </button>
@@ -616,38 +734,54 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                 <div className="px-5 pb-4">
                                     <div className="bg-purple-50 dark:bg-purple-500/10 p-3 rounded-xl">
                                         <p className="text-[9px] font-black text-purple-600 dark:text-purple-300 uppercase mb-2">Contribuições</p>
-                                        <div className="flex justify-between text-xs">
-                                            <span className="text-p1 font-bold">{p1Name}: {formatCurrency(goal.monthly_contribution_p1 || 0)}</span>
-                                            <span className="text-p2 font-bold">{p2Name}: {formatCurrency(goal.monthly_contribution_p2 || 0)}</span>
+                                        <div className="flex justify-between text-xs gap-4">
+                                            <div className="flex flex-col flex-1">
+                                                <span className="text-p1 font-bold truncate">{p1Name}: {formatCurrency(goal.monthly_contribution_p1 || 0)}</span>
+                                                <span className="text-[9px] opacity-60 font-medium truncate">{goal.investment_location_p1 || 'Não definido'}</span>
+                                            </div>
+                                            <div className="flex flex-col flex-1 text-right">
+                                                <span className="text-p2 font-bold truncate">{p2Name}: {formatCurrency(goal.monthly_contribution_p2 || 0)}</span>
+                                                <span className="text-[9px] opacity-60 font-medium truncate">{goal.investment_location_p2 || 'Não definido'}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             )}
 
-                            {/* Time Estimate */}
-                            <div className="px-5 pb-5">
-                                <div className="flex items-center justify-between bg-slate-900 dark:bg-slate-700 text-white p-3 rounded-xl">
-                                    <span className="text-xs font-bold">Tempo estimado:</span>
-                                    <span className="font-black">
-                                        {timeToGoal.reached
-                                            ? '✅ Meta alcançada!'
-                                            : timeToGoal.months === Infinity
-                                                ? '♾️ Defina aportes'
-                                                : `${timeToGoal.months} ${timeToGoal.months === 1 ? 'mês' : 'meses'}`
-                                        }
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Monthly Expense Warning */}
-                            {goal.expected_monthly_expense && goal.expected_monthly_expense > 0 && (
-                                <div className="px-5 pb-5">
-                                    <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 p-3 rounded-xl">
-                                        <span className="text-lg">📊</span>
-                                        <span className="text-xs font-bold">Gasto previsto após meta: {formatCurrency(goal.expected_monthly_expense)}/mês</span>
+                            {/* Individual Investment for individual goals */}
+                            {goal.goal_type && goal.goal_type !== 'couple' && (
+                                <div className="px-5 pb-4">
+                                    <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl">
+                                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Onde está guardado:</p>
+                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                            🏦 {goal.goal_type === 'individual_p1' ? goal.investment_location_p1 : goal.investment_location_p2 || 'Ainda não definido'}
+                                        </p>
                                     </div>
                                 </div>
                             )}
+
+                            {/* Time Estimate and Check-in */}
+                            <div className="px-5 pb-5 flex flex-col sm:flex-row gap-2">
+                                <div className="flex-1 flex items-center justify-between bg-slate-900 dark:bg-slate-700 text-white p-3 rounded-xl">
+                                    <span className="text-xs font-bold">Tempo:</span>
+                                    <span className="font-black text-xs">
+                                        {timeToGoal.reached ? '✅ Ok!' : timeToGoal.months === Infinity ? '♾️' : `${timeToGoal.months}m`}
+                                    </span>
+                                </div>
+
+                                {!goal.is_completed && (
+                                    <button
+                                        onClick={() => handleCheckIn(goal)}
+                                        disabled={goal.last_contribution_month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`}
+                                        className={`flex-[2] p-3 rounded-xl font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${goal.last_contribution_month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+                                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 cursor-not-allowed'
+                                                : 'bg-emerald-500 text-white hover:brightness-110'
+                                            }`}
+                                    >
+                                        {goal.last_contribution_month === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` ? '✓ Feito' : '💰 Aporte'}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     );
                 })}
@@ -656,7 +790,6 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                     <div className="col-span-full py-16 bg-white dark:bg-slate-800/40 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-2xl text-center">
                         <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl opacity-50">🎯</div>
                         <p className="text-slate-400 dark:text-slate-600 font-black uppercase tracking-widest text-xs">Nenhuma meta planejada ainda</p>
-                        <p className="text-slate-300 dark:text-slate-700 font-medium mt-2">Clique em "+ Nova Meta" para começar o planejamento.</p>
                     </div>
                 )}
             </div>

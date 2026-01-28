@@ -370,6 +370,10 @@ export const useAppData = () => {
                     start_date: goalData.start_date || null,
                     deadline: goalData.deadline || null,
                     icon: goalData.icon || '💰',
+                    priority: goalData.priority || 'medium',
+                    investment_location_p1: goalData.investment_location_p1 || '',
+                    investment_location_p2: goalData.investment_location_p2 || '',
+                    last_contribution_month: goalData.last_contribution_month || null,
                     is_completed: false,
                     // Legacy field for backwards compatibility
                     monthly_contribution: (goalData.monthly_contribution_p1 || 0) + (goalData.monthly_contribution_p2 || 0)

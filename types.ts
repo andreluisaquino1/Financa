@@ -153,10 +153,11 @@ export interface SavingsGoal {
 
   // Display
   icon?: string;
+  priority?: 'low' | 'medium' | 'high';
+  investment_location_p1?: string;
+  investment_location_p2?: string;
+  last_contribution_month?: string; // Format: YYYY-MM
   is_completed: boolean;
   created_at: string;
-
-  // Legacy field (will be migrated)
-  monthly_contribution?: number;
 }
 
