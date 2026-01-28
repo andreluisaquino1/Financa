@@ -62,10 +62,17 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     const monthlySpending = summary.totalFixed + summary.totalCommon + summary.totalEqual;
     const suggestedEmergencyFund = monthlySpending * 6;
 
-    const currentTotalReserve = (coupleInfo.emergencyReserveP1 || 0) + (coupleInfo.emergencyReserveP2 || 0);
+    const currentTotalReserve = useMemo(() => {
+        const hubReserve = (coupleInfo.emergencyReserveP1 || 0) + (coupleInfo.emergencyReserveP2 || 0);
+        const goalSavings = goals
+            .filter(g => !g.is_completed && (g.title.toLowerCase().includes('emergência') || g.title.toLowerCase().includes('reserva')))
+            .reduce((acc, g) => acc + (g.current_savings_p1 || 0) + (g.current_savings_p2 || 0), 0);
+        return hubReserve + goalSavings;
+    }, [coupleInfo, goals]);
+
     const hasEmergencyGoal = useMemo(() => {
-        const goalExists = goals.some(g => g.title.toLowerCase().includes('emergência') || g.title.toLowerCase().includes('reserva'));
-        // If they already have 90% or more of the recommended reserve in the Hub, we consider it "done" for suggestion purposes
+        const goalExists = goals.some(g => !g.is_completed && (g.title.toLowerCase().includes('emergência') || g.title.toLowerCase().includes('reserva')));
+        // If they already have 90% or more of the recommended reserve (In Hub + Goals), we consider it "done" for suggestion purposes
         if (currentTotalReserve >= (suggestedEmergencyFund * 0.9)) return true;
         return goalExists;
     }, [goals, currentTotalReserve, suggestedEmergencyFund]);
@@ -307,7 +314,12 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         const p1Aporte = goal.monthly_contribution_p1 || 0;
         const p2Aporte = goal.monthly_contribution_p2 || 0;
 
-        if (confirm(`Confirmar aporte mensal de ${formatCurrency(p1Aporte + p2Aporte)}? O valor será descontado do seu Saldo no Banco.`)) {
+        const isEmergency = goal.title.toLowerCase().includes('emergência') || goal.title.toLowerCase().includes('reserva');
+        const confirmMsg = isEmergency
+            ? `Confirmar aporte de ${formatCurrency(p1Aporte + p2Aporte)}? Este valor será movido do seu Saldo Livre para sua Reserva de Emergência.`
+            : `Confirmar aporte mensal de ${formatCurrency(p1Aporte + p2Aporte)}? O valor será descontado do seu Saldo no Banco.`;
+
+        if (confirm(confirmMsg)) {
             // Update Goal
             onUpdateGoal(goal.id, {
                 current_savings_p1: (goal.current_savings_p1 || 0) + p1Aporte,
@@ -316,11 +328,20 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             });
 
             // Update Hub Balance
-            onUpdateCoupleInfo({
-                ...coupleInfo,
-                bankBalanceP1: (coupleInfo.bankBalanceP1 || 0) - p1Aporte,
-                bankBalanceP2: (coupleInfo.bankBalanceP2 || 0) - p2Aporte
-            }, true);
+            const updatedInfo = { ...coupleInfo };
+
+            if (isEmergency) {
+                // For emergency, we just reclassify the bank balance (increase reserve)
+                updatedInfo.emergencyReserveP1 = (updatedInfo.emergencyReserveP1 || 0) + p1Aporte;
+                updatedInfo.emergencyReserveP2 = (updatedInfo.emergencyReserveP2 || 0) + p2Aporte;
+                // Note: bankBalance stays the same because the money is still in the asset pool
+            } else {
+                // For normal goals, money is assumed to leave the liquid bank pool
+                updatedInfo.bankBalanceP1 = (updatedInfo.bankBalanceP1 || 0) - p1Aporte;
+                updatedInfo.bankBalanceP2 = (updatedInfo.bankBalanceP2 || 0) - p2Aporte;
+            }
+
+            onUpdateCoupleInfo(updatedInfo, true);
         }
     };
 
