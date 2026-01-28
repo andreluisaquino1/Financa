@@ -7,6 +7,7 @@ import BalanceCard from './dashboard/BalanceCard';
 import StatSmall from './dashboard/StatSmall';
 import ClosingBreakdown from './dashboard/ClosingBreakdown';
 import AdBanner from './AdBanner';
+import MonthlyInsights from './dashboard/MonthlyInsights';
 import CategoryChart from './dashboard/CategoryChart';
 import { exportMonthlyPDF } from '../pdfGenerator';
 
@@ -90,6 +91,8 @@ const Dashboard: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      <MonthlyInsights summary={summary} coupleInfo={coupleInfo} />
 
       {/* Destaque do Acerto - Card Simples */}
       <div className="space-y-4">
