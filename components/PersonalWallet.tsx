@@ -71,7 +71,18 @@ const PersonalWallet: React.FC<Props> = ({
                         <div className="flex justify-between items-start">
                             <div className="flex items-center gap-3">
                                 <span className={`w-10 h-10 rounded-2xl ${accentBg}/10 ${accentText} flex items-center justify-center text-lg shadow-sm border border-white/10`}>
-                                    {exp.category === 'Lazer' ? '🎮' : exp.category === 'Saúde' ? '🏥' : '🛍️'}
+                                    {(() => {
+                                        const cat = (coupleInfo.categories || []).find(c =>
+                                            typeof c === 'string' ? c === exp.category : c.name === exp.category
+                                        );
+                                        const customIcon = typeof cat === 'object' ? cat.icon : null;
+                                        if (customIcon) return customIcon;
+                                        if (exp.category === 'Lazer') return '🎮';
+                                        if (exp.category === 'Saúde') return '🏥';
+                                        if (exp.category === 'Alimentação') return '🥗';
+                                        if (exp.category === 'Compras') return '🛍️';
+                                        return '👤';
+                                    })()}
                                 </span>
                                 <div>
                                     <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{exp.description}</h4>

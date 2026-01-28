@@ -268,7 +268,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
         <div className="space-y-6 animate-in fade-in duration-500 pb-12">
             <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-p1 font-bold text-xs uppercase tracking-widest transition-colors mb-4">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
-                Voltar para Viagens
+                Voltar às Viagens
             </button>
 
             <div className="bg-white dark:bg-slate-800/60 rounded-[2.5rem] p-6 sm:p-8 border border-slate-100 dark:border-white/5 shadow-sm space-y-8">
@@ -372,47 +372,66 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                         <div className="space-y-3 flex-1 overflow-y-auto max-h-[500px] no-scrollbar">
                             {view === 'expenses' ? (
                                 trip.expenses.map(exp => (
-                                    <div key={exp.id} className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between group">
+                                    <div key={exp.id} className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black uppercase ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
-                                                {coupleInfo[exp.paidBy + 'Name' as keyof CoupleInfo]?.toString().charAt(0)}
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
+                                                {exp.description.toLowerCase().includes('uber') || exp.description.toLowerCase().includes('combust') ? '🚗' :
+                                                    exp.description.toLowerCase().includes('jantar') || exp.description.toLowerCase().includes('almoço') || exp.description.toLowerCase().includes('comida') ? '🍕' :
+                                                        exp.description.toLowerCase().includes('hotel') || exp.description.toLowerCase().includes('pousada') || exp.description.toLowerCase().includes('airbnb') ? '🏨' :
+                                                            exp.description.toLowerCase().includes('avião') || exp.description.toLowerCase().includes('passagem') ? '✈️' : '🎟️'}
                                             </div>
                                             <div>
                                                 <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">{exp.description}</p>
-                                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">{new Date(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} • Pago por {coupleInfo[exp.paidBy + 'Name' as keyof CoupleInfo]?.toString().split(' ')[0]}</p>
+                                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest mt-0.5">
+                                                    {exp.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
+                                                    <span className="opacity-30 mx-1.5">•</span>
+                                                    {new Date(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(exp.value)}</p>
-                                            <button onClick={() => handleStartEdit(exp)} className="p-2 text-slate-300 hover:text-p1 transition-colors opacity-0 group-hover:opacity-100">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                            </button>
-                                            <button onClick={() => handleDeleteItem(exp.id, 'expenses')} className="p-2 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                            </button>
+                                            <div className="text-right mr-2">
+                                                <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(exp.value)}</p>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <button onClick={() => handleStartEdit(exp)} className="p-2 text-slate-300 hover:text-p1 transition-colors opacity-0 group-hover:opacity-100">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                </button>
+                                                <button onClick={() => handleDeleteItem(exp.id, 'expenses')} className="p-2 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
                                 trip.deposits.map(dep => (
-                                    <div key={dep.id} className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between group">
+                                    <div key={dep.id} className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-[10px] font-black uppercase ${dep.person === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
-                                                {coupleInfo[dep.person + 'Name' as keyof CoupleInfo]?.toString().charAt(0)}
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm ${dep.person === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
+                                                💰
                                             </div>
                                             <div>
-                                                <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{dep.description || 'Depósito para viagem'}</p>
-                                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tight">{new Date(dep.date).toLocaleDateString()} • Por {coupleInfo[dep.person + 'Name' as keyof CoupleInfo]?.toString().split(' ')[0]}</p>
+                                                <p className="font-bold text-slate-800 dark:text-slate-100 text-sm leading-tight">{dep.description || 'Depósito p/ fundo'}</p>
+                                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest mt-0.5">
+                                                    Depositado por {dep.person === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}
+                                                    <span className="opacity-30 mx-1.5">•</span>
+                                                    {new Date(dep.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1">
-                                            <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(dep.value)}</p>
-                                            <button onClick={() => handleStartEdit(dep)} className="p-2 text-slate-300 hover:text-p1 transition-colors opacity-0 group-hover:opacity-100">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                            </button>
-                                            <button onClick={() => handleDeleteItem(dep.id, 'deposits')} className="p-2 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                            </button>
+                                            <div className="text-right mr-2">
+                                                <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(dep.value)}</p>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <button onClick={() => handleStartEdit(dep)} className="p-2 text-slate-300 hover:text-p1 transition-colors opacity-0 group-hover:opacity-100">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                </button>
+                                                <button onClick={() => handleDeleteItem(dep.id, 'deposits')} className="p-2 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))

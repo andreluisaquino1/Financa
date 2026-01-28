@@ -53,7 +53,23 @@ export const getMonthlyExpenseValue = (exp: Expense, monthKey: string): number =
   if ((exp.type === ExpenseType.FIXED || exp.type === ExpenseType.REIMBURSEMENT_FIXED) && exp.metadata?.overrides?.[monthKey]) {
     return exp.metadata.overrides[monthKey];
   }
-  return roundMoney(exp.totalValue / (exp.installments || 1));
+
+  const installments = exp.installments || 1;
+  if (installments <= 1) return exp.totalValue;
+
+  const [targetYear, targetMonth] = monthKey.split('-').map(Number);
+  const expDate = parseSafeDate(exp.date);
+  const diffMonths = (targetYear - expDate.getFullYear()) * 12 + (targetMonth - (expDate.getMonth() + 1));
+
+  const standardInstallment = roundMoney(exp.totalValue / installments);
+
+  // Se for a última parcela, ajustamos para cobrir qualquer diferença de arredondamento
+  if (diffMonths === installments - 1) {
+    const previousTotal = standardInstallment * (installments - 1);
+    return roundMoney(exp.totalValue - previousTotal);
+  }
+
+  return standardInstallment;
 };
 
 export const getInstallmentInfo = (exp: Expense, monthKey: string): { current: number; total: number } | null => {
@@ -120,12 +136,12 @@ export const calculateSummary = (
   const combinedSalaries = roundMoney(p1Salary + p2Salary);
 
   // Proporção baseada no salário (usada como uma das opções individuais)
-  let salaryRatio1 = combinedSalaries > 0 ? p1Salary / combinedSalaries : 0.5;
-  let salaryRatio2 = combinedSalaries > 0 ? p2Salary / combinedSalaries : 0.5;
+  let salaryRatio1 = combinedSalaries > 0 ? roundMoney(p1Salary / combinedSalaries) : 0.5;
+  let salaryRatio2 = combinedSalaries > 0 ? roundMoney(1 - salaryRatio1) : 0.5;
 
   if (isPremium) {
-    salaryRatio1 = combinedTotalIncome > 0 ? totalIncome1 / combinedTotalIncome : 0.5;
-    salaryRatio2 = combinedTotalIncome > 0 ? totalIncome2 / combinedTotalIncome : 0.5;
+    salaryRatio1 = combinedTotalIncome > 0 ? roundMoney(totalIncome1 / combinedTotalIncome) : 0.5;
+    salaryRatio2 = combinedTotalIncome > 0 ? roundMoney(1 - salaryRatio1) : 0.5;
   }
 
   let totalFixed = 0;
