@@ -46,7 +46,7 @@ export const isExpenseInMonth = (exp: Expense, monthKey: string): boolean => {
   const expDate = parseSafeDate(exp.date);
   const diffMonths = (targetYear - expDate.getFullYear()) * 12 + (targetMonth - (expDate.getMonth() + 1));
 
-  return diffMonths >= 0 && (exp.type === ExpenseType.FIXED || diffMonths < (exp.installments || 1));
+  return diffMonths >= 0 && (exp.type === ExpenseType.FIXED || exp.type === ExpenseType.REIMBURSEMENT_FIXED || diffMonths < (exp.installments || 1));
 };
 
 export const getMonthlyExpenseValue = (exp: Expense, monthKey: string): number => {
@@ -57,7 +57,7 @@ export const getMonthlyExpenseValue = (exp: Expense, monthKey: string): number =
 };
 
 export const getInstallmentInfo = (exp: Expense, monthKey: string): { current: number; total: number } | null => {
-  if (exp.type === ExpenseType.FIXED || !exp.installments || exp.installments <= 1) return null;
+  if (exp.type === ExpenseType.FIXED || exp.type === ExpenseType.REIMBURSEMENT_FIXED || !exp.installments || exp.installments <= 1) return null;
   const [targetYear, targetMonth] = monthKey.split('-').map(Number);
   const expDate = parseSafeDate(exp.date);
   const diffMonths = (targetYear - expDate.getFullYear()) * 12 + (targetMonth - (expDate.getMonth() + 1));
@@ -190,6 +190,7 @@ export const calculateSummary = (
         break;
 
       case ExpenseType.REIMBURSEMENT:
+      case ExpenseType.REIMBURSEMENT_FIXED:
         totalReimbursement = roundMoney(totalReimbursement + monthlyValue);
         if (exp.paidBy === 'person1') {
           p2Target = roundMoney(p2Target + monthlyValue);

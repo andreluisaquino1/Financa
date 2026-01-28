@@ -85,7 +85,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     };
 
     const isPersonalType = currentType === ExpenseType.PERSONAL_P1 || currentType === ExpenseType.PERSONAL_P2;
-    const isReimbursement = currentType === ExpenseType.REIMBURSEMENT;
+    const isReimbursement = currentType === ExpenseType.REIMBURSEMENT || currentType === ExpenseType.REIMBURSEMENT_FIXED;
     const isJoint = !isPersonalType && !isReimbursement;
 
     const handleFinalSubmit = async (e: React.FormEvent) => {
@@ -124,7 +124,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 category,
                 paidBy: isPersonalType ? (currentType === ExpenseType.PERSONAL_P1 ? 'person1' : 'person2') : paidBy,
                 date,
-                installments: currentType === ExpenseType.FIXED ? 1 : (parseInt(installments) || 1),
+                installments: (currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) ? 1 : (parseInt(installments) || 1),
                 splitMethod: isJoint ? splitMethod : undefined,
                 splitPercentage1: (isJoint && splitMethod === 'custom') ? splitPercentage1 : undefined,
                 specificValueP1: isJoint ? parseBRL(specValue1) : undefined,
@@ -161,7 +161,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     {isJoint ? 'Lançamento compartilhado' : (isReimbursement ? 'Solicitação de reembolso' : 'Gasto individual')}
                 </p>
 
-                {currentType === ExpenseType.FIXED && initialData && (
+                {(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && initialData && (
                     <div className="mb-6 flex items-center gap-3 bg-p1/5 p-4 rounded-2xl border border-p1/10">
                         <input
                             type="checkbox"
@@ -238,10 +238,10 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 </div>
                             </div>
 
-                            {(parseInt(installments) > 1 || currentType === ExpenseType.FIXED) && (
+                            {(parseInt(installments) > 1 || currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
                                 <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                                        {currentType === ExpenseType.FIXED ? 'Valor Mensal' : 'Valor da Parcela'}
+                                        {(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) ? 'Valor Mensal' : 'Valor da Parcela'}
                                     </label>
                                     <div className="relative">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
@@ -277,7 +277,7 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 ))}
                             </select>
                         </div>
-                        {currentType !== ExpenseType.FIXED && (
+                        {!(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Parcelas</label>
                                 <input
@@ -294,22 +294,22 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
                     {/* Configurações Adicionais no Final */}
                     <div className="pt-4 space-y-4 border-t border-slate-100 dark:border-white/5">
-                        {isJoint && (
+                        {(isJoint || isReimbursement) && (
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Periodicidade</label>
                                     <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
                                         <button
                                             type="button"
-                                            onClick={() => setCurrentType(ExpenseType.COMMON)}
-                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${currentType !== ExpenseType.FIXED ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                            onClick={() => setCurrentType(isReimbursement ? ExpenseType.REIMBURSEMENT : ExpenseType.COMMON)}
+                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${(currentType !== ExpenseType.FIXED && currentType !== ExpenseType.REIMBURSEMENT_FIXED) ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                         >
                                             Variável
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setCurrentType(ExpenseType.FIXED)}
-                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${currentType === ExpenseType.FIXED ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                            onClick={() => setCurrentType(isReimbursement ? ExpenseType.REIMBURSEMENT_FIXED : ExpenseType.FIXED)}
+                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
                                         >
                                             Fixo (Mensal)
                                         </button>

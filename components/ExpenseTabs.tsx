@@ -32,16 +32,16 @@ const ExpenseTabs: React.FC<Props> = ({
       }
 
       if (activeTab === 'reimbursement') {
-        return e.type === ExpenseType.REIMBURSEMENT && isInMonth;
+        return (e.type === ExpenseType.REIMBURSEMENT || e.type === ExpenseType.REIMBURSEMENT_FIXED) && isInMonth;
       }
 
       return false;
     });
   }, [expenses, activeTab, monthKey]);
 
-  const fixedExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.FIXED), [filteredExpenses]);
-  const variableExpenses = useMemo(() => filteredExpenses.filter(e => e.type !== ExpenseType.FIXED && e.type !== ExpenseType.REIMBURSEMENT), [filteredExpenses]);
-  const reimbursementExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT), [filteredExpenses]);
+  const fixedExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.FIXED || e.type === ExpenseType.REIMBURSEMENT_FIXED), [filteredExpenses]);
+  const variableExpenses = useMemo(() => filteredExpenses.filter(e => e.type !== ExpenseType.FIXED && e.type !== ExpenseType.REIMBURSEMENT_FIXED && e.type !== ExpenseType.REIMBURSEMENT), [filteredExpenses]);
+  const reimbursementExpenses = useMemo(() => filteredExpenses.filter(e => e.type === ExpenseType.REIMBURSEMENT || e.type === ExpenseType.REIMBURSEMENT_FIXED), [filteredExpenses]);
 
   const renderMobileList = (list: Expense[], emptyMessage: string) => (
     <div className="space-y-4">
