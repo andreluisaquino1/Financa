@@ -106,7 +106,7 @@ const Dashboard: React.FC<Props> = ({
               <div className="flex gap-2">
                 {isPremium && (
                   <button
-                    onClick={() => exportMonthlyPDF(monthKey, coupleInfo, summary, expenses)}
+                    onClick={() => exportMonthlyPDF(monthKey, coupleInfo, summary, expenses, goals)}
                     className="p-3 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all active:scale-95"
                     title="Exportar PDF"
                   >
