@@ -4,13 +4,14 @@ import autoTable from 'jspdf-autotable';
 import { CoupleInfo, MonthlySummary, Expense, ExpenseType, SavingsGoal } from './types';
 import { formatCurrency, isExpenseInMonth, getMonthlyExpenseValue, getInstallmentInfo } from './utils';
 
-const hexToRgb = (hex: string): [number, number, number] => {
+const hexToRgb = (hex: string | undefined): [number, number, number] => {
+    if (!hex) return [37, 99, 235]; // Default P1 Blue
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? [
         parseInt(result[1], 16),
         parseInt(result[2], 16),
         parseInt(result[3], 16)
-    ] : [0, 0, 0];
+    ] : [37, 99, 235];
 };
 
 export const exportMonthlyPDF = (
@@ -72,15 +73,15 @@ export const exportMonthlyPDF = (
         doc.text(value, x + 4, y + 15);
     };
 
-    const totalOut = summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement;
-    const totalInc = summary.person1TotalIncome + summary.person2TotalIncome;
+    const totalOut = (summary.totalFixed || 0) + (summary.totalCommon || 0) + (summary.totalEqual || 0) + (summary.totalReimbursement || 0);
+    const totalInc = (summary.person1TotalIncome || 0) + (summary.person2TotalIncome || 0);
 
     const activeGoals = goals.filter(g => !g.is_completed);
     const totalGoalContribution = activeGoals.reduce((sum, g) =>
         sum + (g.monthly_contribution_p1 || 0) + (g.monthly_contribution_p2 || 0), 0
     );
 
-    const residual = Math.max(0, totalInc - (totalOut + summary.person1PersonalTotal + summary.person2PersonalTotal + totalGoalContribution));
+    const residual = Math.max(0, totalInc - (totalOut + (summary.person1PersonalTotal || 0) + (summary.person2PersonalTotal || 0) + totalGoalContribution));
 
     drawBox(15, 60, 'Custo da Casa', formatCurrency(totalOut), p1Col);
     drawBox(63, 60, 'Aporte em Sonhos', formatCurrency(totalGoalContribution), [147, 51, 234]); // Purple
