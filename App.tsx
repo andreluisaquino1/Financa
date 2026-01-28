@@ -120,6 +120,14 @@ const AppContent: React.FC = () => {
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
   const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
 
+  const handleTabChange = (tab: typeof currentTab) => {
+    if ((tab === 'goals' || tab === 'trip') && !isPremium) {
+      setIsPremiumModalOpen(true);
+      return;
+    }
+    setCurrentTab(tab);
+  };
+
   // Global Modal State
   const [isGlobalModalOpen, setIsGlobalModalOpen] = useState(false);
   const [modalType, setModalType] = useState<ExpenseType>(ExpenseType.COMMON);
@@ -291,15 +299,15 @@ const AppContent: React.FC = () => {
 
           <nav className="hidden lg:flex items-center pb-3 overflow-x-auto no-scrollbar scroll-smooth">
             <div className="flex items-center bg-slate-100/50 dark:bg-slate-800/40 p-1 rounded-2xl min-w-max border border-slate-100 dark:border-white/5">
-              <NavItem active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} label="Resumo" />
-              <NavItem active={currentTab === 'incomes'} onClick={() => setCurrentTab('incomes')} label="Receitas" />
-              <NavItem active={currentTab === 'expenses'} onClick={() => setCurrentTab('expenses')} label="Gastos" />
-              <NavItem active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} label="Reembolsos" />
-              <NavItem active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} label={`Carteira ${coupleInfo.person1Name.split(' ')[0]}`} />
-              <NavItem active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
-              <NavItem active={currentTab === 'goals'} onClick={() => setCurrentTab('goals')} label="Metas" />
-              <NavItem active={currentTab === 'trip'} onClick={() => setCurrentTab('trip')} label="Viagem" />
-              <NavItem active={currentTab === 'help'} onClick={() => setCurrentTab('help')} label="Ajuda" />
+              <NavItem active={currentTab === 'summary'} onClick={() => handleTabChange('summary')} label="Resumo" />
+              <NavItem active={currentTab === 'incomes'} onClick={() => handleTabChange('incomes')} label="Receitas" />
+              <NavItem active={currentTab === 'expenses'} onClick={() => handleTabChange('expenses')} label="Gastos" />
+              <NavItem active={currentTab === 'reimbursement'} onClick={() => handleTabChange('reimbursement')} label="Reembolsos" />
+              <NavItem active={currentTab === 'wallet1'} onClick={() => handleTabChange('wallet1')} label={`Carteira ${coupleInfo.person1Name.split(' ')[0]}`} />
+              <NavItem active={currentTab === 'wallet2'} onClick={() => handleTabChange('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
+              <NavItem active={currentTab === 'goals'} onClick={() => handleTabChange('goals')} label="Metas" isLocked={!isPremium} />
+              <NavItem active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} label="Viagem" isLocked={!isPremium} />
+              <NavItem active={currentTab === 'help'} onClick={() => handleTabChange('help')} label="Ajuda" />
             </div>
           </nav>
         </div>
@@ -386,13 +394,13 @@ const AppContent: React.FC = () => {
 
       <nav className="lg:hidden flex-shrink-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl border-t dark:border-white/5 flex items-center h-[72px] pb-[safe-area-inset-bottom] z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] overflow-x-auto no-scrollbar scroll-smooth">
         <div className="flex w-full px-2 items-center justify-around max-w-md mx-auto">
-          <MobileTab active={currentTab === 'summary'} onClick={() => setCurrentTab('summary')} icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" label="Início" />
-          <MobileTab active={currentTab === 'incomes'} onClick={() => setCurrentTab('incomes')} icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Renda" />
-          <MobileTab active={currentTab === 'expenses'} onClick={() => setCurrentTab('expenses')} icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" label="Gastos" />
-          <MobileTab active={currentTab === 'reimbursement'} onClick={() => setCurrentTab('reimbursement')} icon="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" label="Reemb" />
-          <MobileTab active={currentTab === 'wallet1'} onClick={() => setCurrentTab('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person1Name.slice(0, 5)} />
-          <MobileTab active={currentTab === 'wallet2'} onClick={() => setCurrentTab('wallet2')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person2Name.slice(0, 5)} />
-          <MobileTab active={currentTab === 'trip'} onClick={() => setCurrentTab('trip')} icon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Viagem" />
+          <MobileTab active={currentTab === 'summary'} onClick={() => handleTabChange('summary')} icon="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" label="Início" />
+          <MobileTab active={currentTab === 'incomes'} onClick={() => handleTabChange('incomes')} icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Renda" />
+          <MobileTab active={currentTab === 'expenses'} onClick={() => handleTabChange('expenses')} icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" label="Gastos" />
+          <MobileTab active={currentTab === 'reimbursement'} onClick={() => handleTabChange('reimbursement')} icon="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" label="Reemb" />
+          <MobileTab active={currentTab === 'wallet1'} onClick={() => handleTabChange('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person1Name.slice(0, 5)} />
+          <MobileTab active={currentTab === 'wallet2'} onClick={() => handleTabChange('wallet2')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person2Name.slice(0, 5)} />
+          <MobileTab active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} icon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Viagem" isLocked={!isPremium} />
         </div>
       </nav>
 
@@ -448,25 +456,27 @@ const AppContent: React.FC = () => {
   );
 };
 
-const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }> = ({ active, onClick, label }) => (
+const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string, isLocked?: boolean }> = ({ active, onClick, label, isLocked }) => (
   <button
     onClick={onClick}
-    className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${active
+    className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${active
       ? 'bg-white dark:bg-p1 text-p1 dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10'
       : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800'
       }`}
   >
     {label}
+    {isLocked && <span className="opacity-50">🔒</span>}
   </button>
 );
 
-const MobileTab: React.FC<{ active: boolean, onClick: () => void, icon: string, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex flex-col items-center justify-center px-1.5 py-1 transition-all rounded-xl ${active ? 'bg-p1/5' : ''} min-w-[64px]`}>
+const MobileTab: React.FC<{ active: boolean, onClick: () => void, icon: string, label: string, isLocked?: boolean }> = ({ active, onClick, icon, label, isLocked }) => (
+  <button onClick={onClick} className={`flex flex-col items-center justify-center px-1.5 py-1 transition-all rounded-xl ${active ? 'bg-p1/5' : ''} min-w-[64px] relative`}>
     <div className={`p-1.5 rounded-xl transition-all ${active ? 'text-p1 scale-110' : 'text-slate-400 dark:text-slate-600'}`}>
       <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2} d={icon} /></svg>
     </div>
-    <span className={`text-[9px] font-black uppercase tracking-tighter whitespace-nowrap transition-all ${active ? 'text-p1 opacity-100 mt-0.5' : 'text-slate-400 opacity-60'}`}>
+    <span className={`text-[9px] font-black uppercase tracking-tighter whitespace-nowrap transition-all flex items-center gap-1 ${active ? 'text-p1 opacity-100 mt-0.5' : 'text-slate-400 opacity-60'}`}>
       {label}
+      {isLocked && <span className="text-[7px]">🔒</span>}
     </span>
   </button>
 );
