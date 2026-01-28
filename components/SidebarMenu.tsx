@@ -76,6 +76,7 @@ const SidebarMenu: React.FC<Props> = ({
   const [categories, setCategories] = useState<Category[]>(initialCats);
   const [newCategory, setNewCategory] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('📦');
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [editingCategoryIndex, setEditingCategoryIndex] = useState<number | null>(null);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(coupleInfo.theme || 'light');
@@ -218,25 +219,38 @@ const SidebarMenu: React.FC<Props> = ({
               {isPremium ? (
                 <div className="space-y-4">
                   <div className="flex gap-2">
-                    <div className="relative group">
+                    <div className="relative">
                       <button
                         type="button"
-                        className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl flex items-center justify-center text-xl shadow-inner border border-slate-200 dark:border-white/5 hover:border-p1 transition-all"
+                        onClick={() => setShowIconPicker(!showIconPicker)}
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border transition-all ${showIconPicker ? 'bg-p1 text-white border-p1' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}
                       >
                         {selectedIcon}
                       </button>
-                      <div className="absolute left-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-2 z-[100] grid grid-cols-4 gap-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
-                        {RECOMMENDED_ICONS.map(icon => (
-                          <button
-                            key={icon}
-                            type="button"
-                            onClick={() => setSelectedIcon(icon)}
-                            className={`w-10 h-10 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${selectedIcon === icon ? 'bg-p1/10 ring-1 ring-p1' : ''}`}
-                          >
-                            {icon}
-                          </button>
-                        ))}
-                      </div>
+
+                      {showIconPicker && (
+                        <>
+                          <div className="fixed inset-0 z-[110]" onClick={() => setShowIconPicker(false)} />
+                          <div className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-3 z-[120] grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-200">
+                            <div className="col-span-4 mb-1">
+                              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Escolha um Ícone</p>
+                            </div>
+                            {RECOMMENDED_ICONS.map(icon => (
+                              <button
+                                key={icon}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedIcon(icon);
+                                  setShowIconPicker(false);
+                                }}
+                                className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${selectedIcon === icon ? 'bg-p1/10 ring-2 ring-p1 scale-105' : 'bg-slate-50 dark:bg-slate-800/50'}`}
+                              >
+                                {icon}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                     <input
                       type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)}
