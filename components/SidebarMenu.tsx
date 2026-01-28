@@ -40,7 +40,7 @@ const DEFAULT_FREE_CATEGORIES: Category[] = [
   { name: 'Saúde', icon: '🏥' }
 ];
 
-const RECOMMENDED_ICONS = ['💰', '🏠', '🛒', '🚗', '🎮', '🏥', '🎓', '🛍️', '✈️', '🏖️', '🏰', '📦', '🍔', '👗', '💊', '🔋'];
+const RECOMMENDED_ICONS = ['💰', '🏠', '🛒', '🚗', '🎮', '🏥', '🎓', '🛍️', '✈️', '💳', '🏖️', '🏰', '📦', '🍔', '👗', '💊', '🔋'];
 
 const SidebarMenu: React.FC<Props> = ({
   isOpen,
