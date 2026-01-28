@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { CoupleInfo, Expense, ExpenseType } from '../types';
+import { CoupleInfo, Expense, ExpenseType, MonthlySummary } from '../types';
 import { formatCurrency, parseSafeDate, isExpenseInMonth, getMonthlyExpenseValue, getInstallmentInfo } from '../utils';
 
 interface Props {
@@ -8,6 +8,7 @@ interface Props {
     coupleInfo: CoupleInfo;
     expenses: Expense[];
     monthKey: string;
+    summary: MonthlySummary;
     onAddExpense: (type: ExpenseType, exp: Expense | null) => void;
     onUpdateExpense: (id: string, exp: Expense) => void;
     onDeleteExpense: (id: string) => void;
@@ -18,6 +19,7 @@ const PersonalWallet: React.FC<Props> = ({
     coupleInfo,
     expenses,
     monthKey,
+    summary,
     onAddExpense,
     onUpdateExpense,
     onDeleteExpense
@@ -27,13 +29,18 @@ const PersonalWallet: React.FC<Props> = ({
     const accentBg = person === 'person1' ? 'bg-p1' : 'bg-p2';
     const accentText = person === 'person1' ? 'text-p1' : 'text-p2';
 
+    const income = person === 'person1' ? summary.person1TotalIncome : summary.person2TotalIncome;
+    const responsibility = person === 'person1' ? summary.person1Responsibility : summary.person2Responsibility;
+
     const filteredExpenses = useMemo(() => {
         return expenses.filter(e => e.type === type && isExpenseInMonth(e, monthKey));
     }, [expenses, type, monthKey]);
 
-    const total = useMemo(() => {
+    const totalPersonal = useMemo(() => {
         return filteredExpenses.reduce((acc, curr) => acc + getMonthlyExpenseValue(curr, monthKey), 0);
     }, [filteredExpenses, monthKey]);
+
+    const left = income - responsibility - totalPersonal;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -46,17 +53,39 @@ const PersonalWallet: React.FC<Props> = ({
                     <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">Controle de gastos individuais e pessoais</p>
                 </div>
 
-                <div className="flex items-center gap-4 w-full sm:w-auto">
-                    <div className="flex-1 sm:flex-none bg-white dark:bg-slate-800/60 px-5 py-3 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Acumulado</p>
-                        <p className={`text-xl font-black ${accentText} tracking-tight`}>{formatCurrency(total)}</p>
-                    </div>
+                <div className="w-full sm:w-auto">
                     <button
                         onClick={() => onAddExpense(type, null)}
-                        className={`bg-p1 hover:bg-p1/90 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg shadow-p1/20 transition-all active:scale-95 flex items-center gap-2`}
+                        className={`w-full sm:w-auto bg-p1 hover:bg-p1/90 text-white px-8 py-4 rounded-2xl font-black text-sm shadow-lg shadow-p1/20 transition-all active:scale-95 flex items-center justify-center gap-2`}
                     >
-                        <span>+</span> Lançar
+                        <span>+</span> Novo Gasto Individual
                     </button>
+                </div>
+            </div>
+
+            {/* Resumo de Saldo */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-white/10 shadow-sm shadow-slate-200/50">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sua Renda</p>
+                        <p className="text-lg font-black text-slate-700 dark:text-slate-200">{formatCurrency(income)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contas da Casa</p>
+                        <p className="text-lg font-black text-red-400">-{formatCurrency(responsibility)}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gastos Pessoais</p>
+                        <p className="text-lg font-black text-red-400">-{formatCurrency(totalPersonal)}</p>
+                    </div>
+                    <div className={`p-4 rounded-2xl ${left >= 0 ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-red-50 dark:bg-red-500/10'} border ${left >= 0 ? 'border-emerald-100 dark:border-emerald-500/20' : 'border-red-100 dark:border-red-500/20'} flex flex-col justify-center`}>
+                        <p className={`text-[10px] font-black uppercase tracking-widest ${left >= 0 ? 'text-emerald-500' : 'text-red-500'} mb-1`}>
+                            {left >= 0 ? 'Sobra Livre' : 'Diferença'}
+                        </p>
+                        <p className={`text-xl font-black ${left >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {formatCurrency(left)}
+                        </p>
+                    </div>
                 </div>
             </div>
 

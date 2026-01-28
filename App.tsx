@@ -361,6 +361,7 @@ const AppContent: React.FC = () => {
                 coupleInfo={coupleInfo}
                 expenses={expenses}
                 monthKey={selectedMonth}
+                summary={summary}
                 onAddExpense={(type) => openAddExpense(type)}
                 onUpdateExpense={(id, exp) => openAddExpense(exp.type, exp)}
                 onDeleteExpense={deleteExpense}
@@ -372,6 +373,7 @@ const AppContent: React.FC = () => {
                 coupleInfo={coupleInfo}
                 expenses={expenses}
                 monthKey={selectedMonth}
+                summary={summary}
                 onAddExpense={(type) => openAddExpense(type)}
                 onUpdateExpense={(id, exp) => openAddExpense(exp.type, exp)}
                 onDeleteExpense={deleteExpense}
