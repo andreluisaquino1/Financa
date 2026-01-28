@@ -123,7 +123,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             priority,
             investment_location_p1: investmentLocationP1,
             investment_location_p2: investmentLocationP2,
-            current_value: parseBRL(savingsP1) + parseBRL(savingsP2),
+            current_value: 0, // No longer using this for the sum to avoid doubling
             is_completed: false
         };
 
@@ -538,7 +538,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                             {goalType !== 'individual_p2' && (
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{p1Name} - Valor Guardado</label>
+                                        <label className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{p1Name} - Saldo Atual / Inicial</label>
                                         <input
                                             type="text"
                                             inputMode="decimal"
@@ -563,7 +563,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                             {goalType !== 'individual_p1' && (
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{p2Name} - Valor Guardado</label>
+                                        <label className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{p2Name} - Saldo Atual / Inicial</label>
                                         <input
                                             type="text"
                                             inputMode="decimal"
@@ -755,64 +755,102 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                 </div>
                             </div>
 
-                            {/* Stats */}
-                            <div className="px-5 pb-4 grid grid-cols-2 gap-3">
-                                <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl relative group/stat">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase">Valor Guardado</p>
-                                    <div className="flex items-center justify-between">
-                                        <p className="font-black text-emerald-500">{formatCurrency(totalSaved)}</p>
-                                        <button
-                                            onClick={() => {
-                                                const extra = prompt('Quanto deseja adicionar à poupança desta meta?');
-                                                if (extra) {
-                                                    const val = parseBRL(extra);
-                                                    if (val > 0) {
-                                                        onUpdateGoal(goal.id, { current_value: (goal.current_value || 0) + val });
-                                                    }
-                                                }
-                                            }}
-                                            className="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover/stat:opacity-100 transition-opacity"
-                                        >
-                                            +
-                                        </button>
+                            {/* Financial Summary & Quick Add */}
+                            <div className="px-5 pb-4 space-y-3">
+                                <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl">
+                                    <div className="grid grid-cols-2 gap-4 mb-4 pb-3 border-b border-slate-200 dark:border-white/5">
+                                        <div>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Saldo Total</p>
+                                            <p className="text-sm font-black text-emerald-500">{formatCurrency(totalSaved)}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Plano Mensal</p>
+                                            <p className="text-sm font-black text-p1">{formatCurrency(originalContribution)}</p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase">Aporte Mensal</p>
-                                    <p className="font-black text-p1">{formatCurrency(originalContribution)}</p>
+
+                                    <div className="space-y-3">
+                                        {/* Row for P1 */}
+                                        {(goal.goal_type === 'couple' || goal.goal_type === 'individual_p1' || !goal.goal_type) && (
+                                            <div className="flex items-center justify-between text-[11px]">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-p1"></div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-slate-600 dark:text-slate-400">{p1Name}</span>
+                                                        <span className="text-[9px] text-slate-400 italic leading-none">{goal.investment_location_p1 || 'Sem local'}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="text-right">
+                                                        <span className="block font-black text-slate-900 dark:text-slate-100">{formatCurrency(goal.current_savings_p1 || 0)}</span>
+                                                        <span className="text-[8px] text-p1 font-bold">Aporte: {formatCurrency(goal.monthly_contribution_p1 || 0)}/mês</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            const val = prompt(`Adicionar saldo extra para ${p1Name}:`);
+                                                            if (val) {
+                                                                const num = parseBRL(val);
+                                                                if (num > 0) onUpdateGoal(goal.id, { current_savings_p1: (goal.current_savings_p1 || 0) + num });
+                                                            }
+                                                        }}
+                                                        className="w-6 h-6 bg-p1/10 text-p1 rounded-lg flex items-center justify-center hover:bg-p1 hover:text-white transition-all font-black text-xs"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Row for P2 */}
+                                        {(goal.goal_type === 'couple' || goal.goal_type === 'individual_p2' || !goal.goal_type) && (
+                                            <div className="flex items-center justify-between text-[11px]">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-p2"></div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-slate-600 dark:text-slate-400">{p2Name}</span>
+                                                        <span className="text-[9px] text-slate-400 italic leading-none">{goal.investment_location_p2 || 'Sem local'}</span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="text-right">
+                                                        <span className="block font-black text-slate-900 dark:text-slate-100">{formatCurrency(goal.current_savings_p2 || 0)}</span>
+                                                        <span className="text-[8px] text-p2 font-bold">Aporte: {formatCurrency(goal.monthly_contribution_p2 || 0)}/mês</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            const val = prompt(`Adicionar saldo extra para ${p2Name}:`);
+                                                            if (val) {
+                                                                const num = parseBRL(val);
+                                                                if (num > 0) onUpdateGoal(goal.id, { current_savings_p2: (goal.current_savings_p2 || 0) + num });
+                                                            }
+                                                        }}
+                                                        className="w-6 h-6 bg-p2/10 text-p2 rounded-lg flex items-center justify-center hover:bg-p2 hover:text-white transition-all font-black text-xs"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Row for Legacy/Extra Adjustment if exists */}
+                                        {(goal.current_value || 0) !== 0 && (
+                                            <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-100 dark:border-white/5 opacity-60">
+                                                <span className="font-bold text-slate-500">Ajuste Manual:</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-black">{formatCurrency(goal.current_value || 0)}</span>
+                                                    <button
+                                                        onClick={() => onUpdateGoal(goal.id, { current_value: 0 })}
+                                                        className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Contributions Breakdown */}
-                            {(goal.goal_type === 'couple' || !goal.goal_type) && (
-                                <div className="px-5 pb-4">
-                                    <div className="bg-purple-50 dark:bg-purple-500/10 p-3 rounded-xl">
-                                        <p className="text-[9px] font-black text-purple-600 dark:text-purple-300 uppercase mb-2">Contribuições</p>
-                                        <div className="flex justify-between text-xs gap-4">
-                                            <div className="flex flex-col flex-1">
-                                                <span className="text-p1 font-bold truncate">{p1Name}: {formatCurrency(goal.monthly_contribution_p1 || 0)}</span>
-                                                <span className="text-[9px] opacity-60 font-medium truncate">{goal.investment_location_p1 || 'Não definido'}</span>
-                                            </div>
-                                            <div className="flex flex-col flex-1 text-right">
-                                                <span className="text-p2 font-bold truncate">{p2Name}: {formatCurrency(goal.monthly_contribution_p2 || 0)}</span>
-                                                <span className="text-[9px] opacity-60 font-medium truncate">{goal.investment_location_p2 || 'Não definido'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Individual Investment for individual goals */}
-                            {goal.goal_type && goal.goal_type !== 'couple' && (
-                                <div className="px-5 pb-4">
-                                    <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl">
-                                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Onde está guardado:</p>
-                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                            🏦 {goal.goal_type === 'individual_p1' ? goal.investment_location_p1 : goal.investment_location_p2 || 'Ainda não definido'}
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
 
                             {/* What-If Simulator (Quick Toggle) */}
                             <div className="px-5 pb-4">
