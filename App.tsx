@@ -321,6 +321,7 @@ const AppContent: React.FC = () => {
                 coupleInfo={coupleInfo}
                 expenses={expenses}
                 monthKey={selectedMonth}
+                goals={goals}
                 onNavigateToIncomes={() => setCurrentTab('incomes')}
                 summary={summary}
                 isPremium={isPremium}
@@ -364,7 +365,8 @@ const AppContent: React.FC = () => {
                 expenses={expenses}
                 monthKey={selectedMonth}
                 summary={summary}
-                onAddExpense={(type) => openAddExpense(type)}
+                goals={goals}
+                onAddExpense={openAddExpense}
                 onUpdateExpense={(id, exp) => openAddExpense(exp.type, exp)}
                 onDeleteExpense={deleteExpense}
               />
@@ -376,7 +378,8 @@ const AppContent: React.FC = () => {
                 expenses={expenses}
                 monthKey={selectedMonth}
                 summary={summary}
-                onAddExpense={(type) => openAddExpense(type)}
+                goals={goals}
+                onAddExpense={openAddExpense}
                 onUpdateExpense={(id, exp) => openAddExpense(exp.type, exp)}
                 onDeleteExpense={deleteExpense}
               />

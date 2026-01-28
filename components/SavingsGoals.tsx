@@ -110,7 +110,35 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             is_completed: false
         };
 
-        onAddGoal(goalData);
+        if (editingId) {
+            onUpdateGoal(editingId, goalData);
+            setEditingId(null);
+        } else {
+            onAddGoal(goalData);
+        }
+        resetForm();
+        setIsAdding(false);
+    };
+
+    const loadGoalForEdit = (goal: SavingsGoal) => {
+        setEditingId(goal.id);
+        setTitle(goal.title);
+        setGoalType(goal.goal_type || 'couple');
+        setTarget(formatAsBRL(Math.round(goal.target_value * 100).toString()));
+        setContributionP1(formatAsBRL(Math.round((goal.monthly_contribution_p1 || 0) * 100).toString()));
+        setContributionP2(formatAsBRL(Math.round((goal.monthly_contribution_p2 || 0) * 100).toString()));
+        setSavingsP1(formatAsBRL(Math.round((goal.current_savings_p1 || 0) * 100).toString()));
+        setSavingsP2(formatAsBRL(Math.round((goal.current_savings_p2 || 0) * 100).toString()));
+        setInterestRate((goal.interest_rate || 0).toString().replace('.', ','));
+        setMonthlyExpense(formatAsBRL(Math.round((goal.expected_monthly_expense || 0) * 100).toString()));
+        setStartDate(goal.start_date || '');
+        setDeadline(goal.deadline || '');
+        setIcon(goal.icon || '💰');
+        setIsAdding(true);
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
         resetForm();
         setIsAdding(false);
     };
@@ -160,7 +188,13 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                     <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Metas individuais e do casal</p>
                 </div>
                 <button
-                    onClick={() => { setIsAdding(!isAdding); if (isAdding) resetForm(); }}
+                    onClick={() => {
+                        if (isAdding) {
+                            cancelEdit();
+                        } else {
+                            setIsAdding(true);
+                        }
+                    }}
                     className={`px-6 py-3 rounded-2xl font-black text-sm transition-all shadow-lg active:scale-95 ${isAdding ? 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400' : 'bg-p1 text-white shadow-p1/20'}`}
                 >
                     {isAdding ? 'Cancelar' : '+ Nova Meta'}
@@ -268,15 +302,24 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                 </div>
             </div>
 
-            {/* Add Goal Form */}
+            {/* Add/Edit Goal Form */}
             {isAdding && (
                 <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-lg space-y-6 animate-in zoom-in-95 duration-300">
                     <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-white/10">
-                        <div className="w-12 h-12 bg-p1/10 rounded-2xl flex items-center justify-center text-2xl">{icon}</div>
-                        <div>
-                            <h3 className="font-black text-slate-800 dark:text-slate-100 text-lg">Nova Meta Financeira</h3>
-                            <p className="text-xs text-slate-400">Defina os detalhes do seu objetivo</p>
+                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${editingId ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-p1/10'}`}>{icon}</div>
+                        <div className="flex-1">
+                            <h3 className="font-black text-slate-800 dark:text-slate-100 text-lg">
+                                {editingId ? '✏️ Editando Meta' : 'Nova Meta Financeira'}
+                            </h3>
+                            <p className="text-xs text-slate-400">
+                                {editingId ? 'Atualize os detalhes da sua meta' : 'Defina os detalhes do seu objetivo'}
+                            </p>
                         </div>
+                        {editingId && (
+                            <span className="px-3 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase rounded-full">
+                                Modo Edição
+                            </span>
+                        )}
                     </div>
 
                     {/* Goal Type Selector */}
@@ -289,8 +332,8 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                     type="button"
                                     onClick={() => setGoalType(type)}
                                     className={`p-3 rounded-xl font-bold text-sm transition-all ${goalType === type
-                                            ? 'bg-p1 text-white shadow-lg'
-                                            : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+                                        ? 'bg-p1 text-white shadow-lg'
+                                        : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
                                         }`}
                                 >
                                     {getGoalTypeLabel(type)}
@@ -456,8 +499,8 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                         </div>
                     </div>
 
-                    <button type="submit" className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4 rounded-2xl shadow-xl hover:brightness-110 transition-all active:scale-[0.98]">
-                        Criar Meta Financeira
+                    <button type="submit" className={`w-full font-black py-4 rounded-2xl shadow-xl hover:brightness-110 transition-all active:scale-[0.98] ${editingId ? 'bg-amber-500 text-white' : 'bg-slate-900 dark:bg-p1 text-white'}`}>
+                        {editingId ? '💾 Salvar Alterações' : 'Criar Meta Financeira'}
                     </button>
                 </form>
             )}
@@ -485,14 +528,43 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                         </span>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => onDeleteGoal(goal.id)}
-                                    className="text-slate-300 hover:text-red-500 transition-colors p-1"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-                                </button>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Marcar esta meta como concluída?')) {
+                                                onUpdateGoal(goal.id, { is_completed: true });
+                                            }
+                                        }}
+                                        className="text-slate-300 hover:text-emerald-500 transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        title="Concluir meta"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => loadGoalForEdit(goal)}
+                                        className="text-slate-300 hover:text-amber-500 transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        title="Editar meta"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (confirm('Tem certeza que deseja excluir esta meta?')) {
+                                                onDeleteGoal(goal.id);
+                                            }
+                                        }}
+                                        className="text-slate-300 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        title="Excluir meta"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Progress */}
@@ -511,9 +583,27 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
 
                             {/* Stats */}
                             <div className="px-5 pb-4 grid grid-cols-2 gap-3">
-                                <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl">
+                                <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl relative group/stat">
                                     <p className="text-[9px] font-black text-slate-400 uppercase">Valor Guardado</p>
-                                    <p className="font-black text-emerald-500">{formatCurrency(totalSaved)}</p>
+                                    <div className="flex items-center justify-between">
+                                        <p className="font-black text-emerald-500">{formatCurrency(totalSaved)}</p>
+                                        <button
+                                            onClick={() => {
+                                                const extra = prompt('Quanto deseja adicionar à poupança desta meta?');
+                                                if (extra) {
+                                                    const val = parseBRL(extra);
+                                                    if (val > 0) {
+                                                        // Update current_value (which we use for generic savings)
+                                                        onUpdateGoal(goal.id, { current_value: (goal.current_value || 0) + val });
+                                                    }
+                                                }
+                                            }}
+                                            className="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover/stat:opacity-100 transition-opacity"
+                                            title="Adicionar valor rápido"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl">
                                     <p className="text-[9px] font-black text-slate-400 uppercase">Aporte Mensal</p>

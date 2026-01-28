@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { CoupleInfo, Expense, ExpenseType, MonthlySummary } from '../types';
+import { CoupleInfo, Expense, ExpenseType, MonthlySummary, SavingsGoal } from '../types';
 import { formatCurrency, parseSafeDate, isExpenseInMonth, getMonthlyExpenseValue, getInstallmentInfo } from '../utils';
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
     expenses: Expense[];
     monthKey: string;
     summary: MonthlySummary;
+    goals: SavingsGoal[];
     onAddExpense: (type: ExpenseType, exp: Expense | null) => void;
     onUpdateExpense: (id: string, exp: Expense) => void;
     onDeleteExpense: (id: string) => void;
@@ -20,6 +21,7 @@ const PersonalWallet: React.FC<Props> = ({
     expenses,
     monthKey,
     summary,
+    goals,
     onAddExpense,
     onUpdateExpense,
     onDeleteExpense
@@ -40,7 +42,18 @@ const PersonalWallet: React.FC<Props> = ({
         return filteredExpenses.reduce((acc, curr) => acc + getMonthlyExpenseValue(curr, monthKey), 0);
     }, [filteredExpenses, monthKey]);
 
-    const left = income - responsibility - totalPersonal;
+    const personalGoals = useMemo(() => {
+        return goals.filter(g => !g.is_completed && (
+            (person === 'person1' && (g.monthly_contribution_p1 || 0) > 0) ||
+            (person === 'person2' && (g.monthly_contribution_p2 || 0) > 0)
+        ));
+    }, [goals, person]);
+
+    const totalGoalInvestment = useMemo(() => {
+        return personalGoals.reduce((sum, g) => sum + (person === 'person1' ? (g.monthly_contribution_p1 || 0) : (g.monthly_contribution_p2 || 0)), 0);
+    }, [personalGoals, person]);
+
+    const left = income - responsibility - totalPersonal - totalGoalInvestment;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -78,6 +91,10 @@ const PersonalWallet: React.FC<Props> = ({
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gastos Pessoais</p>
                         <p className="text-lg font-black text-red-400">-{formatCurrency(totalPersonal)}</p>
                     </div>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Aporte Metas</p>
+                        <p className="text-lg font-black text-purple-400">-{formatCurrency(totalGoalInvestment)}</p>
+                    </div>
                     <div className={`p-4 rounded-2xl ${left >= 0 ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-red-50 dark:bg-red-500/10'} border ${left >= 0 ? 'border-emerald-100 dark:border-emerald-500/20' : 'border-red-100 dark:border-red-500/20'} flex flex-col justify-center`}>
                         <p className={`text-[10px] font-black uppercase tracking-widest ${left >= 0 ? 'text-emerald-500' : 'text-red-500'} mb-1`}>
                             {left >= 0 ? 'Sobra Livre' : 'Diferença'}
@@ -88,6 +105,47 @@ const PersonalWallet: React.FC<Props> = ({
                     </div>
                 </div>
             </div>
+
+            {/* Planejamento de Sonhos (Metas) */}
+            {personalGoals.length > 0 && (
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 p-6 rounded-3xl text-white shadow-xl">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg">🎯</div>
+                        <div>
+                            <h3 className="font-black tracking-tight">Investimento em Sonhos</h3>
+                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Aportes para suas metas este mês</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {personalGoals.map(goal => {
+                            const myContribution = person === 'person1' ? (goal.monthly_contribution_p1 || 0) : (goal.monthly_contribution_p2 || 0);
+                            const totalSaved = (goal.current_savings_p1 || 0) + (goal.current_savings_p2 || 0) + (goal.current_value || 0);
+                            const progress = (totalSaved / goal.target_value) * 100;
+
+                            return (
+                                <div key={goal.id} className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xl">{goal.icon || '💰'}</span>
+                                            <span className="font-bold text-sm truncate max-w-[120px]">{goal.title}</span>
+                                        </div>
+                                        <span className="text-xs font-black text-emerald-400">{formatCurrency(myContribution)}</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-[8px] font-black uppercase text-white/40">
+                                            <span>Progresso</span>
+                                            <span>{progress.toFixed(0)}%</span>
+                                        </div>
+                                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(progress, 100)}%` }}></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* Mobile View */}
             <div className="block lg:hidden space-y-4">

@@ -1,16 +1,18 @@
 
 import React, { useMemo } from 'react';
-import { CoupleInfo, Expense, MonthlySummary } from '../types';
+import { CoupleInfo, Expense, MonthlySummary, SavingsGoal } from '../types';
 import { formatCurrency } from '../utils';
 import ClosingBreakdown from './dashboard/ClosingBreakdown';
 import AdBanner from './AdBanner';
 import CategoryChart from './dashboard/CategoryChart';
+import MonthlyInsights from './dashboard/MonthlyInsights';
 import { exportMonthlyPDF } from '../pdfGenerator';
 
 interface Props {
   coupleInfo: CoupleInfo;
   expenses: Expense[];
   monthKey: string;
+  goals: SavingsGoal[];
   onNavigateToIncomes: () => void;
   summary: MonthlySummary;
   isPremium?: boolean;
@@ -20,6 +22,7 @@ const Dashboard: React.FC<Props> = ({
   coupleInfo,
   expenses,
   monthKey,
+  goals,
   onNavigateToIncomes,
   summary,
   isPremium
@@ -30,8 +33,21 @@ const Dashboard: React.FC<Props> = ({
   const p1Ratio = totalIncome > 0 ? (summary.person1TotalIncome / totalIncome) * 100 : 50;
   const p2Ratio = totalIncome > 0 ? (summary.person2TotalIncome / totalIncome) * 100 : 50;
 
-  const p1Left = summary.person1TotalIncome - summary.person1Responsibility - summary.person1PersonalTotal;
-  const p2Left = summary.person2TotalIncome - summary.person2Responsibility - summary.person2PersonalTotal;
+  // Goals calculations
+  const totalGoalSavings = useMemo(() => {
+    return goals.reduce((sum, g) => sum + (g.current_savings_p1 || 0) + (g.current_savings_p2 || 0) + (g.current_value || 0), 0);
+  }, [goals]);
+
+  const p1GoalContribution = useMemo(() => {
+    return goals.filter(g => !g.is_completed).reduce((sum, g) => sum + (g.monthly_contribution_p1 || 0), 0);
+  }, [goals]);
+
+  const p2GoalContribution = useMemo(() => {
+    return goals.filter(g => !g.is_completed).reduce((sum, g) => sum + (g.monthly_contribution_p2 || 0), 0);
+  }, [goals]);
+
+  const p1Left = summary.person1TotalIncome - summary.person1Responsibility - summary.person1PersonalTotal - p1GoalContribution;
+  const p2Left = summary.person2TotalIncome - summary.person2Responsibility - summary.person2PersonalTotal - p2GoalContribution;
 
   const p1Name = coupleInfo.person1Name.split(' ')[0];
   const p2Name = coupleInfo.person2Name.split(' ')[0];
@@ -67,8 +83,8 @@ const Dashboard: React.FC<Props> = ({
               {summary.whoTransfers !== 'none' ? (
                 <>
                   <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-center border ${summary.whoTransfers === 'person1'
-                      ? 'bg-p1/20 border-p1/30 text-p1'
-                      : 'bg-p2/20 border-p2/30 text-p2'
+                    ? 'bg-p1/20 border-p1/30 text-p1'
+                    : 'bg-p2/20 border-p2/30 text-p2'
                     }`}>
                     {summary.whoTransfers === 'person1' ? p1Name : p2Name} transfere
                   </div>
@@ -113,8 +129,9 @@ const Dashboard: React.FC<Props> = ({
           </div>
 
           {showBreakdown && (
-            <div className="mt-6 pt-6 border-t border-white/10">
-              <ClosingBreakdown coupleInfo={coupleInfo} summary={summary} />
+            <div className="mt-6 pt-6 border-t border-white/10 space-y-8">
+              <MonthlyInsights summary={summary} coupleInfo={coupleInfo} goals={goals} />
+              <ClosingBreakdown coupleInfo={coupleInfo} summary={summary} goals={goals} />
             </div>
           )}
         </div>
@@ -153,13 +170,23 @@ const Dashboard: React.FC<Props> = ({
         </div>
 
         {/* Card Sobra */}
-        <div className="bg-gradient-to-br from-p1 to-purple-600 p-5 rounded-2xl text-white shadow-lg">
+        <div className="bg-white dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-lg">✨</div>
-            <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Sobra Total</p>
+            <div className="w-10 h-10 bg-p1/10 rounded-xl flex items-center justify-center text-lg">✨</div>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sobra Total</p>
           </div>
-          <p className="text-2xl font-black tracking-tight">{formatCurrency(p1Left + p2Left)}</p>
-          <p className="mt-2 text-[10px] text-white/60">Livre para investir</p>
+          <p className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">{formatCurrency(p1Left + p2Left)}</p>
+          <p className="mt-2 text-[10px] text-slate-400">Após gastos e aportes</p>
+        </div>
+
+        {/* Card Reserva de Sonhos */}
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-5 rounded-2xl text-white shadow-lg">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-lg">🎯</div>
+            <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Reserva Metas</p>
+          </div>
+          <p className="text-2xl font-black tracking-tight">{formatCurrency(totalGoalSavings)}</p>
+          <p className="mt-2 text-[10px] text-white/60">Total já economizado</p>
         </div>
       </div>
 

@@ -1,20 +1,26 @@
 
 import React from 'react';
-import { MonthlySummary, CoupleInfo } from '../../types';
+import { MonthlySummary, CoupleInfo, SavingsGoal } from '../../types';
 import { formatCurrency } from '../../utils';
 
 interface Props {
     summary: MonthlySummary;
     coupleInfo: CoupleInfo;
+    goals: SavingsGoal[];
 }
 
-const MonthlyInsights: React.FC<Props> = ({ summary, coupleInfo }) => {
+const MonthlyInsights: React.FC<Props> = ({ summary, coupleInfo, goals }) => {
     const totalIncome = summary.person1TotalIncome + summary.person2TotalIncome;
     const totalSharedExpenses = summary.totalFixed + summary.totalCommon + summary.totalEqual + summary.totalReimbursement;
     const totalPersonalExpenses = summary.person1PersonalTotal + summary.person2PersonalTotal;
-    const grandTotal = totalSharedExpenses + totalPersonalExpenses;
 
-    const commitmentRate = totalIncome > 0 ? (totalSharedExpenses / totalIncome) * 100 : 0;
+    const totalGoalContribution = goals.filter(g => !g.is_completed).reduce((sum, g) =>
+        sum + (g.monthly_contribution_p1 || 0) + (g.monthly_contribution_p2 || 0), 0
+    );
+
+    const grandTotal = totalSharedExpenses + totalPersonalExpenses + totalGoalContribution;
+
+    const commitmentRate = totalIncome > 0 ? ((totalSharedExpenses + totalGoalContribution) / totalIncome) * 100 : 0;
     const savingsRate = totalIncome > 0 ? ((totalIncome - grandTotal) / totalIncome) * 100 : 0;
     const residual = Math.max(0, totalIncome - grandTotal);
 
@@ -53,13 +59,17 @@ const MonthlyInsights: React.FC<Props> = ({ summary, coupleInfo }) => {
                                     'Crítico. Quase toda a renda está indo para as contas da casa.'}
                         </p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50 dark:border-white/5">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-slate-50 dark:border-white/5">
                         <div className="space-y-1">
-                            <span className="text-[8px] font-black text-slate-400 uppercase">Custo Compartilhado</span>
+                            <span className="text-[8px] font-black text-slate-400 uppercase">Custo Casa</span>
                             <p className="text-sm font-black">{formatCurrency(totalSharedExpenses)}</p>
                         </div>
                         <div className="space-y-1">
-                            <span className="text-[8px] font-black text-slate-400 uppercase">Consumo Pessoal</span>
+                            <span className="text-[8px] font-black text-slate-400 uppercase">Aporte Sonhos</span>
+                            <p className="text-sm font-black text-p1">{formatCurrency(totalGoalContribution)}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <span className="text-[8px] font-black text-slate-400 uppercase">Pessoal</span>
                             <p className="text-sm font-black">{formatCurrency(totalPersonalExpenses)}</p>
                         </div>
                     </div>
