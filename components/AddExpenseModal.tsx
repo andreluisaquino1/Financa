@@ -295,27 +295,29 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                     {/* Configurações Adicionais no Final */}
                     <div className="pt-4 space-y-4 border-t border-slate-100 dark:border-white/5">
                         {(isJoint || isReimbursement) && (
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Periodicidade</label>
-                                    <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
-                                        <button
-                                            type="button"
-                                            onClick={() => setCurrentType(isReimbursement ? ExpenseType.REIMBURSEMENT : ExpenseType.COMMON)}
-                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${(currentType !== ExpenseType.FIXED && currentType !== ExpenseType.REIMBURSEMENT_FIXED) ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            Variável
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setCurrentType(isReimbursement ? ExpenseType.REIMBURSEMENT_FIXED : ExpenseType.FIXED)}
-                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
-                                        >
-                                            Fixo (Mensal)
-                                        </button>
-                                    </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Periodicidade</label>
+                                <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentType(isReimbursement ? ExpenseType.REIMBURSEMENT : ExpenseType.COMMON)}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${(currentType !== ExpenseType.FIXED && currentType !== ExpenseType.REIMBURSEMENT_FIXED) ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Variável
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCurrentType(isReimbursement ? ExpenseType.REIMBURSEMENT_FIXED : ExpenseType.FIXED)}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                                    >
+                                        Fixo (Mensal)
+                                    </button>
                                 </div>
+                            </div>
+                        )}
 
+                        {isJoint && (
+                            <div className="space-y-4 pt-2">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Método de Divisão</label>
                                     <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl border border-slate-100 dark:border-white/5">
