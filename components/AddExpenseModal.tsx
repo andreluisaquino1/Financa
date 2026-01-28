@@ -164,6 +164,36 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar pb-10">
                     <div className="p-8 space-y-8">
+                        {/* 0. Tipo de Gasto (Fixo vs Variável) */}
+                        {(!isPersonalType) && (
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 block text-center">Frequência do Gasto</label>
+                                <div className="flex p-1.5 bg-slate-100 dark:bg-slate-950/40 border border-slate-200 dark:border-white/5 rounded-2xl gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (isReimbursement) setCurrentType(ExpenseType.REIMBURSEMENT);
+                                            else setCurrentType(ExpenseType.COMMON);
+                                        }}
+                                        className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${!isFixed ? 'bg-white dark:bg-p1 text-p1 dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800'}`}
+                                    >
+                                        <span className="text-sm">📅</span>
+                                        Pontual / Variável
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (isReimbursement) setCurrentType(ExpenseType.REIMBURSEMENT_FIXED);
+                                            else setCurrentType(ExpenseType.FIXED);
+                                        }}
+                                        className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${isFixed ? 'bg-white dark:bg-p1 text-p1 dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800'}`}
+                                    >
+                                        <span className="text-sm">🏠</span>
+                                        Mensal / Fixo
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* 1. Tipo e Data/Lembrete */}
                         <div className="grid grid-cols-2 gap-4">
@@ -253,39 +283,62 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                             </div>
                         </div>
 
-                        {/* 4. Categoria e Parcelas */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Categoria</label>
-                                <select
-                                    value={category}
-                                    onChange={e => setCategory(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all appearance-none cursor-pointer"
-                                >
-                                    {(coupleInfo.categories || ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']).map(cat => {
-                                        const catName = typeof cat === 'string' ? cat : cat.name;
-                                        return (
-                                            <option key={catName} value={catName} className="bg-white dark:bg-slate-900">
+                        {/* 4. Categoria */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Categoria</label>
+                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                {(coupleInfo.categories || ['Moradia', 'Alimentação', 'Transporte', 'Lazer', 'Saúde', 'Outros']).map(cat => {
+                                    const catName = typeof cat === 'string' ? cat : cat.name;
+                                    const catIcon = typeof cat === 'object' && cat.icon ? cat.icon : (() => {
+                                        if (catName === 'Moradia') return '🏠';
+                                        if (catName === 'Alimentação') return '🥗';
+                                        if (catName === 'Transporte') return '🚗';
+                                        if (catName === 'Lazer') return '🎮';
+                                        if (catName === 'Saúde') return '🏥';
+                                        if (catName === 'Educação') return '🎓';
+                                        if (catName === 'Compras') return '🛍️';
+                                        if (catName === 'Viagem') return '✈️';
+                                        return '💰';
+                                    })();
+                                    const isSelected = category === catName;
+
+                                    return (
+                                        <button
+                                            key={catName}
+                                            type="button"
+                                            onClick={() => setCategory(catName)}
+                                            className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-300 gap-1.5 ${isSelected
+                                                ? 'bg-p1/10 border-p1 shadow-sm ring-1 ring-p1/20'
+                                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 hover:border-p1/30 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                }`}
+                                        >
+                                            <span className={`text-xl transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{catIcon}</span>
+                                            <span className={`text-[9px] font-black uppercase tracking-tighter truncate w-full text-center ${isSelected ? 'text-p1' : 'text-slate-500 dark:text-slate-400'}`}>
                                                 {catName}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
-                            {!(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Parcelas</label>
+                        </div>
+
+                        {/* 5. Parcelas */}
+                        {!(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Número de Parcelas</label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">#</span>
                                     <input
                                         type="number"
                                         min="1"
                                         value={installments || ''}
                                         onChange={e => setInstallments(e.target.value)}
-                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
                                         placeholder="1x"
                                     />
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
 
                         {/* 5. Quem pagou / Detalhes de Divisão (apenas se for conjunto) */}
                         {isJoint && (
@@ -441,8 +494,8 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         )}
                     </button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
