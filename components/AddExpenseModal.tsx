@@ -54,6 +54,15 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         }
     }, [installments]); // Only refresh on installments change initially or when value changes manually
 
+    // Close on ESC
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     const handleValueChange = (newVal: string) => {
         const total = parseBRL(newVal);
         setValue(formatAsBRL(Math.round(total * 100).toString()));
