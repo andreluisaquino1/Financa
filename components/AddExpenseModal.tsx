@@ -363,66 +363,95 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                     </div>
                                 </div>
 
-                                <div className="space-y-4 pt-2 border-t border-slate-200/50 dark:border-white/5">
-                                    <div className="flex justify-between items-center">
-                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Método de Divisão</label>
-                                        <div className="flex bg-slate-200/50 dark:bg-slate-900 p-1 rounded-xl gap-1">
+                                <div className="space-y-6 pt-4 border-t border-slate-200/50 dark:border-white/5">
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">Como dividir este gasto?</label>
+                                        <div className="flex bg-slate-200/50 dark:bg-slate-900 p-1.5 rounded-2xl gap-1.5">
                                             <button
                                                 type="button"
                                                 onClick={() => { setSplitMethod('proportional'); setShowAdvancedSplit(false); }}
-                                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${splitMethod === 'proportional' ? 'bg-white dark:bg-slate-800 text-p1 shadow-sm' : 'text-slate-400'}`}
+                                                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${splitMethod === 'proportional' ? 'bg-white dark:bg-slate-800 text-p1 shadow-md' : 'text-slate-400'}`}
                                             >
+                                                <span className="text-sm">⚖️</span>
                                                 Proporcional
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => setSplitMethod('custom')}
-                                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${splitMethod === 'custom' ? 'bg-white dark:bg-slate-800 text-p1 shadow-sm' : 'text-slate-400'}`}
+                                                className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${splitMethod === 'custom' ? 'bg-white dark:bg-slate-800 text-p1 shadow-md' : 'text-slate-400'}`}
                                             >
+                                                <span className="text-sm">🎯</span>
                                                 Manual / %
                                             </button>
                                         </div>
                                     </div>
 
                                     {splitMethod === 'custom' && (
-                                        <div className="animate-in slide-in-from-top-2 duration-300 space-y-4">
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between items-baseline mb-1">
-                                                    <span className="text-[10px] font-black text-p1 uppercase">{coupleInfo.person1Name.split(' ')[0]}</span>
-                                                    <span className="text-xs font-black text-slate-700 dark:text-slate-300">{splitPercentage1}%</span>
+                                        <div className="animate-in slide-in-from-top-4 duration-500 space-y-8 py-2">
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-end">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] font-black text-p1 uppercase opacity-60">Responsabilidade</span>
+                                                        <span className="text-base font-black text-p1">{coupleInfo.person1Name.split(' ')[0]}</span>
+                                                    </div>
+                                                    <div className="text-right flex flex-col items-end">
+                                                        <span className="text-2xl font-black text-slate-800 dark:text-slate-100 tabular-nums">{splitPercentage1}%</span>
+                                                        <span className="text-2xl font-black text-slate-300 dark:text-slate-700 tabular-nums">/ {100 - splitPercentage1}%</span>
+                                                    </div>
                                                 </div>
-                                                <input
-                                                    type="range"
-                                                    min="0"
-                                                    max="100"
-                                                    value={splitPercentage1}
-                                                    onChange={e => {
-                                                        const p1 = parseInt(e.target.value);
-                                                        setSplitPercentage1(p1);
-                                                        // Update specific values based on percentage
-                                                        const total = parseBRL(value);
-                                                        setSpecValue1(formatAsBRL(Math.round((total * p1 / 100) * 100).toString()));
-                                                        setSpecValue2(formatAsBRL(Math.round((total * (100 - p1) / 100) * 100).toString()));
-                                                    }}
-                                                    className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-p1"
-                                                />
+
+                                                <div className="relative h-12 flex items-center">
+                                                    <div className="absolute inset-x-0 h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-p1 transition-all duration-300"
+                                                            style={{ width: `${splitPercentage1}%` }}
+                                                        />
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max="100"
+                                                        step="5"
+                                                        value={splitPercentage1}
+                                                        onChange={e => {
+                                                            const p1 = parseInt(e.target.value);
+                                                            setSplitPercentage1(p1);
+                                                            const total = parseBRL(value);
+                                                            setSpecValue1(formatAsBRL(Math.round((total * p1 / 100) * 100).toString()));
+                                                            setSpecValue2(formatAsBRL(Math.round((total * (100 - p1) / 100) * 100).toString()));
+                                                        }}
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                    />
+                                                    <div
+                                                        className="absolute w-8 h-8 bg-white border-4 border-p1 rounded-full shadow-lg pointer-events-none transition-all duration-300"
+                                                        style={{ left: `calc(${splitPercentage1}% - 16px)` }}
+                                                    />
+                                                </div>
+                                                <div className="flex justify-between text-[8px] font-black text-slate-400 uppercase tracking-tighter">
+                                                    <span>100% {coupleInfo.person2Name.split(' ')[0]}</span>
+                                                    <span>50/50</span>
+                                                    <span>100% {coupleInfo.person1Name.split(' ')[0]}</span>
+                                                </div>
                                             </div>
 
-                                            <div className="flex justify-center">
+                                            <div className="pt-2 border-t border-slate-200/50 dark:border-white/5">
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowAdvancedSplit(!showAdvancedSplit)}
-                                                    className="text-[9px] font-black uppercase text-slate-400 hover:text-p1 transition-colors flex items-center gap-1"
+                                                    className="w-full py-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase text-slate-500 hover:text-p1 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-sm"
                                                 >
-                                                    {showAdvancedSplit ? 'Ocultar Valores Exatos' : 'Informar Valores em R$'}
-                                                    <svg className={`w-3 h-3 transition-transform ${showAdvancedSplit ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>
+                                                    <span className="text-base">{showAdvancedSplit ? '➖' : '➕'}</span>
+                                                    {showAdvancedSplit ? 'Ocultar Valores Exatos' : 'Informar Valores em Reais (R$)'}
                                                 </button>
                                             </div>
 
                                             {showAdvancedSplit && (
-                                                <div className="grid grid-cols-2 gap-3 animate-in fade-in duration-300">
-                                                    <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-wider">{coupleInfo.person1Name.split(' ')[0]} paga (R$)</label>
+                                                <div className="grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-p1/20 shadow-sm space-y-2">
+                                                        <label className="text-[9px] font-black text-p1 uppercase tracking-wider flex items-center justify-between">
+                                                            <span>Quanto {coupleInfo.person1Name.split(' ')[0]} paga?</span>
+                                                            <span className="opacity-40">R$</span>
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             inputMode="decimal"
@@ -435,12 +464,15 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                                                 setSpecValue2(formatAsBRL(Math.round(v2 * 100).toString()));
                                                                 setSplitPercentage1(total > 0 ? Math.round((v1 / total) * 100) : 50);
                                                             }}
-                                                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                                                            className="w-full bg-transparent text-xl font-black text-slate-800 dark:text-slate-100 outline-none"
                                                             placeholder="0,00"
                                                         />
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-wider">{coupleInfo.person2Name.split(' ')[0]} paga (R$)</label>
+                                                    <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-p2/20 shadow-sm space-y-2">
+                                                        <label className="text-[9px] font-black text-p2 uppercase tracking-wider flex items-center justify-between">
+                                                            <span>Quanto {coupleInfo.person2Name.split(' ')[0]} paga?</span>
+                                                            <span className="opacity-40">R$</span>
+                                                        </label>
                                                         <input
                                                             type="text"
                                                             inputMode="decimal"
@@ -453,7 +485,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                                                 setSpecValue1(formatAsBRL(Math.round(v1 * 100).toString()));
                                                                 setSplitPercentage1(total > 0 ? Math.round((v1 / total) * 100) : 50);
                                                             }}
-                                                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-bold outline-none"
+                                                            className="w-full bg-transparent text-xl font-black text-slate-800 dark:text-slate-100 outline-none"
                                                             placeholder="0,00"
                                                         />
                                                     </div>
