@@ -349,7 +349,7 @@ export const useAppData = () => {
         }
     }, [user]);
 
-    const addGoal = useCallback(async (title: string, target: number, monthly: number, rate: number, deadline?: string, icon?: string, startDate?: string) => {
+    const addGoal = useCallback(async (goalData: Partial<SavingsGoal>) => {
         if (!user) return;
         try {
             const { data, error } = await supabase
@@ -357,15 +357,22 @@ export const useAppData = () => {
                 .insert({
                     user_id: user.id,
                     household_id: householdId || user.id,
-                    title,
-                    target_value: target,
-                    monthly_contribution: monthly,
-                    interest_rate: rate,
-                    start_date: startDate || null,
-                    deadline: deadline || null,
-                    icon: icon || '💰',
-                    current_value: 0,
-                    is_completed: false
+                    title: goalData.title,
+                    goal_type: goalData.goal_type || 'couple',
+                    target_value: goalData.target_value || 0,
+                    current_value: goalData.current_value || 0,
+                    monthly_contribution_p1: goalData.monthly_contribution_p1 || 0,
+                    monthly_contribution_p2: goalData.monthly_contribution_p2 || 0,
+                    current_savings_p1: goalData.current_savings_p1 || 0,
+                    current_savings_p2: goalData.current_savings_p2 || 0,
+                    interest_rate: goalData.interest_rate || 0,
+                    expected_monthly_expense: goalData.expected_monthly_expense || 0,
+                    start_date: goalData.start_date || null,
+                    deadline: goalData.deadline || null,
+                    icon: goalData.icon || '💰',
+                    is_completed: false,
+                    // Legacy field for backwards compatibility
+                    monthly_contribution: (goalData.monthly_contribution_p1 || 0) + (goalData.monthly_contribution_p2 || 0)
                 })
                 .select()
                 .single();

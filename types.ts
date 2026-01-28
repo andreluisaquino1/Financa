@@ -131,11 +131,32 @@ export interface SavingsGoal {
   title: string;
   target_value: number;
   current_value: number;
-  monthly_contribution?: number;
-  interest_rate?: number;
+
+  // Goal ownership
+  goal_type: 'individual_p1' | 'individual_p2' | 'couple'; // Who owns this goal
+
+  // Individual contributions
+  monthly_contribution_p1?: number; // Person 1's monthly contribution
+  monthly_contribution_p2?: number; // Person 2's monthly contribution
+
+  // Current savings already allocated
+  current_savings_p1?: number; // How much P1 already has saved for this
+  current_savings_p2?: number; // How much P2 already has saved for this
+
+  // Expected returns and expenses
+  interest_rate?: number; // Expected annual return %
+  expected_monthly_expense?: number; // If this goal has ongoing costs
+
+  // Timeline
   start_date?: string; // When to start contributing
   deadline?: string;
+
+  // Display
   icon?: string;
   is_completed: boolean;
   created_at: string;
+
+  // Legacy field (will be migrated)
+  monthly_contribution?: number;
 }
+
