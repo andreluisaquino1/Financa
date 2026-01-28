@@ -347,6 +347,8 @@ const AppContent: React.FC = () => {
                 onUpdateGoal={updateGoal}
                 onDeleteGoal={deleteGoal}
                 isPremium={isPremium}
+                coupleInfo={coupleInfo}
+                summary={summary}
               />
             )}
             {currentTab === 'trip' && (

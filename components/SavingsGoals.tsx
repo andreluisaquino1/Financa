@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SavingsGoal } from '../types';
+import { SavingsGoal, CoupleInfo, MonthlySummary } from '../types';
 import { formatCurrency, formatAsBRL, parseBRL } from '../utils';
 
 interface Props {
@@ -9,10 +9,13 @@ interface Props {
     onUpdateGoal: (id: string, updates: Partial<SavingsGoal>) => void;
     onDeleteGoal: (id: string) => void;
     isPremium?: boolean;
+    coupleInfo: CoupleInfo;
+    summary: MonthlySummary;
 }
 
-const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDeleteGoal, isPremium }) => {
+const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDeleteGoal, isPremium, coupleInfo, summary }) => {
     const [isAdding, setIsAdding] = useState(false);
+    // ... existing states ...
     const [title, setTitle] = useState('');
     const [target, setTarget] = useState('');
     const [monthly, setMonthly] = useState('500,00');
@@ -20,7 +23,18 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     const [deadline, setDeadline] = useState('');
     const [icon, setIcon] = useState('💰');
 
+    // Impact Calculations
+    const totalIncome = summary.person1TotalIncome + summary.person2TotalIncome;
+    const totalResponsibility = summary.person1Responsibility + summary.person2Responsibility;
+    const totalPersonal = summary.person1PersonalTotal + summary.person2PersonalTotal;
+    const totalSurplus = totalIncome - totalResponsibility - totalPersonal;
+
+    const totalMonthlyInvestment = goals.reduce((acc, goal) => acc + (goal.monthly_contribution || 0), 0);
+    const investmentRatio = totalSurplus > 0 ? (totalMonthlyInvestment / totalSurplus) * 100 : 0;
+    const remainingFree = totalSurplus - totalMonthlyInvestment;
+
     const handleSubmit = (e: React.FormEvent) => {
+        // ... (existing submit logic)
         e.preventDefault();
         if (!title || !target) return;
 
@@ -57,6 +71,64 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                 >
                     {isAdding ? 'Cancelar' : '+ Nova Meta'}
                 </button>
+            </div>
+
+            {/* Impact Dashboard */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 bg-slate-900 dark:bg-slate-800 p-8 rounded-[2rem] text-white shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-p1/10 rounded-full -mr-20 -mt-20 blur-3xl group-hover:bg-p1/20 transition-colors duration-1000"></div>
+                    <div className="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Impacto no Orçamento Mensal</p>
+                            <h3 className="text-3xl font-black mb-6">Capacidade de Investimento</h3>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-slate-500">Aporte Mensal Total</p>
+                                    <p className="text-2xl font-black text-p1">{formatCurrency(totalMonthlyInvestment)}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black uppercase text-slate-500">Sobra Após Metas</p>
+                                    <p className={`text-2xl font-black ${remainingFree >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                        {formatCurrency(remainingFree)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter">
+                                    <span className="text-slate-400">Uso da Sobra Salarial</span>
+                                    <span className={investmentRatio > 90 ? 'text-red-400' : 'text-p1'}>{investmentRatio.toFixed(1)}%</span>
+                                </div>
+                                <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden">
+                                    <div
+                                        style={{ width: `${Math.min(investmentRatio, 100)}%` }}
+                                        className={`h-full transition-all duration-1000 ${investmentRatio > 90 ? 'bg-red-500' : 'bg-p1'}`}
+                                    ></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800/60 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div className="w-12 h-12 bg-p1/10 rounded-2xl flex items-center justify-center text-xl mb-4">💡</div>
+                        <h4 className="font-black text-slate-800 dark:text-slate-100 text-lg leading-tight mb-2">Análise de Viabilidade</h4>
+                        <p className="text-xs font-medium text-slate-500 leading-relaxed">
+                            {investmentRatio === 0 ? "Você ainda não definiu aportes mensais para suas metas." :
+                                investmentRatio < 30 ? "Seus aportes estão muito saudáveis! Você ainda tem bastante margem para lazer e imprevistos." :
+                                    investmentRatio < 70 ? "Bom equilíbrio. Suas metas estão consumindo uma parte considerável do que sobra, mantenha o foco." :
+                                        "Cuidado! Seus aportes estão consumindo quase toda sua sobra. Qualquer imprevisto pode comprometer o plano."}
+                        </p>
+                    </div>
+                    <div className="mt-6 pt-6 border-t border-slate-50 dark:border-white/5">
+                        <p className="text-[10px] font-black uppercase text-slate-400 mb-1">Sobra Atual do Casal</p>
+                        <p className="text-xl font-black text-slate-900 dark:text-slate-100">{formatCurrency(totalSurplus)}</p>
+                    </div>
+                </div>
             </div>
 
             {isAdding && (
