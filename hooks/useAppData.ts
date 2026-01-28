@@ -79,7 +79,13 @@ export const useAppData = () => {
                         salary2Description: info.salary2Description,
                         person1RecurringIncomes: info.person1RecurringIncomes || [],
                         person2RecurringIncomes: info.person2RecurringIncomes || [],
-                        trips: info.trips || []
+                        trips: info.trips || [],
+                        bankBalanceP1: info.bankBalanceP1 || 0,
+                        bankBalanceP2: info.bankBalanceP2 || 0,
+                        emergencyReserveP1: info.emergencyReserveP1 || 0,
+                        emergencyReserveP2: info.emergencyReserveP2 || 0,
+                        monthlySavingsP1: info.monthlySavingsP1 || 0,
+                        monthlySavingsP2: info.monthlySavingsP2 || 0
                     }));
                 }
 
@@ -375,6 +381,10 @@ export const useAppData = () => {
                     investment_location_p2: goalData.investment_location_p2 || '',
                     last_contribution_month: goalData.last_contribution_month || null,
                     is_completed: false,
+                    split_p1_percentage: goalData.split_p1_percentage || 50,
+                    split_p2_percentage: goalData.split_p2_percentage || 50,
+                    initial_withdrawal_p1: goalData.initial_withdrawal_p1 || 0,
+                    initial_withdrawal_p2: goalData.initial_withdrawal_p2 || 0,
                     // Legacy field for backwards compatibility
                     monthly_contribution: (goalData.monthly_contribution_p1 || 0) + (goalData.monthly_contribution_p2 || 0)
                 })

@@ -363,6 +363,7 @@ const AppContent: React.FC = () => {
                 isPremium={isPremium}
                 coupleInfo={coupleInfo}
                 summary={summary}
+                onUpdateCoupleInfo={saveCoupleInfo}
               />
             )}
             {currentTab === 'trip' && (

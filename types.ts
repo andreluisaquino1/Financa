@@ -63,6 +63,14 @@ export interface CoupleInfo {
   person1RecurringIncomes?: RecurringIncome[];
   person2RecurringIncomes?: RecurringIncome[];
   trips?: Trip[];
+
+  // Bank Balance & Reserves
+  bankBalanceP1?: number;
+  bankBalanceP2?: number;
+  emergencyReserveP1?: number;
+  emergencyReserveP2?: number;
+  monthlySavingsP1?: number;
+  monthlySavingsP2?: number;
 }
 
 export interface UserAccount {
@@ -158,6 +166,13 @@ export interface SavingsGoal {
   investment_location_p2?: string;
   last_contribution_month?: string; // Format: YYYY-MM
   is_completed: boolean;
+
+  // New split & allocation fields
+  split_p1_percentage?: number; // e.g. 50
+  split_p2_percentage?: number; // e.g. 50
+  initial_withdrawal_p1?: number; // How much was taken from bank balance at start
+  initial_withdrawal_p2?: number; // How much was taken from bank balance at start
+
   created_at: string;
 }
 
