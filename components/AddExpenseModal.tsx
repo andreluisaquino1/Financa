@@ -55,24 +55,32 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     }, [installments]); // Only refresh on installments change initially or when value changes manually
 
     const handleValueChange = (newVal: string) => {
-        setValue(formatAsBRL(newVal));
-        const total = parseBRL(formatAsBRL(newVal));
+        const total = parseBRL(newVal);
+        setValue(formatAsBRL(Math.round(total * 100).toString()));
+
         const instCount = parseInt(installments) || 1;
         if (instCount > 1) {
             const instVal = total / instCount;
-            // Round to avoid floating point precision issues when converting to string for formatAsBRL
-            setInstallmentValue(formatAsBRL(Math.round(instVal * 100).toString()));
+            // Garantir arredondamento exato para centavos antes de formatar
+            const cents = Math.round(instVal * 100);
+            setInstallmentValue(formatAsBRL(cents.toString()));
         }
     };
 
     const handleInstallmentValueChange = (newVal: string) => {
-        setInstallmentValue(formatAsBRL(newVal));
-        const instVal = parseBRL(formatAsBRL(newVal));
+        const instVal = parseBRL(newVal);
+        setInstallmentValue(formatAsBRL(Math.round(instVal * 100).toString()));
+
         const instCount = parseInt(installments) || 1;
         if (instCount >= 1) {
             const total = instVal * instCount;
-            // Round to avoid floating point precision issues when converting to string for formatAsBRL
-            setValue(formatAsBRL(Math.round(total * 100).toString()));
+            const cents = Math.round(total * 100);
+
+            // Só atualiza o total se o valor for diferente para evitar loops ou saltos de cursor
+            const currentTotalCents = Math.round(parseBRL(value) * 100);
+            if (cents !== currentTotalCents) {
+                setValue(formatAsBRL(cents.toString()));
+            }
         }
     };
 
