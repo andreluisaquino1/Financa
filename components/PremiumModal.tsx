@@ -68,9 +68,7 @@ const PremiumModal: React.FC<Props> = ({ isOpen, onClose, onPurchaseSuccess }) =
                         <div className="absolute bottom-10 right-10 w-32 h-32 bg-p2 rounded-full blur-[80px]"></div>
                     </div>
                     <div className="relative z-10">
-                        <span className="px-4 py-1.5 bg-p1 text-white text-[10px] font-black rounded-full shadow-xl animate-bounce">Faça um pix para André de 100 reais kkkk</span>
-                        <h2 className="text-4xl font-black text-white mt-4 tracking-tighter italic">FINANÇAS PRO</h2>
-                        <p className="text-slate-400 text-sm font-bold mt-2">Sua vida financeira a dois sem limites</p>
+                        <h2 className="text-3xl font-black text-white mt-4 tracking-tight leading-tight">Faça um pix para André de 100 reais kkkk</h2>
                     </div>
                 </div>
 
