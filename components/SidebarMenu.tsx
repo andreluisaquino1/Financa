@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Category, CoupleInfo } from '../types';
 import { parseBRL, formatAsBRL } from '../utils';
 import AdBanner from './AdBanner';
+import { useAuth } from '../AuthContext';
 
 interface Props {
   isOpen: boolean;
@@ -78,6 +79,36 @@ const SidebarMenu: React.FC<Props> = ({
   const [theme, setTheme] = useState<'light' | 'dark'>(coupleInfo.theme || 'light');
   const [p1Color, setP1Color] = useState(coupleInfo.person1Color || '#2563eb');
   const [p2Color, setP2Color] = useState(coupleInfo.person2Color || '#ec4899');
+
+  const { updatePassword } = useAuth();
+  const [showPassForm, setShowPassForm] = useState(false);
+  const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
+  const [passLoading, setPassLoading] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (newPass.length < 6) {
+      alert('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+    if (newPass !== confirmPass) {
+      alert('As senhas não coincidem.');
+      return;
+    }
+
+    setPassLoading(true);
+    const { error } = await updatePassword(newPass);
+    setPassLoading(false);
+
+    if (error) {
+      alert('Erro ao alterar senha: ' + error.message);
+    } else {
+      alert('Senha alterada com sucesso! ✨');
+      setShowPassForm(false);
+      setNewPass('');
+      setConfirmPass('');
+    }
+  };
 
   const handleSave = () => {
     onUpdateSettings(n1, n2, categories, theme, p1Color, p2Color);
@@ -300,7 +331,61 @@ const SidebarMenu: React.FC<Props> = ({
           </section>
 
 
-          {/* 4. Sincronização */}
+          {/* 4. Senha */}
+          <section className="space-y-4">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
+              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
+              Segurança
+            </h3>
+
+            {!showPassForm ? (
+              <button
+                onClick={() => setShowPassForm(true)}
+                className="w-full p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm group-hover:text-p1 transition-colors">🔐</div>
+                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tight">Alterar Senha</span>
+              </button>
+            ) : (
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-p1/30 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-slate-400 uppercase ml-1">Nova Senha</label>
+                  <input
+                    type="password"
+                    value={newPass}
+                    onChange={e => setNewPass(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-900 px-3 py-2 rounded-xl text-xs font-bold border border-slate-100 dark:border-white/10 outline-none focus:border-p1"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[8px] font-black text-slate-400 uppercase ml-1">Confirmar Senha</label>
+                  <input
+                    type="password"
+                    value={confirmPass}
+                    onChange={e => setConfirmPass(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-900 px-3 py-2 rounded-xl text-xs font-bold border border-slate-100 dark:border-white/10 outline-none focus:border-p1"
+                  />
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={handleChangePassword}
+                    disabled={passLoading}
+                    className="flex-1 bg-p1 text-white py-2 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-p1/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
+                  >
+                    {passLoading ? 'Salvando...' : 'Confirmar'}
+                  </button>
+                  <button
+                    onClick={() => { setShowPassForm(false); setNewPass(''); setConfirmPass(''); }}
+                    className="px-4 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 py-2 rounded-xl font-black text-[10px] uppercase transition-all hover:bg-slate-300 active:scale-95"
+                  >
+                    OK
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          {/* 5. Sincronização */}
           <section className="space-y-4">
             <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
