@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan } from '../types';
+import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment } from '../types';
 import { supabase } from '../supabaseClient';
 import { scheduleReminder, cancelReminder } from '../notificationService';
 import { getMonthYearKey, calculateSummary, formatCurrency } from '../utils';
@@ -20,6 +20,7 @@ export const useAppData = () => {
     const [incomes, setIncomes] = useState<Income[]>([]);
     const [goals, setGoals] = useState<SavingsGoal[]>([]);
     const [loans, setLoans] = useState<Loan[]>([]);
+    const [investments, setInvestments] = useState<Investment[]>([]);
     const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
     const [dataLoading, setDataLoading] = useState(true);
     const [householdId, setHouseholdId] = useState<string | null>(null);
@@ -156,6 +157,22 @@ export const useAppData = () => {
                         ...l,
                         total_value: Number(l.total_value),
                         remaining_value: Number(l.remaining_value)
+                    })));
+                }
+
+                // 3.6 Load Investments
+                const { data: investmentsData } = await supabase
+                    .from('investments')
+                    .select('*')
+                    .is('deleted_at', null)
+                    .eq('household_id', activeHouseholdId)
+                    .order('created_at', { ascending: false });
+
+                if (investmentsData) {
+                    setInvestments(investmentsData.map((inv: any) => ({
+                        ...inv,
+                        current_value: Number(inv.current_value),
+                        invested_value: Number(inv.invested_value)
                     })));
                 }
 
@@ -682,6 +699,79 @@ export const useAppData = () => {
         }
     }, [user]);
 
+    const addInvestment = useCallback(async (inv: Omit<Investment, 'id' | 'created_at'>) => {
+        if (!user || !householdId) return;
+        try {
+            const { data, error } = await supabase
+                .from('investments')
+                .insert({
+                    user_id: user.id,
+                    household_id: householdId,
+                    name: inv.name,
+                    type: inv.type,
+                    current_value: inv.current_value,
+                    invested_value: inv.invested_value,
+                    owner: inv.owner
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const newInv: Investment = {
+                    ...data,
+                    current_value: Number(data.current_value),
+                    invested_value: Number(data.invested_value)
+                };
+                setInvestments(prev => [newInv, ...prev]);
+            }
+        } catch (err: any) {
+            alert('Erro ao adicionar investimento: ' + err.message);
+        }
+    }, [user, householdId]);
+
+    const updateInvestment = useCallback(async (id: string, updates: Partial<Investment>) => {
+        if (!user) return;
+        try {
+            const { data, error } = await supabase
+                .from('investments')
+                .update({
+                    name: updates.name,
+                    type: updates.type,
+                    current_value: updates.current_value,
+                    invested_value: updates.invested_value,
+                    owner: updates.owner,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const updatedInv: Investment = {
+                    ...data,
+                    current_value: Number(data.current_value),
+                    invested_value: Number(data.invested_value)
+                };
+                setInvestments(prev => prev.map(i => i.id === id ? updatedInv : i));
+            }
+        } catch (err: any) {
+            alert('Erro ao atualizar investimento: ' + err.message);
+        }
+    }, [user]);
+
+    const deleteInvestment = useCallback(async (id: string) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase.from('investments').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            if (error) throw error;
+            setInvestments(prev => prev.filter(i => i.id !== id));
+        } catch (err: any) {
+            alert('Erro ao deletar investimento: ' + err.message);
+        }
+    }, [user]);
+
     const restoreData = useCallback(async () => {
         if (!user || !householdId) return;
         const proceed = confirm("Deseja restaurar os últimos dados enviados para a lixeira?");
@@ -697,6 +787,7 @@ export const useAppData = () => {
             await supabase.from('incomes').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('savings_goals').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('loans').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+            await supabase.from('investments').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
 
             await loadData();
             alert('Dados restaurados com sucesso! ♻️');
@@ -734,6 +825,10 @@ export const useAppData = () => {
         addLoan,
         updateLoan,
         deleteLoan,
+        investments,
+        addInvestment,
+        updateInvestment,
+        deleteInvestment,
         deleteAllData,
         deleteMonthData,
         restoreData,

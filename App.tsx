@@ -6,7 +6,7 @@ import Auth from './components/Auth';
 import HouseholdLink from './components/HouseholdLink';
 import AddExpenseModal from './components/AddExpenseModal';
 
-import Presentation from './components/Presentation';
+
 import { AuthProvider } from './AuthContext';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -14,7 +14,7 @@ const ExpenseTabs = lazy(() => import('./components/ExpenseTabs'));
 const PersonalWallet = lazy(() => import('./components/PersonalWallet'));
 const SavingsGoals = lazy(() => import('./components/SavingsGoals'));
 const TripManager = lazy(() => import('./components/TripManager'));
-const HelpSupport = lazy(() => import('./components/HelpSupport'));
+
 const IncomeManager = lazy(() => import('./components/IncomeManager').then(m => ({ default: m.IncomeManager })));
 const LoansTab = lazy(() => import('./components/LoansTab'));
 const InvestmentTab = lazy(() => import('./components/InvestmentTab'));
@@ -72,9 +72,8 @@ const AppContent: React.FC = () => {
   }, [coupleInfo.theme, coupleInfo.person1Color, coupleInfo.person2Color]);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'summary' | 'incomes' | 'expenses' | 'loans' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'trip' | 'investments' | 'help'>('summary');
+  const [currentTab, setCurrentTab] = useState<'summary' | 'incomes' | 'expenses' | 'loans' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'trip' | 'investments'>('summary');
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
-  const [isPresentationOpen, setIsPresentationOpen] = useState(false);
 
   const handleTabChange = (tab: typeof currentTab) => {
     setCurrentTab(tab);
@@ -261,7 +260,7 @@ const AppContent: React.FC = () => {
               <NavItem active={currentTab === 'goals'} onClick={() => handleTabChange('goals')} label="Metas" />
               <NavItem active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} label="Viagem" />
               <NavItem active={currentTab === 'investments'} onClick={() => handleTabChange('investments')} label="Investimentos" />
-              <NavItem active={currentTab === 'help'} onClick={() => handleTabChange('help')} label="Ajuda" />
+
             </div>
           </nav>
         </div>
@@ -315,7 +314,7 @@ const AppContent: React.FC = () => {
                 onDeleteLoan={deleteLoan}
               />
             )}
-            {currentTab === 'help' && <HelpSupport onShowPresentation={() => setIsPresentationOpen(true)} />}
+
             {currentTab === 'goals' && (
               <SavingsGoals
                 goals={goals}
@@ -387,10 +386,9 @@ const AppContent: React.FC = () => {
         onUpdateSettings={handleUpdateSettings}
         userEmail={user.email}
         onSignOut={handleSignOut}
-        onNavigateToHelp={() => setCurrentTab('help')}
         onNavigateToIncomes={() => setCurrentTab('incomes')}
         onShowHouseholdLink={() => setShowHouseholdLink(true)}
-        onShowPresentation={() => setIsPresentationOpen(true)}
+
         onRestoreData={restoreData}
         householdId={householdId}
         userId={user.id}
@@ -417,9 +415,7 @@ const AppContent: React.FC = () => {
         />
       )}
 
-      {isPresentationOpen && (
-        <Presentation onClose={() => setIsPresentationOpen(false)} />
-      )}
+
     </div>
   );
 };

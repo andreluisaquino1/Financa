@@ -19,10 +19,9 @@ interface Props {
   ) => void;
   userEmail?: string;
   onSignOut?: () => void;
-  onNavigateToHelp?: () => void;
   onNavigateToIncomes?: () => void;
   onShowHouseholdLink?: () => void;
-  onShowPresentation?: () => void;
+
   onDeleteMonthData?: () => void;
   onRestoreData?: () => void;
   householdId?: string | null;
@@ -49,10 +48,8 @@ const SidebarMenu: React.FC<Props> = ({
   onUpdateSettings,
   userEmail,
   onSignOut,
-  onNavigateToHelp,
   onNavigateToIncomes,
   onShowHouseholdLink,
-  onShowPresentation,
   onDeleteMonthData,
   onRestoreData,
   householdId,
@@ -415,8 +412,7 @@ const SidebarMenu: React.FC<Props> = ({
 
           {/* Footer Actions */}
           <div className="space-y-1 pt-6 border-t border-slate-100 dark:border-white/5 pb-10">
-            <SidebarBtn icon="✨" label="Ver Apresentação" onClick={() => { onShowPresentation?.(); onClose(); }} />
-            <SidebarBtn icon="?" label="Central de Ajuda" onClick={() => { onNavigateToHelp?.(); onClose(); }} />
+
             <SidebarBtn icon="↩" label="Sair da Conta" onClick={onSignOut} />
 
             <SidebarBtn
