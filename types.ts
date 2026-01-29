@@ -178,4 +178,17 @@ export interface SavingsGoal {
   created_at: string;
   deletedAt?: string;
 }
-
+export interface Loan {
+  id: string;
+  user_id: string;
+  household_id: string;
+  borrower_name: string;
+  description: string;
+  total_value: number;
+  remaining_value: number;
+  due_date?: string;
+  lender: 'person1' | 'person2';
+  status: 'pending' | 'partial' | 'paid';
+  created_at: string;
+  deleted_at?: string;
+}

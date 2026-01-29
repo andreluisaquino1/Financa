@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income } from '../types';
+import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan } from '../types';
 import { supabase } from '../supabaseClient';
 import { scheduleReminder, cancelReminder } from '../notificationService';
 import { getMonthYearKey, calculateSummary, formatCurrency } from '../utils';
@@ -19,6 +19,7 @@ export const useAppData = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [incomes, setIncomes] = useState<Income[]>([]);
     const [goals, setGoals] = useState<SavingsGoal[]>([]);
+    const [loans, setLoans] = useState<Loan[]>([]);
     const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
     const [dataLoading, setDataLoading] = useState(true);
     const [householdId, setHouseholdId] = useState<string | null>(null);
@@ -127,7 +128,37 @@ export const useAppData = () => {
                     .order('created_at', { ascending: false });
 
                 if (goalsData) {
-                    setGoals(goalsData);
+                    setGoals(goalsData.map((g: any) => ({
+                        ...g,
+                        target_value: Number(g.target_value),
+                        current_value: Number(g.current_value),
+                        monthly_contribution_p1: g.monthly_contribution_p1 ? Number(g.monthly_contribution_p1) : 0,
+                        monthly_contribution_p2: g.monthly_contribution_p2 ? Number(g.monthly_contribution_p2) : 0,
+                        current_savings_p1: g.current_savings_p1 ? Number(g.current_savings_p1) : 0,
+                        current_savings_p2: g.current_savings_p2 ? Number(g.current_savings_p2) : 0,
+                        interest_rate: g.interest_rate ? Number(g.interest_rate) : 0,
+                        expected_monthly_expense: g.expected_monthly_expense ? Number(g.expected_monthly_expense) : 0,
+                        split_p1_percentage: g.split_p1_percentage ? Number(g.split_p1_percentage) : 50,
+                        split_p2_percentage: g.split_p2_percentage ? Number(g.split_p2_percentage) : 50,
+                        initial_withdrawal_p1: g.initial_withdrawal_p1 ? Number(g.initial_withdrawal_p1) : 0,
+                        initial_withdrawal_p2: g.initial_withdrawal_p2 ? Number(g.initial_withdrawal_p2) : 0,
+                    })));
+                }
+
+                // 3.5 Load Loans
+                const { data: loansData } = await supabase
+                    .from('loans')
+                    .select('*')
+                    .is('deleted_at', null)
+                    .eq('household_id', activeHouseholdId)
+                    .order('created_at', { ascending: false });
+
+                if (loansData) {
+                    setLoans(loansData.map((l: any) => ({
+                        ...l,
+                        total_value: Number(l.total_value),
+                        remaining_value: Number(l.remaining_value)
+                    })));
                 }
 
                 // 4. Load incomes
@@ -587,6 +618,82 @@ export const useAppData = () => {
         }
     }, [user]);
 
+    const addLoan = useCallback(async (loan: Omit<Loan, 'id' | 'created_at'>) => {
+        if (!user || !householdId) return;
+        try {
+            const { data, error } = await supabase
+                .from('loans')
+                .insert({
+                    user_id: user.id,
+                    household_id: householdId,
+                    borrower_name: loan.borrower_name,
+                    description: loan.description,
+                    total_value: loan.total_value,
+                    remaining_value: loan.remaining_value,
+                    due_date: loan.due_date || null,
+                    lender: loan.lender,
+                    status: loan.status
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const newLoan: Loan = {
+                    ...data,
+                    total_value: Number(data.total_value),
+                    remaining_value: Number(data.remaining_value)
+                };
+                setLoans(prev => [newLoan, ...prev]);
+            }
+        } catch (err: any) {
+            alert('Erro ao adicionar empréstimo: ' + err.message);
+        }
+    }, [user, householdId]);
+
+    const updateLoan = useCallback(async (id: string, updates: Partial<Loan>) => {
+        if (!user) return;
+        try {
+            const { data, error } = await supabase
+                .from('loans')
+                .update({
+                    borrower_name: updates.borrower_name,
+                    description: updates.description,
+                    total_value: updates.total_value,
+                    remaining_value: updates.remaining_value,
+                    due_date: updates.due_date || null,
+                    lender: updates.lender,
+                    status: updates.status
+                })
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const updatedLoan: Loan = {
+                    ...data,
+                    total_value: Number(data.total_value),
+                    remaining_value: Number(data.remaining_value)
+                };
+                setLoans(prev => prev.map(l => l.id === id ? updatedLoan : l));
+            }
+        } catch (err: any) {
+            alert('Erro ao atualizar empréstimo: ' + err.message);
+        }
+    }, [user]);
+
+    const deleteLoan = useCallback(async (id: string) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase.from('loans').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            if (error) throw error;
+            setLoans(prev => prev.filter(l => l.id !== id));
+        } catch (err: any) {
+            alert('Erro ao deletar empréstimo: ' + err.message);
+        }
+    }, [user]);
+
     const restoreData = useCallback(async () => {
         if (!user || !householdId) return;
         const proceed = confirm("Deseja restaurar os últimos dados enviados para a lixeira?");
@@ -601,6 +708,7 @@ export const useAppData = () => {
             await supabase.from('expenses').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('incomes').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('savings_goals').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+            await supabase.from('loans').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
 
             await loadData();
             alert('Dados restaurados com sucesso! ♻️');
@@ -619,6 +727,7 @@ export const useAppData = () => {
         expenses,
         incomes,
         goals,
+        loans,
         selectedMonth,
         setSelectedMonth,
         householdId,
@@ -637,6 +746,9 @@ export const useAppData = () => {
         addIncome,
         updateIncome,
         deleteIncome,
+        addLoan,
+        updateLoan,
+        deleteLoan,
         deleteAllData,
         deleteMonthData,
         restoreData,
