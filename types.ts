@@ -78,8 +78,6 @@ export interface UserAccount {
   coupleInfo: CoupleInfo;
   household_id?: string;
   invite_code?: string;
-  is_premium?: boolean;
-  premium_until?: string;
 }
 
 export interface Expense {
