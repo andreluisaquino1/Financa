@@ -313,7 +313,7 @@ const ExpenseTabs: React.FC<Props> = ({
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header com Status e Botão principal */}
-      <div className="flex flex-col lg:row justify-between items-start lg:items-center gap-6 lg:gap-0 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
         <div className="z-10">
           <div className="flex items-center gap-3 mb-2">
             <span className="flex h-3 w-3 relative">
@@ -339,9 +339,10 @@ const ExpenseTabs: React.FC<Props> = ({
 
           <button
             onClick={() => onAddExpense(activeTab === 'expenses' ? ExpenseType.COMMON : ExpenseType.REIMBURSEMENT, null)}
-            className="flex-1 lg:flex-none bg-slate-900 dark:bg-p1 hover:brightness-110 text-white px-10 py-5 rounded-[1.5rem] font-black text-sm shadow-2xl shadow-p1/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
+            className="flex-1 lg:flex-none bg-slate-900 dark:bg-p1 hover:brightness-110 text-white px-10 py-5 rounded-2xl font-black text-sm shadow-2xl shadow-p1/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
           >
-            <span className="text-xl">✨</span> Adicionar {activeTab === 'expenses' ? 'Gasto' : 'Reembolso'}
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+            Adicionar {activeTab === 'expenses' ? 'Gasto' : 'Reembolso'}
           </button>
         </div>
 
@@ -351,11 +352,13 @@ const ExpenseTabs: React.FC<Props> = ({
 
       {/* Filtros de Ultra Alta Performance */}
       <div className="space-y-4">
-        <div className="bg-white dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/50 dark:border-white/5 p-4 sm:p-6 rounded-[2.5rem] shadow-xl space-y-4">
+        <div className="bg-white dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/50 dark:border-white/5 p-4 sm:p-6 rounded-[2rem] shadow-xl space-y-4">
           <div className="flex flex-col xl:flex-row xl:items-center gap-6">
             {/* Busca Principal */}
             <div className="relative flex-1">
-              <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xl filter drop-shadow">🔍</span>
+              <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </span>
               <input
                 type="text"
                 placeholder="Busca avançada: descrição, categoria ou tags..."

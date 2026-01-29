@@ -63,7 +63,7 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
             {/* Header com Status e Botão principal */}
-            <div className="flex flex-col lg:row justify-between items-start lg:items-center gap-6 lg:gap-0 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
                 <div className="z-10">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="flex h-3 w-3 relative">
@@ -87,9 +87,10 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
 
                     <button
                         onClick={() => setIsAddingTrip(!isAddingTrip)}
-                        className={`flex-1 lg:flex-none ${isAddingTrip ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-[1.5rem] font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
+                        className={`flex-1 lg:flex-none ${isAddingTrip ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
                     >
-                        <span className="text-xl">✈️</span> {isAddingTrip ? 'Cancelar' : 'Nova Viagem'}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        {isAddingTrip ? 'Cancelar' : 'Nova Viagem'}
                     </button>
                 </div>
 
@@ -100,7 +101,7 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
             {isAddingTrip && (
                 <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAddingTrip(false)} />
-                    <div className="relative bg-white dark:bg-slate-800 w-full max-w-xl rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                    <div className="relative bg-white dark:bg-slate-800 w-full max-w-xl rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
                         <div className="mb-8">
                             <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">🎒 Planejar Nova Viagem</h3>
                             <p className="text-slate-500 font-bold text-sm">Organize as finanças da sua próxima aventura</p>
@@ -344,9 +345,10 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
 
                     <button
                         onClick={() => setIsAdding(!isAdding)}
-                        className={`flex-1 lg:flex-none ${isAdding ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-[1.5rem] font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
+                        className={`flex-1 lg:flex-none ${isAdding ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
                     >
-                        <span className="text-xl">✍️</span> {isAdding ? 'Cancelar' : (view === 'expenses' ? 'Novo Gasto' : 'Novo Aporte')}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        {isAdding ? 'Cancelar' : (view === 'expenses' ? 'Novo Gasto' : 'Novo Aporte')}
                     </button>
                 </div>
 
@@ -354,7 +356,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                 <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-p1/5 rounded-full blur-3xl text-p1"></div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800/60 rounded-[2.5rem] p-6 sm:p-8 border border-slate-100 dark:border-white/5 shadow-sm space-y-8">
+            <div className="bg-white dark:bg-slate-900/40 rounded-[2rem] p-6 sm:p-8 border border-slate-100 dark:border-white/5 shadow-sm space-y-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                     <div className="space-y-1">
                         <h3 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tighter">{trip.name}</h3>

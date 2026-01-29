@@ -63,7 +63,7 @@ const Dashboard: React.FC<Props> = ({
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-8">
 
       {/* Hero: Acerto Financeiro */}
-      <div className="bg-slate-900 dark:bg-slate-900/40 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden border border-slate-800 dark:border-white/5 group">
+      <div className="bg-slate-900 dark:bg-slate-900/40 rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden border border-slate-800 dark:border-white/5 group">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-p1/10 rounded-full -mr-64 -mt-64 blur-[120px] group-hover:bg-p1/20 transition-all duration-1000"></div>
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-p2/10 rounded-full -ml-40 -mb-40 blur-[100px] group-hover:bg-p2/20 transition-all duration-1000"></div>
 
@@ -124,7 +124,7 @@ const Dashboard: React.FC<Props> = ({
           </div>
 
           {showBreakdown && (
-            <div className="mt-12 pt-12 border-t border-white/10 space-y-12 animate-in slide-in-from-top-4 duration-500">
+            <div className="mt-8 pt-8 border-t border-white/10 space-y-8 animate-in slide-in-from-top-4 duration-500">
               <MonthlyInsights summary={summary} coupleInfo={coupleInfo} goals={goals} />
               <ClosingBreakdown coupleInfo={coupleInfo} summary={summary} goals={goals} />
             </div>
@@ -194,7 +194,7 @@ const Dashboard: React.FC<Props> = ({
       {/* Seção Individual: 2 Cards lado a lado */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Card Pessoa 1 */}
-        <div className="bg-white dark:bg-slate-950/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm group">
+        <div className="bg-white dark:bg-slate-950/20 rounded-[2rem] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm group">
           <div className="bg-p1/5 px-8 py-6 flex items-center justify-between border-b border-p1/5">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-p1 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-p1/20 group-hover:scale-110 transition-transform">
@@ -231,7 +231,7 @@ const Dashboard: React.FC<Props> = ({
         </div>
 
         {/* Card Pessoa 2 */}
-        <div className="bg-white dark:bg-slate-950/20 rounded-[2.5rem] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm group">
+        <div className="bg-white dark:bg-slate-950/20 rounded-[2rem] border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm group">
           <div className="bg-p2/5 px-8 py-6 flex items-center justify-between border-b border-p2/5">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-p2 rounded-2xl flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-p2/20 group-hover:scale-110 transition-transform">
@@ -316,8 +316,8 @@ const Dashboard: React.FC<Props> = ({
       <AdBanner isPremium={isPremium} position="dashboard" />
 
       {/* Categorias com Gráfico */}
-      <div className="bg-white dark:bg-slate-900/40 rounded-[2.5rem] p-8 md:p-10 border border-slate-100 dark:border-white/5 shadow-xl">
-        <div className="flex items-center justify-between mb-12">
+      <div className="bg-white dark:bg-slate-900/40 rounded-[2rem] p-8 md:p-10 border border-slate-100 dark:border-white/5 shadow-xl">
+        <div className="flex items-center justify-between mb-8">
           <div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Onde o dinheiro está indo?</h3>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1">Detalhamento por Categoria</p>

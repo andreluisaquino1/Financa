@@ -144,7 +144,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
     return (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-xl sm:rounded-[2.5rem] rounded-t-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-10 duration-500 border border-white/10">
+            <div className="bg-white dark:bg-slate-900 w-full max-w-xl sm:rounded-[2rem] rounded-t-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-in slide-in-from-bottom-10 duration-500 border border-white/10">
 
                 {/* Header */}
                 <div className="px-8 py-6 flex justify-between items-center border-b dark:border-white/5 bg-white dark:bg-slate-900 z-10 shrink-0">

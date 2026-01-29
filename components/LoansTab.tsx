@@ -121,7 +121,7 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header com Status e Botão principal */}
-            <div className="flex flex-col lg:row justify-between items-start lg:items-center gap-6 lg:gap-0 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
                 <div className="z-10">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="flex h-3 w-3 relative">
@@ -145,9 +145,10 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
 
                     <button
                         onClick={() => setIsAdding(true)}
-                        className="flex-1 lg:flex-none bg-slate-900 dark:bg-p1 hover:brightness-110 text-white px-10 py-5 rounded-[1.5rem] font-black text-sm shadow-2xl shadow-p1/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
+                        className="flex-1 lg:flex-none bg-slate-900 dark:bg-p1 hover:brightness-110 text-white px-10 py-5 rounded-2xl font-black text-sm shadow-2xl shadow-p1/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
                     >
-                        <span className="text-xl">🤝</span> Novo Empréstimo
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        Novo Empréstimo
                     </button>
                 </div>
 
