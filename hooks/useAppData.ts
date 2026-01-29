@@ -743,7 +743,7 @@ export const useAppData = () => {
         }
     }, [user]);
 
-    const addInvestment = useCallback(async (inv: Omit<Investment, 'id' | 'created_at'>) => {
+    const addInvestment = useCallback(async (inv: Omit<Investment, 'id' | 'created_at' | 'user_id' | 'household_id'>) => {
         if (!user || !householdId) return;
         try {
             const { data, error } = await supabase

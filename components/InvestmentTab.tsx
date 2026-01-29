@@ -128,10 +128,10 @@ const InvestmentTab: React.FC = () => {
         setEditingId(inv.id);
         setName(inv.name);
         setType(inv.type);
-        setInvestedValue(formatAsBRL((inv.invested_value * 100).toString()));
-        setCurrentValue(formatAsBRL((inv.current_value * 100).toString()));
+        setInvestedValue(formatAsBRL(inv.invested_value.toFixed(2)));
+        setCurrentValue(formatAsBRL(inv.current_value.toFixed(2)));
         setQuantity(inv.quantity?.toString() || '');
-        setPricePerUnit(inv.price_per_unit ? formatAsBRL((inv.price_per_unit * 100).toString()) : '');
+        setPricePerUnit(inv.price_per_unit ? formatAsBRL(inv.price_per_unit.toFixed(2)) : '');
         setOwner(inv.owner);
         setIsModalOpen(true);
         setModalMode('buy'); // Edit is usually adjusting details
@@ -654,7 +654,7 @@ const InvestmentTab: React.FC = () => {
                                                             }
                                                         } else {
                                                             // New Buy: Update Price (Cost) AND Current Value (Market)
-                                                            setPricePerUnit(formatAsBRL(quote.toString()));
+                                                            setPricePerUnit(formatAsBRL(quote.toFixed(2)));
                                                             if (q > 0) {
                                                                 setCurrentValue(formatAsBRL((q * quote).toFixed(2)));
                                                             }
