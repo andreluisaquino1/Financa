@@ -21,6 +21,10 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     const [editingId, setEditingId] = useState<string | null>(null);
     const [whatIfContributions, setWhatIfContributions] = useState<Record<string, number>>({});
 
+    // Help calculate months and required values
+    const today = new Date();
+    const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
     // Form state
     const [title, setTitle] = useState('');
     const [goalType, setGoalType] = useState<GoalType>('couple');
@@ -137,6 +141,81 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         setSplitP2(50);
         setInitialWithdrawP1('');
         setInitialWithdrawP2('');
+    };
+
+    // --- SMART CALCULATIONS ---
+    const monthsRemaining = useMemo(() => {
+        if (!deadline) return 0;
+        const start = startDate ? new Date(startDate + '-01') : new Date();
+        const end = new Date(deadline + (deadline.length === 7 ? '-01' : ''));
+
+        const years = end.getFullYear() - start.getFullYear();
+        const months = end.getMonth() - start.getMonth();
+        const total = (years * 12) + months;
+
+        return Math.max(1, total);
+    }, [startDate, deadline]);
+
+    const requiredMonthlyTotal = useMemo(() => {
+        const totalTarget = parseBRL(target);
+        if (totalTarget <= 0) return 0;
+
+        const currentSaved = parseBRL(savingsP1) + parseBRL(savingsP2) + parseBRL(initialWithdrawP1) + parseBRL(initialWithdrawP2);
+        const needed = Math.max(0, totalTarget - currentSaved);
+
+        if (monthsRemaining <= 0) return 0;
+
+        // Simples sem juros para a sugestão de formulário
+        return needed / monthsRemaining;
+    }, [target, savingsP1, savingsP2, initialWithdrawP1, initialWithdrawP2, monthsRemaining]);
+
+    const incomeSplitP1 = useMemo(() => {
+        const totalSalary = (coupleInfo.salary1 || 0) + (coupleInfo.salary2 || 0);
+        if (totalSalary <= 0) return 50;
+        return Math.round((coupleInfo.salary1 / totalSalary) * 100);
+    }, [coupleInfo.salary1, coupleInfo.salary2]);
+
+    const handleApplyIncomeSplit = () => {
+        setSplitP1(incomeSplitP1);
+        setSplitP2(100 - incomeSplitP1);
+
+        if (requiredMonthlyTotal > 0) {
+            const p1Part = requiredMonthlyTotal * (incomeSplitP1 / 100);
+            const p2Part = requiredMonthlyTotal * ((100 - incomeSplitP1) / 100);
+            setContributionP1(formatAsBRL(Math.round(p1Part * 100).toString()));
+            setContributionP2(formatAsBRL(Math.round(p2Part * 100).toString()));
+        }
+    };
+
+    const handleSplitChange = (p1: number) => {
+        setSplitP1(p1);
+        setSplitP2(100 - p1);
+
+        // Opcionalmente atualiza os valores se já houver um total sendo planejado
+        const currentP1 = parseBRL(contributionP1);
+        const currentP2 = parseBRL(contributionP2);
+        const currentTotal = currentP1 + currentP2;
+
+        if (currentTotal > 0 || requiredMonthlyTotal > 0) {
+            const base = currentTotal > 0 ? currentTotal : requiredMonthlyTotal;
+            setContributionP1(formatAsBRL(Math.round(base * (p1 / 100) * 100).toString()));
+            setContributionP2(formatAsBRL(Math.round(base * ((100 - p1) / 100) * 100).toString()));
+        }
+    };
+
+    const handleContributionChange = (p1Val: string, p2Val: string) => {
+        setContributionP1(p1Val);
+        setContributionP2(p2Val);
+
+        const v1 = parseBRL(p1Val);
+        const v2 = parseBRL(p2Val);
+        const total = v1 + v2;
+
+        if (total > 0) {
+            const perc1 = Math.round((v1 / total) * 100);
+            setSplitP1(perc1);
+            setSplitP2(100 - perc1);
+        }
     };
 
     const handleSaveHub = () => {
@@ -736,7 +815,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                     </div>
                                     <input
                                         type="range" min="0" max="100" value={splitP1}
-                                        onChange={e => { setSplitP1(Number(e.target.value)); setSplitP2(100 - Number(e.target.value)); }}
+                                        onChange={e => handleSplitChange(Number(e.target.value))}
                                         className="w-full accent-p1"
                                     />
                                 </div>
@@ -747,33 +826,45 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                     </div>
                                     <input
                                         type="range" min="0" max="100" value={splitP2}
-                                        onChange={e => { setSplitP2(Number(e.target.value)); setSplitP1(100 - Number(e.target.value)); }}
+                                        onChange={e => handleSplitChange(100 - Number(e.target.value))}
                                         className="w-full accent-p2"
                                     />
                                 </div>
                             </div>
+
+                            {requiredMonthlyTotal > 0 && (
+                                <div className="bg-white/50 dark:bg-slate-800/50 p-3 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Calculadora de Prazo</p>
+                                        <span className="text-[10px] font-bold text-slate-500">{monthsRemaining} meses restantes</span>
+                                    </div>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-tight">
+                                        Para atingir <span className="font-bold text-slate-800 dark:text-slate-100">{formatCurrency(parseBRL(target))}</span> no prazo definido, vocês precisam investir <span className="font-extrabold text-p1">{formatCurrency(requiredMonthlyTotal)}/mês</span> no total.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={handleApplyIncomeSplit}
+                                        className="w-full py-2 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-600 dark:text-indigo-400 hover:text-white border border-indigo-500/20 rounded-lg text-[10px] font-black uppercase transition-all"
+                                    >
+                                        ✨ Aplicar divisão sugerida pela renda ({incomeSplitP1}% / {100 - incomeSplitP1}%)
+                                    </button>
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-slate-200 dark:border-white/5 pt-4">
                                 {goalType !== 'individual_p2' && (
                                     <div className="space-y-2">
                                         <div className="flex justify-between items-center">
                                             <label className="text-xs font-bold text-p1">{p1Name} - Investir/mês</label>
-                                            <button
-                                                type="button" onClick={() => {
-                                                    const totalReq = parseBRL(target) / 12; // Example 12 months if no deadline
-                                                    const p1Part = totalReq * (splitP1 / 100);
-                                                    setContributionP1(formatAsBRL(Math.round(p1Part * 100).toString()));
-                                                }}
-                                                className="text-[9px] font-black text-indigo-500 uppercase hover:underline"
-                                            >
-                                                Sugerir
-                                            </button>
+                                            {requiredMonthlyTotal > 0 && (
+                                                <span className="text-[8px] font-black text-slate-400 uppercase">Sugestão: {formatCurrency(requiredMonthlyTotal * (splitP1 / 100))}</span>
+                                            )}
                                         </div>
                                         <input
                                             type="text"
                                             inputMode="decimal"
                                             value={contributionP1}
-                                            onChange={e => setContributionP1(formatAsBRL(e.target.value))}
+                                            onChange={e => handleContributionChange(formatAsBRL(e.target.value), contributionP2)}
                                             placeholder="R$ 0,00"
                                             className="w-full bg-white dark:bg-slate-800 border-2 border-p1/20 focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold"
                                         />
@@ -783,22 +874,15 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                     <div className="space-y-2">
                                         <div className="flex justify-between items-center">
                                             <label className="text-xs font-bold text-p2">{p2Name} - Investir/mês</label>
-                                            <button
-                                                type="button" onClick={() => {
-                                                    const totalReq = parseBRL(target) / 12;
-                                                    const p2Part = totalReq * (splitP2 / 100);
-                                                    setContributionP2(formatAsBRL(Math.round(p2Part * 100).toString()));
-                                                }}
-                                                className="text-[9px] font-black text-indigo-500 uppercase hover:underline"
-                                            >
-                                                Sugerir
-                                            </button>
+                                            {requiredMonthlyTotal > 0 && (
+                                                <span className="text-[8px] font-black text-slate-400 uppercase">Sugestão: {formatCurrency(requiredMonthlyTotal * (splitP2 / 100))}</span>
+                                            )}
                                         </div>
                                         <input
                                             type="text"
                                             inputMode="decimal"
                                             value={contributionP2}
-                                            onChange={e => setContributionP2(formatAsBRL(e.target.value))}
+                                            onChange={e => handleContributionChange(contributionP1, formatAsBRL(e.target.value))}
                                             placeholder="R$ 0,00"
                                             className="w-full bg-white dark:bg-slate-800 border-2 border-p2/20 focus:border-p2 rounded-xl px-4 py-3 outline-none transition-all font-bold"
                                         />
