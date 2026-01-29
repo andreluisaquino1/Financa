@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Category, CoupleInfo } from '../types';
 import { parseBRL, formatAsBRL } from '../utils';
-import AdBanner from './AdBanner';
 import { useAuth } from '../AuthContext';
 
 interface Props {
@@ -23,15 +22,12 @@ interface Props {
   onNavigateToHelp?: () => void;
   onNavigateToIncomes?: () => void;
   onShowHouseholdLink?: () => void;
-  onShowPremium?: () => void;
   onShowPresentation?: () => void;
   onDeleteMonthData?: () => void;
-  onRestorePurchases?: () => void;
   onRestoreData?: () => void;
   householdId?: string | null;
   userId?: string;
   inviteCode?: string | null;
-  isPremium?: boolean;
   selectedMonth?: string;
 }
 
@@ -56,24 +52,18 @@ const SidebarMenu: React.FC<Props> = ({
   onNavigateToHelp,
   onNavigateToIncomes,
   onShowHouseholdLink,
-  onShowPremium,
   onShowPresentation,
   onDeleteMonthData,
-  onRestorePurchases,
   onRestoreData,
   householdId,
   userId,
   inviteCode,
-  isPremium,
   selectedMonth
 }) => {
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
 
-  // Logic: if not premium, use hardcoded categories. If premium, use saved ones.
-  const initialCats = isPremium
-    ? (coupleInfo.categories || []).map(c => typeof c === 'string' ? { name: c } : c)
-    : DEFAULT_FREE_CATEGORIES;
+  const initialCats = (coupleInfo.categories || []).map(c => typeof c === 'string' ? { name: c } : c);
 
   const [categories, setCategories] = useState<Category[]>(initialCats);
   const [newCategory, setNewCategory] = useState('');
@@ -121,15 +111,10 @@ const SidebarMenu: React.FC<Props> = ({
   };
 
   const handleUpdateCategories = (updatedCats: Category[]) => {
-    if (!isPremium) return;
     setCategories(updatedCats);
   };
 
   const addCategory = () => {
-    if (!isPremium) {
-      onShowPremium?.();
-      return;
-    }
     if (newCategory.trim() && !categories.some(c => c.name === newCategory.trim())) {
       const updated = [...categories, { name: newCategory.trim(), icon: selectedIcon }];
       handleUpdateCategories(updated);
@@ -139,17 +124,12 @@ const SidebarMenu: React.FC<Props> = ({
   };
 
   const removeCategory = (name: string) => {
-    if (!isPremium) {
-      onShowPremium?.();
-      return;
-    }
     if (confirm(`Remover "${name}"?`)) {
       handleUpdateCategories(categories.filter(c => c.name !== name));
     }
   };
 
   const moveCategory = (index: number, direction: 'up' | 'down') => {
-    if (!isPremium) return;
     const newCats = [...categories];
     if (direction === 'up' && index > 0) {
       [newCats[index], newCats[index - 1]] = [newCats[index - 1], newCats[index]];
@@ -169,7 +149,6 @@ const SidebarMenu: React.FC<Props> = ({
           <div className="relative z-10 text-white">
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-2xl font-black tracking-tighter">Ajustes</h2>
-              {isPremium && <span className="px-2 py-0.5 bg-p1 text-[8px] font-black uppercase rounded-lg shadow-lg animate-pulse">PRO</span>}
             </div>
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-0.5">Conta & Preferências</p>
             {userEmail && (
@@ -182,18 +161,6 @@ const SidebarMenu: React.FC<Props> = ({
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
-          {!isPremium && (
-            <section className="animate-in fade-in slide-in-from-top-4 duration-1000">
-              <div className="p-5 bg-gradient-to-br from-p1 to-blue-600 rounded-2xl text-white shadow-md shadow-p1/10 relative overflow-hidden group border border-white/10">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-                <div className="relative">
-                  <h4 className="font-black text-lg tracking-tight mb-1 italic">Seja PRO</h4>
-                  <p className="text-[10px] opacity-80 leading-relaxed font-bold uppercase tracking-wider">Categorias customizadas, histórico ilimitado e PDF.</p>
-                  <button onClick={onShowPremium} className="mt-4 w-full py-2.5 bg-white text-p1 rounded-xl font-black text-[10px] uppercase shadow-lg group-hover:scale-[1.02] transition-transform">Liberar Recursos</button>
-                </div>
-              </div>
-            </section>
-          )}
 
           {/* 1. Perfil */}
           <section className="space-y-4">
@@ -211,62 +178,56 @@ const SidebarMenu: React.FC<Props> = ({
             </div>
           </section>
 
-          {/* 2. Categorias - Locked for free users */}
+          {/* 2. Categorias */}
           <section className="space-y-4">
             <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
               Categorias de Gasto
             </h3>
             <div className="space-y-3">
-              {isPremium ? (
-                <div className="space-y-4">
-                  <div className="flex gap-2">
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setShowIconPicker(!showIconPicker)}
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border transition-all ${showIconPicker ? 'bg-p1 text-white border-p1' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}
-                      >
-                        {selectedIcon}
-                      </button>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowIconPicker(!showIconPicker)}
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border transition-all ${showIconPicker ? 'bg-p1 text-white border-p1' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}
+                    >
+                      {selectedIcon}
+                    </button>
 
-                      {showIconPicker && (
-                        <>
-                          <div className="fixed inset-0 z-[110]" onClick={() => setShowIconPicker(false)} />
-                          <div className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-3 z-[120] grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-200">
-                            <div className="col-span-4 mb-1">
-                              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Escolha um Ícone</p>
-                            </div>
-                            {RECOMMENDED_ICONS.map(icon => (
-                              <button
-                                key={icon}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedIcon(icon);
-                                  setShowIconPicker(false);
-                                }}
-                                className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${selectedIcon === icon ? 'bg-p1/10 ring-2 ring-p1 scale-105' : 'bg-slate-50 dark:bg-slate-800/50'}`}
-                              >
-                                {icon}
-                              </button>
-                            ))}
+                    {showIconPicker && (
+                      <>
+                        <div className="fixed inset-0 z-[110]" onClick={() => setShowIconPicker(false)} />
+                        <div className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-3 z-[120] grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-200">
+                          <div className="col-span-4 mb-1">
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Escolha um Ícone</p>
                           </div>
-                        </>
-                      )}
-                    </div>
-                    <input
-                      type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)}
-                      placeholder="Ex: Pets, Farmácia..."
-                      className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl px-5 text-sm font-bold outline-none dark:text-slate-100"
-                    />
+                          {RECOMMENDED_ICONS.map(icon => (
+                            <button
+                              key={icon}
+                              type="button"
+                              onClick={() => {
+                                setSelectedIcon(icon);
+                                setShowIconPicker(false);
+                              }}
+                              className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${selectedIcon === icon ? 'bg-p1/10 ring-2 ring-p1 scale-105' : 'bg-slate-50 dark:bg-slate-800/50'}`}
+                            >
+                              {icon}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <button onClick={addCategory} className="w-full bg-slate-900 dark:bg-p1 border hover:brightness-110 border-transparent text-white py-3.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-p1/10 active:scale-95 transition-all">Adicionar Categoria</button>
+                  <input
+                    type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)}
+                    placeholder="Ex: Pets, Farmácia..."
+                    className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl px-5 text-sm font-bold outline-none dark:text-slate-100"
+                  />
                 </div>
-              ) : (
-                <div className="p-3 bg-p1/5 rounded-xl border border-p1/10 text-center">
-                  <p className="text-[9px] font-black text-p1 uppercase italic">Categorias padrão (PRO para editar)</p>
-                </div>
-              )}
+                <button onClick={addCategory} className="w-full bg-slate-900 dark:bg-p1 border hover:brightness-110 border-transparent text-white py-3.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-p1/10 active:scale-95 transition-all">Adicionar Categoria</button>
+              </div>
 
               <div className="flex flex-col gap-2">
                 {categories.map((cat, index) => {
@@ -276,7 +237,7 @@ const SidebarMenu: React.FC<Props> = ({
                       <div className="flex items-center justify-between px-2 py-1">
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => isPremium && setEditingCategoryIndex(isEditing ? null : index)}
+                            onClick={() => setEditingCategoryIndex(isEditing ? null : index)}
                             className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner transition-colors ${isEditing ? 'bg-p1 text-white' : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300'}`}
                           >
                             {cat.icon || '📦'}
@@ -297,30 +258,28 @@ const SidebarMenu: React.FC<Props> = ({
                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{cat.name}</span>
                           )}
                         </div>
-                        {isPremium && (
-                          <div className="flex items-center gap-1">
-                            {!isEditing ? (
-                              <>
-                                <div className="flex flex-col gap-0.5">
-                                  <button
-                                    onClick={() => moveCategory(index, 'up')}
-                                    disabled={index === 0}
-                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
-                                  >▲</button>
-                                  <button
-                                    onClick={() => moveCategory(index, 'down')}
-                                    disabled={index === categories.length - 1}
-                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
-                                  >▼</button>
-                                </div>
-                                <button onClick={() => setEditingCategoryIndex(index)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-p1 hover:bg-p1/5 rounded-xl font-bold transition-all">📝</button>
-                                <button onClick={() => removeCategory(cat.name)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all">×</button>
-                              </>
-                            ) : (
-                              <button onClick={() => setEditingCategoryIndex(null)} className="px-3 py-1 bg-p1 text-white rounded-lg text-[10px] font-black uppercase">OK</button>
-                            )}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {!isEditing ? (
+                            <>
+                              <div className="flex flex-col gap-0.5">
+                                <button
+                                  onClick={() => moveCategory(index, 'up')}
+                                  disabled={index === 0}
+                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                                >▲</button>
+                                <button
+                                  onClick={() => moveCategory(index, 'down')}
+                                  disabled={index === categories.length - 1}
+                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                                >▼</button>
+                              </div>
+                              <button onClick={() => setEditingCategoryIndex(index)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-p1 hover:bg-p1/5 rounded-xl font-bold transition-all">📝</button>
+                              <button onClick={() => removeCategory(cat.name)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all">×</button>
+                            </>
+                          ) : (
+                            <button onClick={() => setEditingCategoryIndex(null)} className="px-3 py-1 bg-p1 text-white rounded-lg text-[10px] font-black uppercase">OK</button>
+                          )}
+                        </div>
                       </div>
 
                       {isEditing && (
@@ -434,47 +393,28 @@ const SidebarMenu: React.FC<Props> = ({
                 </button>
               </div>
               <div className="flex items-center gap-2">
-                <div
-                  className="relative group cursor-pointer"
-                  onClick={() => !isPremium && onShowPremium?.()}
-                >
+                <div className="relative group cursor-pointer">
                   <input
                     type="color"
                     value={p1Color}
-                    onChange={(e) => isPremium ? setP1Color(e.target.value) : null}
-                    className={`w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none ${isPremium ? 'cursor-pointer' : 'cursor-not-allowed'}`}
-                    disabled={!isPremium}
+                    onChange={(e) => setP1Color(e.target.value)}
+                    className="w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none cursor-pointer"
                   />
-                  <div className="absolute inset-0 rounded-lg pointer-events-none border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center" style={{ backgroundColor: p1Color }}>
-                    {!isPremium && <span className="text-[8px]">🔒</span>}
-                  </div>
                 </div>
-                <div
-                  className="relative group cursor-pointer"
-                  onClick={() => !isPremium && onShowPremium?.()}
-                >
+                <div className="relative group cursor-pointer">
                   <input
                     type="color"
                     value={p2Color}
-                    onChange={(e) => isPremium ? setP2Color(e.target.value) : null}
-                    className={`w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none ${isPremium ? 'cursor-pointer' : 'cursor-not-allowed'}`}
-                    disabled={!isPremium}
+                    onChange={(e) => setP2Color(e.target.value)}
+                    className="w-6 h-6 rounded-lg overflow-hidden bg-transparent border-none cursor-pointer"
                   />
-                  <div className="absolute inset-0 rounded-lg pointer-events-none border-2 border-white dark:border-slate-800 shadow-sm flex items-center justify-center" style={{ backgroundColor: p2Color }}>
-                    {!isPremium && <span className="text-[8px]">🔒</span>}
-                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          <AdBanner isPremium={isPremium} position="sidebar" />
-
           {/* Footer Actions */}
           <div className="space-y-1 pt-6 border-t border-slate-100 dark:border-white/5 pb-10">
-            {(!isPremium && (window as any).Capacitor?.isNative) && (
-              <SidebarBtn icon="🔄" label="Restaurar Assinatura" onClick={onRestorePurchases} />
-            )}
             <SidebarBtn icon="✨" label="Ver Apresentação" onClick={() => { onShowPresentation?.(); onClose(); }} />
             <SidebarBtn icon="?" label="Central de Ajuda" onClick={() => { onNavigateToHelp?.(); onClose(); }} />
             <SidebarBtn icon="↩" label="Sair da Conta" onClick={onSignOut} />
@@ -489,11 +429,6 @@ const SidebarMenu: React.FC<Props> = ({
               icon="📅"
               label={`Limpar Mês (${selectedMonth})`}
               onClick={() => {
-                if (!isPremium) {
-                  alert('A limpeza de dados mensal é um recurso exclusivo para usuários PRO.');
-                  onShowPremium?.();
-                  return;
-                }
                 if (confirm(`Isso apagará TODAS as despesas de ${selectedMonth}. Continuar?`)) {
                   onDeleteMonthData?.();
                   onClose();
@@ -506,11 +441,6 @@ const SidebarMenu: React.FC<Props> = ({
               icon="×"
               label="Apagar Todos os Dados"
               onClick={() => {
-                if (!isPremium) {
-                  alert('A opção de resetar todos os dados do app é um recurso exclusivo para usuários PRO.');
-                  onShowPremium?.();
-                  return;
-                }
                 onDeleteAccount();
               }}
               variant="danger"

@@ -8,7 +8,6 @@ interface Props {
     onAddGoal: (goal: Partial<SavingsGoal>) => void;
     onUpdateGoal: (id: string, updates: Partial<SavingsGoal>) => void;
     onDeleteGoal: (id: string) => void;
-    isPremium?: boolean;
     coupleInfo: CoupleInfo;
     summary: MonthlySummary;
     onUpdateCoupleInfo: (info: CoupleInfo, updateGlobal: boolean) => void;
@@ -16,7 +15,7 @@ interface Props {
 
 type GoalType = 'couple' | 'individual_p1' | 'individual_p2';
 
-const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDeleteGoal, isPremium, coupleInfo, summary, onUpdateCoupleInfo }) => {
+const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDeleteGoal, coupleInfo, summary, onUpdateCoupleInfo }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [whatIfContributions, setWhatIfContributions] = useState<Record<string, number>>({});
@@ -246,10 +245,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         e.preventDefault();
         if (!title || !target) return;
 
-        if (!isPremium && goals.length >= 2) {
-            alert('Você atingiu o limite de 2 metas no plano gratuito. Seja PRO para planejar todos os seus sonhos!');
-            return;
-        }
+
 
         const goalData: Partial<SavingsGoal> = {
             title,

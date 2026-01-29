@@ -24,7 +24,6 @@ export const useAppData = () => {
     const [dataLoading, setDataLoading] = useState(true);
     const [householdId, setHouseholdId] = useState<string | null>(null);
     const [inviteCode, setInviteCode] = useState<string | null>(null);
-    const [isPremium, setIsPremium] = useState<boolean>(false);
 
     const loadData = useCallback(async () => {
         if (!user) {
@@ -56,7 +55,6 @@ export const useAppData = () => {
                 const activeHouseholdId = profile.household_id || profile.id;
                 setHouseholdId(activeHouseholdId);
                 setInviteCode(profile.invite_code);
-                setIsPremium(profile.is_premium || false);
 
                 if (!profile.invite_code) {
                     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -218,8 +216,8 @@ export const useAppData = () => {
     }, [loadData]);
 
     const summary = useMemo(() => {
-        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, isPremium);
-    }, [expenses, incomes, coupleInfo, selectedMonth, isPremium]);
+        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, true); // Always true (feature unlocked) or removed from func logic
+    }, [expenses, incomes, coupleInfo, selectedMonth]);
 
     const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo, updateGlobal = false) => {
         setCoupleInfo(newInfo);
@@ -604,20 +602,6 @@ export const useAppData = () => {
         }
     }, [user]);
 
-    const updatePremiumStatus = useCallback(async (status: boolean) => {
-        if (!user) return;
-        try {
-            const { error } = await supabase
-                .from('user_profiles')
-                .update({ is_premium: status })
-                .eq('id', user.id);
-            if (error) throw error;
-            setIsPremium(status);
-        } catch (err: any) {
-            console.error('Error updating premium status:', err);
-        }
-    }, [user]);
-
     const addLoan = useCallback(async (loan: Omit<Loan, 'id' | 'created_at'>) => {
         if (!user || !householdId) return;
         try {
@@ -736,9 +720,6 @@ export const useAppData = () => {
         setSelectedMonth,
         householdId,
         inviteCode,
-        isPremium,
-        setIsPremium,
-        updatePremiumStatus,
         summary,
         saveCoupleInfo,
         addExpense,

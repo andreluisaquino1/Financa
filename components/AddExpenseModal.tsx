@@ -8,8 +8,6 @@ interface AddExpenseModalProps {
     initialData?: Expense | null;
     onClose: () => void;
     onAdd: (exp: any) => Promise<void> | void;
-    isPremium?: boolean;
-    onShowPremium?: () => void;
 }
 
 const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
@@ -17,9 +15,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     coupleInfo,
     initialData,
     onClose,
-    onAdd,
-    isPremium,
-    onShowPremium
+    onAdd
 }) => {
     const [currentType, setCurrentType] = useState<ExpenseType>(initialType);
 

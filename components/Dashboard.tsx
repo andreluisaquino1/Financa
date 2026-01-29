@@ -3,7 +3,6 @@ import React, { useMemo } from 'react';
 import { CoupleInfo, Expense, MonthlySummary, SavingsGoal } from '../types';
 import { formatCurrency } from '../utils';
 import ClosingBreakdown from './dashboard/ClosingBreakdown';
-import AdBanner from './AdBanner';
 import CategoryChart from './dashboard/CategoryChart';
 import MonthlyInsights from './dashboard/MonthlyInsights';
 import { exportMonthlyPDF } from '../pdfGenerator';
@@ -15,7 +14,6 @@ interface Props {
   goals: SavingsGoal[];
   onNavigateToIncomes: () => void;
   summary: MonthlySummary;
-  isPremium?: boolean;
 }
 
 const Dashboard: React.FC<Props> = ({
@@ -24,8 +22,7 @@ const Dashboard: React.FC<Props> = ({
   monthKey,
   goals,
   onNavigateToIncomes,
-  summary,
-  isPremium
+  summary
 }) => {
   const [showBreakdown, setShowBreakdown] = React.useState(false);
 
@@ -104,15 +101,13 @@ const Dashboard: React.FC<Props> = ({
               )}
 
               <div className="flex gap-2">
-                {isPremium && (
-                  <button
-                    onClick={() => exportMonthlyPDF(monthKey, coupleInfo, summary, expenses, goals)}
-                    className="w-16 h-16 flex items-center justify-center rounded-[1.5rem] bg-white text-slate-900 hover:bg-slate-100 transition-all active:scale-90 shadow-2xl"
-                    title="Exportar PDF"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                  </button>
-                )}
+                <button
+                  onClick={() => exportMonthlyPDF(monthKey, coupleInfo, summary, expenses, goals)}
+                  className="w-16 h-16 flex items-center justify-center rounded-[1.5rem] bg-white text-slate-900 hover:bg-slate-100 transition-all active:scale-90 shadow-2xl"
+                  title="Exportar PDF"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                </button>
                 <button
                   onClick={() => setShowBreakdown(!showBreakdown)}
                   className={`w-16 h-16 flex items-center justify-center rounded-[1.5rem] transition-all active:scale-95 border shadow-2xl ${showBreakdown ? 'bg-p1/20 border-p1 text-p1' : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'}`}
@@ -313,7 +308,7 @@ const Dashboard: React.FC<Props> = ({
         </div>
       </div>
 
-      <AdBanner isPremium={isPremium} position="dashboard" />
+
 
       {/* Categorias com Gráfico */}
       <div className="bg-white dark:bg-slate-900/40 rounded-[2rem] p-8 md:p-10 border border-slate-100 dark:border-white/5 shadow-xl">

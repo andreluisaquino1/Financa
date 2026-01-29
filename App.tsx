@@ -5,7 +5,7 @@ import SidebarMenu from './components/SidebarMenu';
 import Auth from './components/Auth';
 import HouseholdLink from './components/HouseholdLink';
 import AddExpenseModal from './components/AddExpenseModal';
-import PremiumModal from './components/PremiumModal';
+
 import Presentation from './components/Presentation';
 import { AuthProvider } from './AuthContext';
 
@@ -17,15 +17,10 @@ const TripManager = lazy(() => import('./components/TripManager'));
 const HelpSupport = lazy(() => import('./components/HelpSupport'));
 const IncomeManager = lazy(() => import('./components/IncomeManager').then(m => ({ default: m.IncomeManager })));
 const LoansTab = lazy(() => import('./components/LoansTab'));
+const InvestmentTab = lazy(() => import('./components/InvestmentTab'));
 
 import { getMonthYearKey } from './utils';
 import { useAppData } from './hooks/useAppData';
-import { AdMob } from '@capacitor-community/admob';
-import { Purchases } from '@revenuecat/purchases-capacitor';
-
-// REVENUECAT CONFIG (Get these from RevenueCat Dashboard)
-const RC_GOOGLE_KEY = 'test_fIsCaEeDXlEcVMOELSYGvFsbePm';
-
 const AppContent: React.FC = () => {
   const {
     user,
@@ -38,8 +33,6 @@ const AppContent: React.FC = () => {
     setSelectedMonth,
     householdId,
     inviteCode,
-    isPremium,
-    updatePremiumStatus,
     summary,
     saveCoupleInfo,
     addExpense,
@@ -78,61 +71,12 @@ const AppContent: React.FC = () => {
     }
   }, [coupleInfo.theme, coupleInfo.person1Color, coupleInfo.person2Color]);
 
-  // Inicializar AdMob
-  React.useEffect(() => {
-    AdMob.initialize({
-      testingDevices: ['2077ef9a63d2b398840261cdd221b406'],
-      initializeForTesting: true,
-    }).catch(e => console.log('AdMob Init Error:', e));
-  }, []);
-
-  // Inicializar RevenueCat
-  React.useEffect(() => {
-    const initRC = async () => {
-      const isNative = (window as any).Capacitor?.isNative;
-      if (!isNative) return;
-
-      try {
-        await Purchases.configure({ apiKey: RC_GOOGLE_KEY });
-        console.log('RevenueCat Configured');
-      } catch (e) {
-        console.log('RevenueCat Error:', e);
-      }
-    };
-    initRC();
-  }, []);
-
-  const handleRestore = async () => {
-    const isNative = (window as any).Capacitor?.isNative;
-    if (!isNative) {
-      alert('Restauração disponível apenas no aplicativo móvel.');
-      return;
-    }
-
-    try {
-      const { customerInfo } = await Purchases.restorePurchases();
-      if (typeof customerInfo.entitlements.active['PRO'] !== "undefined") {
-        await updatePremiumStatus(true);
-        alert('Assinatura restaurada com sucesso! ✨');
-      } else {
-        alert('Nenhuma assinatura ativa encontrada para esta conta da Google Play.');
-      }
-    } catch (e: any) {
-      alert('Erro ao restaurar: ' + e.message);
-    }
-  };
-
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTab, setCurrentTab] = useState<'summary' | 'incomes' | 'expenses' | 'loans' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'trip' | 'help'>('summary');
+  const [currentTab, setCurrentTab] = useState<'summary' | 'incomes' | 'expenses' | 'loans' | 'reimbursement' | 'wallet1' | 'wallet2' | 'goals' | 'trip' | 'investments' | 'help'>('summary');
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
-  const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
   const [isPresentationOpen, setIsPresentationOpen] = useState(false);
 
   const handleTabChange = (tab: typeof currentTab) => {
-    if ((tab === 'goals' || tab === 'trip') && !isPremium) {
-      setIsPremiumModalOpen(true);
-      return;
-    }
     setCurrentTab(tab);
   };
 
@@ -314,8 +258,9 @@ const AppContent: React.FC = () => {
               <NavItem active={currentTab === 'wallet1'} onClick={() => handleTabChange('wallet1')} label={`Carteira ${coupleInfo.person1Name.split(' ')[0]}`} />
               <NavItem active={currentTab === 'wallet2'} onClick={() => handleTabChange('wallet2')} label={`Carteira ${coupleInfo.person2Name.split(' ')[0]}`} />
               <NavItem active={currentTab === 'loans'} onClick={() => handleTabChange('loans')} label="Empréstimos" />
-              <NavItem active={currentTab === 'goals'} onClick={() => handleTabChange('goals')} label="Metas" isLocked={!isPremium} />
-              <NavItem active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} label="Viagem" isLocked={!isPremium} />
+              <NavItem active={currentTab === 'goals'} onClick={() => handleTabChange('goals')} label="Metas" />
+              <NavItem active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} label="Viagem" />
+              <NavItem active={currentTab === 'investments'} onClick={() => handleTabChange('investments')} label="Investimentos" />
               <NavItem active={currentTab === 'help'} onClick={() => handleTabChange('help')} label="Ajuda" />
             </div>
           </nav>
@@ -331,8 +276,9 @@ const AppContent: React.FC = () => {
           <MobileTab active={currentTab === 'wallet1'} onClick={() => handleTabChange('wallet1')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person1Name.slice(0, 5)} />
           <MobileTab active={currentTab === 'wallet2'} onClick={() => handleTabChange('wallet2')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label={coupleInfo.person2Name.slice(0, 5)} />
           <MobileTab active={currentTab === 'loans'} onClick={() => handleTabChange('loans')} icon="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" label="Emprést" />
-          <MobileTab active={currentTab === 'goals'} onClick={() => handleTabChange('goals')} icon="M15 12a3 3 0 11-6 0 3 3 0 016 0z M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Metas" isLocked={!isPremium} />
-          <MobileTab active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} icon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Viagem" isLocked={!isPremium} />
+          <MobileTab active={currentTab === 'goals'} onClick={() => handleTabChange('goals')} icon="M15 12a3 3 0 11-6 0 3 3 0 016 0z M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Metas" />
+          <MobileTab active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} icon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Viagem" />
+          <MobileTab active={currentTab === 'investments'} onClick={() => handleTabChange('investments')} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" label="Invest" />
         </div>
       </nav>
 
@@ -347,7 +293,6 @@ const AppContent: React.FC = () => {
                 goals={goals}
                 onNavigateToIncomes={() => setCurrentTab('incomes')}
                 summary={summary}
-                isPremium={isPremium}
               />
             )}
             {currentTab === 'incomes' && (
@@ -355,12 +300,10 @@ const AppContent: React.FC = () => {
                 incomes={incomes}
                 coupleInfo={coupleInfo}
                 monthKey={selectedMonth}
-                isPremium={isPremium}
                 onAddIncome={addIncome}
                 onUpdateIncome={updateIncome}
                 onDeleteIncome={deleteIncome}
                 onUpdateBaseSalary={(p, v, d) => handleUpdateRecurringIncome(p, v, d || 'Salário Base')}
-                onShowPremium={() => setIsPremiumModalOpen(true)}
               />
             )}
             {currentTab === 'loans' && (
@@ -379,7 +322,6 @@ const AppContent: React.FC = () => {
                 onAddGoal={addGoal}
                 onUpdateGoal={updateGoal}
                 onDeleteGoal={deleteGoal}
-                isPremium={isPremium}
                 coupleInfo={coupleInfo}
                 summary={summary}
                 onUpdateCoupleInfo={saveCoupleInfo}
@@ -390,6 +332,9 @@ const AppContent: React.FC = () => {
                 coupleInfo={coupleInfo}
                 onUpdateTrips={(newTrips) => saveCoupleInfo({ ...coupleInfo, trips: newTrips }, true)}
               />
+            )}
+            {currentTab === 'investments' && (
+              <InvestmentTab />
             )}
             {currentTab === 'wallet1' && (
               <PersonalWallet
@@ -438,7 +383,6 @@ const AppContent: React.FC = () => {
         onClose={() => setIsMenuOpen(false)}
         onDeleteAccount={deleteAllData}
         onDeleteMonthData={() => deleteMonthData(selectedMonth)}
-        onRestorePurchases={handleRestore}
         coupleInfo={coupleInfo}
         onUpdateSettings={handleUpdateSettings}
         userEmail={user.email}
@@ -446,13 +390,11 @@ const AppContent: React.FC = () => {
         onNavigateToHelp={() => setCurrentTab('help')}
         onNavigateToIncomes={() => setCurrentTab('incomes')}
         onShowHouseholdLink={() => setShowHouseholdLink(true)}
-        onShowPremium={() => setIsPremiumModalOpen(true)}
         onShowPresentation={() => setIsPresentationOpen(true)}
         onRestoreData={restoreData}
         householdId={householdId}
         userId={user.id}
         inviteCode={inviteCode}
-        isPremium={isPremium}
         selectedMonth={selectedMonth}
       />
 
@@ -461,8 +403,6 @@ const AppContent: React.FC = () => {
           type={modalType}
           coupleInfo={coupleInfo}
           initialData={editingExpense}
-          isPremium={isPremium}
-          onShowPremium={() => setIsPremiumModalOpen(true)}
           onClose={() => { setIsGlobalModalOpen(false); setEditingExpense(null); }}
           onAdd={async (exp) => {
             try {
@@ -477,12 +417,6 @@ const AppContent: React.FC = () => {
         />
       )}
 
-      <PremiumModal
-        isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
-        onPurchaseSuccess={() => updatePremiumStatus(true)}
-      />
-
       {isPresentationOpen && (
         <Presentation onClose={() => setIsPresentationOpen(false)} />
       )}
@@ -490,7 +424,7 @@ const AppContent: React.FC = () => {
   );
 };
 
-const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string, isLocked?: boolean }> = ({ active, onClick, label, isLocked }) => (
+const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }> = ({ active, onClick, label }) => (
   <button
     onClick={onClick}
     className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${active
@@ -499,18 +433,16 @@ const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string, i
       }`}
   >
     {label}
-    {isLocked && <span className="opacity-50">🔒</span>}
   </button>
 );
 
-const MobileTab: React.FC<{ active: boolean, onClick: () => void, icon: string, label: string, isLocked?: boolean }> = ({ active, onClick, icon, label, isLocked }) => (
+const MobileTab: React.FC<{ active: boolean, onClick: () => void, icon: string, label: string }> = ({ active, onClick, icon, label }) => (
   <button onClick={onClick} className={`flex flex-col items-center justify-center px-1.5 py-1 transition-all rounded-xl ${active ? 'bg-p1/5' : ''} min-w-[64px] relative`}>
     <div className={`p-1.5 rounded-xl transition-all ${active ? 'text-p1 scale-110' : 'text-slate-400 dark:text-slate-600'}`}>
       <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2} d={icon} /></svg>
     </div>
     <span className={`text-[9px] font-black uppercase tracking-tighter whitespace-nowrap transition-all flex items-center gap-1 ${active ? 'text-p1 opacity-100 mt-0.5' : 'text-slate-400 opacity-60'}`}>
       {label}
-      {isLocked && <span className="text-[7px]">🔒</span>}
     </span>
   </button>
 );
