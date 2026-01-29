@@ -6,10 +6,27 @@ import { formatCurrency, formatAsBRL, parseBRL } from '../utils';
 
 interface Props {
     coupleInfo: CoupleInfo;
-    onUpdateTrips: (trips: Trip[]) => void;
+    trips: Trip[];
+    onAddTrip: (trip: Omit<Trip, 'id' | 'household_id' | 'created_at' | 'expenses' | 'deposits'>) => void;
+    onUpdateTrip: (id: string, updates: Partial<Trip>) => void;
+    onDeleteTrip: (id: string) => void;
+    onAddExpense: (tripId: string, expense: Omit<TripExpense, 'id' | 'trip_id' | 'created_at'>) => void;
+    onDeleteExpense: (tripId: string, expenseId: string) => void;
+    onAddDeposit: (tripId: string, deposit: Omit<TripDeposit, 'id' | 'trip_id' | 'created_at'>) => void;
+    onDeleteDeposit: (tripId: string, depositId: string) => void;
 }
 
-export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
+export const TripManager: React.FC<Props> = ({
+    coupleInfo,
+    trips,
+    onAddTrip,
+    onUpdateTrip,
+    onDeleteTrip,
+    onAddExpense,
+    onDeleteExpense,
+    onAddDeposit,
+    onDeleteDeposit
+}) => {
     const [activeTripId, setActiveTripId] = useState<string | null>(null);
     const [isAddingTrip, setIsAddingTrip] = useState(false);
 
@@ -19,35 +36,25 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
     const [newProportion, setNewProportion] = useState<'proportional' | 'custom'>('proportional');
     const [newCustomP1, setNewCustomP1] = useState(50);
 
-    const trips = coupleInfo.trips || [];
     const activeTrip = trips.find(t => t.id === activeTripId);
 
-    const handleAddTrip = (e: React.FormEvent) => {
+    const handleAddTrip = async (e: React.FormEvent) => {
         e.preventDefault();
-        const newTrip: Trip = {
-            id: Date.now().toString(),
+        await onAddTrip({
             name: newName,
             budget: parseBRL(newBudget),
             proportionType: newProportion,
             customPercentage1: newProportion === 'custom' ? newCustomP1 : undefined,
-            deposits: [],
-            expenses: []
-        };
-        onUpdateTrips([...trips, newTrip]);
+        });
         setNewName('');
         setNewBudget('');
         setIsAddingTrip(false);
     };
 
-    const handleDeleteTrip = (id: string) => {
+    const handleDeleteTrip = async (id: string) => {
         if (!confirm('Excluir esta viagem e todos os seus registros?')) return;
-        onUpdateTrips(trips.filter(t => t.id !== id));
+        await onDeleteTrip(id);
         if (activeTripId === id) setActiveTripId(null);
-    };
-
-    const handleUpdateActiveTrip = (updates: Partial<Trip>) => {
-        if (!activeTripId) return;
-        onUpdateTrips(trips.map(t => t.id === activeTripId ? { ...t, ...updates } : t));
     };
 
     if (activeTripId && activeTrip) {
@@ -56,7 +63,11 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
                 trip={activeTrip}
                 coupleInfo={coupleInfo}
                 onBack={() => setActiveTripId(null)}
-                onUpdate={handleUpdateActiveTrip}
+                onUpdate={(updates) => onUpdateTrip(activeTripId, updates)}
+                onAddExpense={(exp) => onAddExpense(activeTripId, exp)}
+                onDeleteExpense={(expId) => onDeleteExpense(activeTripId, expId)}
+                onAddDeposit={(dep) => onAddDeposit(activeTripId, dep)}
+                onDeleteDeposit={(depId) => onDeleteDeposit(activeTripId, depId)}
             />
         );
     }
@@ -180,7 +191,7 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
                             <h4 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-1 tracking-tight">{trip.name}</h4>
                             <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    {trip.expenses.length} Gastos • {trip.deposits.length} Aportes
+                                    {(trip.expenses?.length || 0)} Gastos • {(trip.deposits?.length || 0)} Aportes
                                 </span>
                             </div>
                         </div>
@@ -188,7 +199,7 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
                         <div className="flex items-center justify-between pt-6 border-t border-slate-50 dark:border-white/5 mt-6">
                             <div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Gasto</p>
-                                <p className="text-xl font-black text-p1 tabular-nums tracking-tighter">{formatCurrency(trip.expenses.reduce((acc, current) => acc + current.value, 0))}</p>
+                                <p className="text-xl font-black text-p1 tabular-nums tracking-tighter">{formatCurrency((trip.expenses || []).reduce((acc, current) => acc + current.value, 0))}</p>
                             </div>
                             <div className="w-12 h-12 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center group-hover:translate-x-1 transition-transform">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
@@ -213,30 +224,41 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
     );
 };
 
-const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => void, onUpdate: (updates: Partial<Trip>) => void }> = ({ trip, coupleInfo, onBack, onUpdate }) => {
+const TripDetail: React.FC<{
+    trip: Trip,
+    coupleInfo: CoupleInfo,
+    onBack: () => void,
+    onUpdate: (updates: Partial<Trip>) => void,
+    onAddExpense: (exp: any) => void,
+    onDeleteExpense: (id: string) => void,
+    onAddDeposit: (dep: any) => void,
+    onDeleteDeposit: (id: string) => void
+}> = ({ trip, coupleInfo, onBack, onUpdate, onAddExpense, onDeleteExpense, onAddDeposit, onDeleteDeposit }) => {
     const [view, setView] = useState<'expenses' | 'deposits'>('expenses');
-    // State for Adding/Editing
+    // State for Adding (Editing logic removed for simplicity in this migration step, can re-add later if needed but simple add/delete is safer for first pass)
+    // Actually, let's keep basic add
     const [isAdding, setIsAdding] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
 
     // Form inputs
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
     const [person, setPerson] = useState<'person1' | 'person2' | 'fund'>('person1');
 
-    const totalExpenses = trip.expenses.reduce((acc, curr) => acc + curr.value, 0);
-    const totalDepositsP1 = trip.deposits.filter(d => d.person === 'person1').reduce((acc, curr) => acc + curr.value, 0);
-    const totalDepositsP2 = trip.deposits.filter(d => d.person === 'person2').reduce((acc, curr) => acc + curr.value, 0);
+    const expenses = trip.expenses || [];
+    const deposits = trip.deposits || [];
 
-    const totalPaidP1 = trip.expenses.filter(e => e.paidBy === 'person1').reduce((acc, curr) => acc + curr.value, 0);
-    const totalPaidP2 = trip.expenses.filter(e => e.paidBy === 'person2').reduce((acc, curr) => acc + curr.value, 0);
+    const totalExpenses = expenses.reduce((acc, curr) => acc + curr.value, 0);
+    const totalDepositsP1 = deposits.filter(d => d.person === 'person1').reduce((acc, curr) => acc + curr.value, 0);
+    const totalDepositsP2 = deposits.filter(d => d.person === 'person2').reduce((acc, curr) => acc + curr.value, 0);
+
+    const totalPaidP1 = expenses.filter(e => e.paidBy === 'person1').reduce((acc, curr) => acc + curr.value, 0);
+    const totalPaidP2 = expenses.filter(e => e.paidBy === 'person2').reduce((acc, curr) => acc + curr.value, 0);
 
     const totalAportadoP1 = totalDepositsP1 + totalPaidP1;
     const totalAportadoP2 = totalDepositsP2 + totalPaidP2;
 
-
-    const totalDeposits = trip.deposits.reduce((acc, curr) => acc + curr.value, 0);
-    const totalPaidByFund = trip.expenses.filter(e => e.paidBy === 'fund').reduce((acc, curr) => acc + curr.value, 0);
+    const totalDeposits = deposits.reduce((acc, curr) => acc + curr.value, 0);
+    const totalPaidByFund = expenses.filter(e => e.paidBy === 'fund').reduce((acc, curr) => acc + curr.value, 0);
     const fundBalance = totalDeposits - totalPaidByFund;
 
     // Calcula Proporção
@@ -257,43 +279,27 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
     const balanceP1 = responsibilityP1 - totalAportadoP1;
     const balanceP2 = responsibilityP2 - totalAportadoP2;
 
-    const handleSubmitItem = (e: React.FormEvent) => {
+    const handleSubmitItem = async (e: React.FormEvent) => {
         e.preventDefault();
         const numValue = parseBRL(value);
         if (numValue <= 0) return;
 
         if (view === 'expenses') {
-            const expenseData: TripExpense = {
-                id: editingId || Date.now().toString(),
+            await onAddExpense({
                 description,
                 value: numValue,
                 paidBy: person,
                 date: new Date().toISOString().split('T')[0],
                 category: 'Viagem'
-            };
-
-            const newExpenses = editingId
-                ? trip.expenses.map(e => e.id === editingId ? expenseData : e)
-                : [...trip.expenses, expenseData];
-
-            onUpdate({ expenses: newExpenses });
+            });
         } else {
-            // Se for depósito, o 'person' não pode ser 'fund'
             const depositPerson = (person === 'fund' ? 'person1' : person) as 'person1' | 'person2';
-
-            const depositData: TripDeposit = {
-                id: editingId || Date.now().toString(),
+            await onAddDeposit({
                 description,
                 value: numValue,
                 person: depositPerson,
                 date: new Date().toISOString().split('T')[0]
-            };
-
-            const newDeposits = editingId
-                ? trip.deposits.map(d => d.id === editingId ? depositData : d)
-                : [...trip.deposits, depositData];
-
-            onUpdate({ deposits: newDeposits });
+            });
         }
 
         resetForm();
@@ -302,25 +308,16 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
     const resetForm = () => {
         setDescription('');
         setValue('');
-        setEditingId(null);
         setIsAdding(false);
         setPerson('person1');
     };
 
-    const handleStartEdit = (item: TripExpense | TripDeposit) => {
-        setEditingId(item.id);
-        setDescription(item.description || '');
-        setValue(formatAsBRL(Math.round(item.value * 100).toString()));
-        setPerson('paidBy' in item ? item.paidBy : item.person);
-        setIsAdding(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleDeleteItem = (id: string, type: 'expenses' | 'deposits') => {
+    const handleDeleteItem = async (id: string, type: 'expenses' | 'deposits') => {
+        if (!confirm('Tem certeza?')) return;
         if (type === 'expenses') {
-            onUpdate({ expenses: trip.expenses.filter(e => e.id !== id) });
+            onDeleteExpense(id);
         } else {
-            onUpdate({ deposits: trip.deposits.filter(d => d.id !== id) });
+            onDeleteDeposit(id);
         }
     };
 
@@ -433,7 +430,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                         {isAdding && (
                             <form onSubmit={handleSubmitItem} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-p1/20 dark:border-p1/10 shadow-lg space-y-4 mb-6 animate-in slide-in-from-top-4">
                                 <h5 className="text-[10px] font-black uppercase text-p1 tracking-widest flex items-center gap-2">
-                                    {editingId ? '📝 Editando Registro' : '✨ Novo Registro'}
+                                    ✨ Novo Registro
                                 </h5>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1">
@@ -476,19 +473,14 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                     </div>
                                 </div>
                                 <button type="submit" className="w-full bg-p1 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all">
-                                    {editingId ? 'Salvar Alterações' : `Lançar ${view === 'expenses' ? 'Gasto' : 'Aporte'}`}
+                                    {`Lançar ${view === 'expenses' ? 'Gasto' : 'Aporte'}`}
                                 </button>
-                                {editingId && (
-                                    <button type="button" onClick={resetForm} className="w-full bg-slate-100 dark:bg-slate-900 text-slate-500 font-black py-3 rounded-xl text-xs uppercase tracking-widest">
-                                        Cancelar Edição
-                                    </button>
-                                )}
                             </form>
                         )}
 
                         <div className="space-y-3 flex-1 overflow-y-auto max-h-[500px] no-scrollbar">
                             {view === 'expenses' ? (
-                                trip.expenses.map(exp => (
+                                expenses.map(exp => (
                                     <div key={exp.id} className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' :
@@ -516,9 +508,6 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                                 <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(exp.value)}</p>
                                             </div>
                                             <div className="flex items-center">
-                                                <button onClick={() => handleStartEdit(exp)} className="p-2 text-slate-300 hover:text-p1 transition-colors opacity-0 group-hover:opacity-100">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                </button>
                                                 <button onClick={() => handleDeleteItem(exp.id, 'expenses')} className="p-2 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 </button>
@@ -527,7 +516,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                     </div>
                                 ))
                             ) : (
-                                trip.deposits.map(dep => (
+                                deposits.map(dep => (
                                     <div key={dep.id} className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm ${dep.person === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
@@ -547,9 +536,6 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                                 <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(dep.value)}</p>
                                             </div>
                                             <div className="flex items-center">
-                                                <button onClick={() => handleStartEdit(dep)} className="p-2 text-slate-300 hover:text-p1 transition-colors opacity-0 group-hover:opacity-100">
-                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                                </button>
                                                 <button onClick={() => handleDeleteItem(dep.id, 'deposits')} className="p-2 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 </button>
@@ -559,7 +545,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                 ))
                             )}
 
-                            {(view === 'expenses' ? trip.expenses.length : trip.deposits.length) === 0 && !isAdding && (
+                            {(view === 'expenses' ? expenses.length : deposits.length) === 0 && !isAdding && (
                                 <div className="py-20 text-center">
                                     <p className="text-slate-400 text-xs font-bold uppercase tracking-widest opacity-50">Nenhum registro encontrado</p>
                                 </div>

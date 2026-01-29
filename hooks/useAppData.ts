@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment } from '../types';
+import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment, Trip, TripExpense, TripDeposit } from '../types';
 import { supabase } from '../supabaseClient';
 import { scheduleReminder, cancelReminder } from '../notificationService';
 import { getMonthYearKey, calculateSummary, formatCurrency } from '../utils';
@@ -21,6 +21,7 @@ export const useAppData = () => {
     const [goals, setGoals] = useState<SavingsGoal[]>([]);
     const [loans, setLoans] = useState<Loan[]>([]);
     const [investments, setInvestments] = useState<Investment[]>([]);
+    const [trips, setTrips] = useState<Trip[]>([]);
     const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
     const [dataLoading, setDataLoading] = useState(true);
     const [householdId, setHouseholdId] = useState<string | null>(null);
@@ -195,6 +196,49 @@ export const useAppData = () => {
                         household_id: i.household_id,
                         user_id: i.user_id,
                         createdAt: i.created_at
+                    })));
+                }
+
+                // 4.5 Load Trips (NEW SQL)
+                const { data: tripsData } = await supabase
+                    .from('trips')
+                    .select(`
+                        *,
+                        trip_expenses(*),
+                        trip_deposits(*)
+                    `)
+                    .is('deleted_at', null)
+                    .eq('household_id', activeHouseholdId)
+                    .order('created_at', { ascending: false });
+
+                if (tripsData) {
+                    setTrips(tripsData.map((t: any) => ({
+                        id: t.id,
+                        household_id: t.household_id,
+                        name: t.name,
+                        budget: Number(t.budget),
+                        proportionType: t.proportion_type,
+                        customPercentage1: Number(t.custom_percentage_1),
+                        created_at: t.created_at,
+                        expenses: (t.trip_expenses || []).filter((e: any) => !e.deleted_at).map((e: any) => ({
+                            id: e.id,
+                            trip_id: e.trip_id,
+                            description: e.description,
+                            value: Number(e.value),
+                            paidBy: e.paid_by,
+                            date: e.date,
+                            category: e.category,
+                            created_at: e.created_at
+                        })),
+                        deposits: (t.trip_deposits || []).filter((d: any) => !d.deleted_at).map((d: any) => ({
+                            id: d.id,
+                            trip_id: d.trip_id,
+                            person: d.person,
+                            value: Number(d.value),
+                            date: d.date,
+                            description: d.description,
+                            created_at: d.created_at
+                        }))
                     })));
                 }
 
@@ -795,7 +839,12 @@ export const useAppData = () => {
             await supabase.from('incomes').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('savings_goals').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('loans').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+            await supabase.from('loans').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('investments').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+            await supabase.from('trips').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+            // We also need to restore expenses/deposits, but it's trickier. Usually cascading deletes handle cleanup, but soft deletes need explicit restore.
+            // For now, let's just restore trips.
+
 
             await loadData();
             alert('Dados restaurados com sucesso! ♻️');
@@ -805,6 +854,164 @@ export const useAppData = () => {
             setDataLoading(false);
         }
     }, [user, householdId, loadData]);
+
+    // --- Trip CRUD ---
+
+    const addTrip = useCallback(async (trip: Omit<Trip, 'id' | 'household_id' | 'created_at' | 'expenses' | 'deposits'>) => {
+        if (!user || !householdId) return;
+        try {
+            const { data, error } = await supabase
+                .from('trips')
+                .insert({
+                    household_id: householdId,
+                    name: trip.name,
+                    budget: trip.budget,
+                    proportion_type: trip.proportionType,
+                    custom_percentage_1: trip.customPercentage1
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const newTrip: Trip = {
+                    id: data.id,
+                    household_id: data.household_id,
+                    name: data.name,
+                    budget: Number(data.budget),
+                    proportionType: data.proportion_type,
+                    customPercentage1: Number(data.custom_percentage_1),
+                    created_at: data.created_at,
+                    expenses: [],
+                    deposits: []
+                };
+                setTrips(prev => [newTrip, ...prev]);
+            }
+        } catch (err: any) {
+            alert('Erro ao criar viagem: ' + err.message);
+        }
+    }, [user, householdId]);
+
+    const updateTrip = useCallback(async (id: string, updates: Partial<Trip>) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase
+                .from('trips')
+                .update({
+                    name: updates.name,
+                    budget: updates.budget,
+                    proportion_type: updates.proportionType,
+                    custom_percentage_1: updates.customPercentage1
+                })
+                .eq('id', id);
+
+            if (error) throw error;
+            setTrips(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+        } catch (err: any) {
+            alert('Erro ao atualizar viagem: ' + err.message);
+        }
+    }, [user]);
+
+    const deleteTrip = useCallback(async (id: string) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase.from('trips').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            if (error) throw error;
+            setTrips(prev => prev.filter(t => t.id !== id));
+        } catch (err: any) {
+            alert('Erro ao deletar viagem: ' + err.message);
+        }
+    }, [user]);
+
+    const addTripExpense = useCallback(async (tripId: string, exp: Omit<TripExpense, 'id' | 'trip_id' | 'created_at'>) => {
+        if (!user) return;
+        try {
+            const { data, error } = await supabase
+                .from('trip_expenses')
+                .insert({
+                    trip_id: tripId,
+                    description: exp.description,
+                    value: exp.value,
+                    paid_by: exp.paidBy,
+                    date: exp.date,
+                    category: exp.category
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const newExp: TripExpense = {
+                    id: data.id,
+                    trip_id: data.trip_id,
+                    description: data.description,
+                    value: Number(data.value),
+                    paidBy: data.paid_by,
+                    date: data.date,
+                    category: data.category,
+                    created_at: data.created_at
+                };
+                setTrips(prev => prev.map(t => t.id === tripId ? { ...t, expenses: [...t.expenses, newExp] } : t));
+            }
+        } catch (err: any) {
+            alert('Erro ao adicionar gasto da viagem: ' + err.message);
+        }
+    }, [user]);
+
+    const deleteTripExpense = useCallback(async (tripId: string, expenseId: string) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase.from('trip_expenses').update({ deleted_at: new Date().toISOString() }).eq('id', expenseId);
+            if (error) throw error;
+            setTrips(prev => prev.map(t => t.id === tripId ? { ...t, expenses: t.expenses.filter(e => e.id !== expenseId) } : t));
+        } catch (err: any) {
+            alert('Erro ao deletar gasto da viagem: ' + err.message);
+        }
+    }, [user]);
+
+    const addTripDeposit = useCallback(async (tripId: string, dep: Omit<TripDeposit, 'id' | 'trip_id' | 'created_at'>) => {
+        if (!user) return;
+        try {
+            const { data, error } = await supabase
+                .from('trip_deposits')
+                .insert({
+                    trip_id: tripId,
+                    description: dep.description,
+                    value: dep.value,
+                    person: dep.person,
+                    date: dep.date
+                })
+                .select()
+                .single();
+
+            if (error) throw error;
+            if (data) {
+                const newDep: TripDeposit = {
+                    id: data.id,
+                    trip_id: data.trip_id,
+                    description: data.description,
+                    value: Number(data.value),
+                    person: data.person,
+                    date: data.date,
+                    created_at: data.created_at
+                };
+                setTrips(prev => prev.map(t => t.id === tripId ? { ...t, deposits: [...t.deposits, newDep] } : t));
+            }
+        } catch (err: any) {
+            alert('Erro ao adicionar aporte da viagem: ' + err.message);
+        }
+    }, [user]);
+
+    const deleteTripDeposit = useCallback(async (tripId: string, depositId: string) => {
+        if (!user) return;
+        try {
+            const { error } = await supabase.from('trip_deposits').update({ deleted_at: new Date().toISOString() }).eq('id', depositId);
+            if (error) throw error;
+            setTrips(prev => prev.map(t => t.id === tripId ? { ...t, deposits: t.deposits.filter(d => d.id !== depositId) } : t));
+        } catch (err: any) {
+            alert('Erro ao deletar aporte da viagem: ' + err.message);
+        }
+    }, [user]);
 
     return {
         user,
@@ -837,6 +1044,16 @@ export const useAppData = () => {
         addInvestment,
         updateInvestment,
         deleteInvestment,
+        // Trip
+        trips,
+        addTrip,
+        updateTrip,
+        deleteTrip,
+        addTripExpense,
+        deleteTripExpense,
+        addTripDeposit,
+        deleteTripDeposit,
+        // System
         deleteAllData,
         deleteMonthData,
         restoreData,

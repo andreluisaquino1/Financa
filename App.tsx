@@ -53,7 +53,16 @@ const AppContent: React.FC = () => {
     deleteAllData,
     deleteMonthData,
     restoreData,
-    signOut
+    signOut,
+    // Mods for Trips
+    trips,
+    addTrip,
+    updateTrip,
+    deleteTrip,
+    addTripExpense,
+    deleteTripExpense,
+    addTripDeposit,
+    deleteTripDeposit
   } = useAppData();
 
   // Aplicar Tema e Cores
@@ -328,7 +337,14 @@ const AppContent: React.FC = () => {
             {currentTab === 'trip' && (
               <TripManager
                 coupleInfo={coupleInfo}
-                onUpdateTrips={(newTrips) => saveCoupleInfo({ ...coupleInfo, trips: newTrips }, true)}
+                trips={trips}
+                onAddTrip={addTrip}
+                onUpdateTrip={updateTrip}
+                onDeleteTrip={deleteTrip}
+                onAddExpense={addTripExpense}
+                onDeleteExpense={deleteTripExpense}
+                onAddDeposit={addTripDeposit}
+                onDeleteDeposit={deleteTripDeposit}
               />
             )}
             {currentTab === 'investments' && (
