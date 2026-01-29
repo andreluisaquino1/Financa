@@ -642,15 +642,24 @@ const InvestmentTab: React.FC = () => {
                                                 if (data.results && data.results.length > 0) {
                                                     const quote = data.results[0].regularMarketPrice;
                                                     if (quote) {
-                                                        setPricePerUnit(formatAsBRL(quote.toString()));
-                                                        // If editing, also update current value based on qty
-                                                        const q = parseFloat(quantity.replace('.', '').replace(',', '.')) || 0;
-                                                        if (q > 0) {
-                                                            setCurrentValue(formatAsBRL((q * quote).toString()));
-                                                        }
+                                                        const q = Number(quantity) || 0; // Fix quantity parsing here too for consistency
 
-                                                        // If new entry and not editing, maybe update date? No, keep user date.
-                                                        alert(`Cotação encontrada: ${formatCurrency(quote)}`);
+                                                        if (editingId) {
+                                                            // Editing: Only update Current Value (Market Value), keep Purchase Price (Hist.)
+                                                            if (q > 0) {
+                                                                setCurrentValue(formatAsBRL((q * quote).toFixed(2)));
+                                                                alert(`Cotação encontrada: ${formatCurrency(quote)}. \n\nAtualizamos apenas o "Valor Atual" para refletir o mercado. O "Preço Unitário" (Custo) foi mantido.`);
+                                                            } else {
+                                                                alert(`Cotação encontrada: ${formatCurrency(quote)}. \n\nInsira uma quantidade para calcular o Valor Atual.`);
+                                                            }
+                                                        } else {
+                                                            // New Buy: Update Price (Cost) AND Current Value (Market)
+                                                            setPricePerUnit(formatAsBRL(quote.toString()));
+                                                            if (q > 0) {
+                                                                setCurrentValue(formatAsBRL((q * quote).toFixed(2)));
+                                                            }
+                                                            alert(`Cotação encontrada: ${formatCurrency(quote)}`);
+                                                        }
                                                     }
                                                 } else {
                                                     alert('Ativo não encontrado na B3/Cripto (Brapi). Verifique o ticker ou insira manualmente.');
@@ -697,7 +706,7 @@ const InvestmentTab: React.FC = () => {
                                 <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg flex justify-between items-center border border-slate-100 dark:border-white/5">
                                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total da Operação</span>
                                     <span className={`text-sm font-black ${modalMode === 'buy' ? 'text-emerald-600' : 'text-red-500'}`}>
-                                        {formatCurrency((parseFloat(quantity.replace('.', '').replace(',', '.')) || 0) * parseBRL(pricePerUnit))}
+                                        {formatCurrency((Number(quantity) || 0) * parseBRL(pricePerUnit))}
                                     </span>
                                 </div>
                             )}
@@ -712,7 +721,7 @@ const InvestmentTab: React.FC = () => {
                                         </label>
                                         <input
                                             type="text"
-                                            value={!editingId ? formatAsBRL(((parseFloat(quantity.replace('.', '').replace(',', '.')) || 0) * parseBRL(pricePerUnit)).toString()) : investedValue}
+                                            value={!editingId ? formatAsBRL(((Number(quantity) || 0) * parseBRL(pricePerUnit)).toFixed(2)) : investedValue}
                                             onChange={e => setInvestedValue(formatAsBRL(e.target.value))}
                                             readOnly={!editingId}
                                             className={`w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-sm font-medium outline-none dark:text-slate-100 ${!editingId ? 'cursor-not-allowed text-slate-500' : 'bg-white dark:bg-slate-900 focus:ring-2 focus:ring-p1'}`}
@@ -725,7 +734,7 @@ const InvestmentTab: React.FC = () => {
                                         </label>
                                         <input
                                             type="text"
-                                            value={!editingId ? formatAsBRL(((parseFloat(quantity.replace('.', '').replace(',', '.')) || 0) * parseBRL(pricePerUnit)).toString()) : currentValue}
+                                            value={!editingId ? formatAsBRL(((Number(quantity) || 0) * parseBRL(pricePerUnit)).toFixed(2)) : currentValue}
                                             onChange={e => setCurrentValue(formatAsBRL(e.target.value))}
                                             // New logic: Check if we are editing. If yes, this is editable. If adding new, it mirrors cost but is also editable? 
                                             // Let's make it editable ALWAYS, but default to cost on new.
