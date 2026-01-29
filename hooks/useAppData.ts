@@ -105,7 +105,7 @@ export const useAppData = () => {
                         category: e.category,
                         description: e.description,
                         totalValue: Number(e.total_value),
-                        installments: e.installments,
+                        installments: Number(e.installments || 1),
                         paidBy: e.paid_by as 'person1' | 'person2',
                         createdAt: e.created_at,
                         metadata: e.metadata,
@@ -114,7 +114,7 @@ export const useAppData = () => {
                         splitPercentage1: e.metadata?.splitPercentage1,
                         specificValueP1: e.metadata?.specificValueP1,
                         specificValueP2: e.metadata?.specificValueP2,
-                        reminderDay: e.reminder_day
+                        reminderDay: e.reminder_day ? Number(e.reminder_day) : undefined
                     })));
                 }
 
@@ -275,14 +275,16 @@ export const useAppData = () => {
                     category: data.category,
                     description: data.description,
                     totalValue: Number(data.total_value),
-                    installments: data.installments,
+                    installments: Number(data.installments || 1),
                     paidBy: data.paid_by as 'person1' | 'person2',
                     createdAt: data.created_at,
                     metadata: data.metadata,
                     household_id: data.household_id,
                     splitMethod: data.split_method as 'proportional' | 'custom',
                     splitPercentage1: data.metadata?.splitPercentage1,
-                    reminderDay: data.reminder_day
+                    specificValueP1: data.metadata?.specificValueP1,
+                    specificValueP2: data.metadata?.specificValueP2,
+                    reminderDay: data.reminder_day ? Number(data.reminder_day) : undefined
                 };
 
                 setExpenses(prev => prev.map(e => e.id === tempId ? newExp : e));
@@ -328,7 +330,7 @@ export const useAppData = () => {
                     category: data.category,
                     description: data.description,
                     totalValue: Number(data.total_value),
-                    installments: data.installments,
+                    installments: Number(data.installments || 1),
                     paidBy: data.paid_by as 'person1' | 'person2',
                     createdAt: data.created_at,
                     metadata: data.metadata,
@@ -337,7 +339,7 @@ export const useAppData = () => {
                     splitPercentage1: data.metadata?.splitPercentage1,
                     specificValueP1: data.metadata?.specificValueP1,
                     specificValueP2: data.metadata?.specificValueP2,
-                    reminderDay: data.reminder_day
+                    reminderDay: data.reminder_day ? Number(data.reminder_day) : undefined
                 };
                 setExpenses(prev => prev.map(e => e.id === id ? updatedExp : e));
             }
