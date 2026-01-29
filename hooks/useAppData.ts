@@ -711,6 +711,8 @@ export const useAppData = () => {
                     type: inv.type,
                     current_value: inv.current_value,
                     invested_value: inv.invested_value,
+                    quantity: inv.quantity || 0,
+                    price_per_unit: inv.price_per_unit || 0,
                     owner: inv.owner
                 })
                 .select()
@@ -721,7 +723,9 @@ export const useAppData = () => {
                 const newInv: Investment = {
                     ...data,
                     current_value: Number(data.current_value),
-                    invested_value: Number(data.invested_value)
+                    invested_value: Number(data.invested_value),
+                    quantity: Number(data.quantity || 0),
+                    price_per_unit: Number(data.price_per_unit || 0)
                 };
                 setInvestments(prev => [newInv, ...prev]);
             }
@@ -740,6 +744,8 @@ export const useAppData = () => {
                     type: updates.type,
                     current_value: updates.current_value,
                     invested_value: updates.invested_value,
+                    quantity: updates.quantity,
+                    price_per_unit: updates.price_per_unit,
                     owner: updates.owner,
                     updated_at: new Date().toISOString()
                 })
@@ -752,7 +758,9 @@ export const useAppData = () => {
                 const updatedInv: Investment = {
                     ...data,
                     current_value: Number(data.current_value),
-                    invested_value: Number(data.invested_value)
+                    invested_value: Number(data.invested_value),
+                    quantity: Number(data.quantity || 0),
+                    price_per_unit: Number(data.price_per_unit || 0)
                 };
                 setInvestments(prev => prev.map(i => i.id === id ? updatedInv : i));
             }

@@ -201,6 +201,8 @@ export interface Investment {
   type: 'fixed_income' | 'variable_income' | 'crypto' | 'funds' | 'real_estate' | 'custom';
   current_value: number;
   invested_value: number;
+  quantity?: number;
+  price_per_unit?: number;
   owner: 'person1' | 'person2' | 'couple';
   created_at: string;
   updated_at?: string;

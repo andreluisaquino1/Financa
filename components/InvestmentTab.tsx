@@ -28,6 +28,8 @@ const InvestmentTab: React.FC = () => {
     const [investedValue, setInvestedValue] = useState(''); // "Preço Médio" or "Custo"
     const [owner, setOwner] = useState<'person1' | 'person2' | 'couple'>('couple');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [quantity, setQuantity] = useState('');
+    const [pricePerUnit, setPricePerUnit] = useState('');
 
     // Calculator State
     const [calcInitial, setCalcInitial] = useState<number>(1000);
@@ -128,31 +130,127 @@ const InvestmentTab: React.FC = () => {
         setType(inv.type);
         setInvestedValue(formatAsBRL((inv.invested_value * 100).toString()));
         setCurrentValue(formatAsBRL((inv.current_value * 100).toString()));
+        setQuantity(inv.quantity?.toString() || '');
+        setPricePerUnit(inv.price_per_unit ? formatAsBRL((inv.price_per_unit * 100).toString()) : '');
         setOwner(inv.owner);
         setIsModalOpen(true);
-        setModalMode('buy'); // Edit is like a buy/adjust
+        setModalMode('buy'); // Edit is usually adjusting details
     };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        const cVal = parseBRL(currentValue);
-        const iVal = parseBRL(investedValue);
+
+        const qty = parseFloat(quantity.replace('.', '').replace(',', '.')) || 0;
+        const ppu = parseBRL(pricePerUnit); // Unit Price
+
+        // Manual override or auto-calc total
+        // If Buying: Invested = Qty * Price
+        // If Selling: We need to know which asset we are selling from (editingId must be null for new sales usually, but here we might prefer selecting an asset first)
+
+        // Let's refine the flow: 
+        // 1. If Editing (editingId exists): Just updating the record directly.
+        // 2. If Buy (New):
+        //    - Check if asset with same Ticker/Name exists? (For now, just add new entry or simple 'Add' mode)
+        //    - Ideally: User selects "Buy" -> Fills Name, Qty, Price. 
+        //    - System checks if matches existing name. If so, updates it with Weighted Avg. IF NOT, creates new.
+        //    - For simplicity in this step: We will stick to "Row Based" management but add the calculation logic here.
+
+        // To implement "Weighted Average on Buy" properly without a strict "Portfolio" structure:
+        // We will loop through investments to find a match by Name & Type & Owner? 
+        // Or simpler: Just save what the user typed. The user asked for "When I buy same asset, calculate avg price".
+        // This implies we need to SEARCH for the asset.
 
         if (!name) return;
 
-        const payload: any = {
-            name,
-            type,
-            current_value: cVal,
-            invested_value: iVal,
-            owner
-        };
+        // Find existing asset to merge if not editing specific ID
+        const existingAsset = !editingId ? investments.find(i => i.name.toLowerCase() === name.toLowerCase() && i.owner === owner && i.type === type) : null;
 
-        if (editingId) {
-            await updateInvestment(editingId, payload);
+        if (modalMode === 'buy') {
+            const newTotalInvested = qty * ppu;
+
+            if (existingAsset) {
+                // MERGE BUY: Weighted Average Logic
+                const oldQty = existingAsset.quantity || 0;
+                const oldInvested = existingAsset.invested_value;
+
+                const totalQty = oldQty + qty;
+                const totalInvested = oldInvested + newTotalInvested;
+                const avgPrice = totalQty > 0 ? totalInvested / totalQty : 0; // New Weighted Avg Price
+
+                // Current Value also updates: Old Current + New Buy Current (approx same as invested for new buy)
+                const totalCurrent = existingAsset.current_value + newTotalInvested;
+
+                await updateInvestment(existingAsset.id, {
+                    invested_value: totalInvested,
+                    quantity: totalQty,
+                    price_per_unit: avgPrice,
+                    current_value: totalCurrent
+                });
+            } else if (editingId) {
+                // EDIT EXISTING
+                await updateInvestment(editingId, {
+                    name, type, owner,
+                    invested_value: newTotalInvested, // Recalculate based on input
+                    quantity: qty,
+                    price_per_unit: ppu,
+                    current_value: parseBRL(currentValue) // Allow manual diff for current value
+                });
+            } else {
+                // NEW ASSET
+                await addInvestment({
+                    name, type, owner,
+                    invested_value: newTotalInvested,
+                    quantity: qty,
+                    price_per_unit: ppu,
+                    current_value: newTotalInvested // Start equal to cost
+                });
+            }
         } else {
-            await addInvestment(payload);
+            // SELL MODE
+            // Must have a selected asset to sell from. 
+            // If editingId is null, user must have picked an asset? 
+            // For now, let's assume Sell Mode is activated via the "List Item" or user types name exactly.
+            // Better UX: Forced selection for Sell. 
+
+            // Assuming simple flow: User opens modal, types name. (Hard to match)
+            // Let's rely on 'existingAsset' match by name.
+
+            const targetAsset = editingId ? investments.find(i => i.id === editingId) : existingAsset;
+
+            if (!targetAsset) {
+                alert('Ativo não encontrado para venda. Verifique o nome ou inicie a venda clicando no ícone do ativo na lista.');
+                return;
+            }
+
+            if (qty > (targetAsset.quantity || 0)) {
+                alert('Quantidade insuficiente para venda.');
+                return;
+            }
+
+            const saleTotal = qty * ppu; // Sale Price * Qty Sold
+
+            // Profit Calculation
+            // profit = (Sale Price - Avg Price) * Qty Sold
+            const avgPrice = targetAsset.price_per_unit || 0;
+            const profit = (ppu - avgPrice) * qty;
+
+            const remainingQty = (targetAsset.quantity || 0) - qty;
+            const remainingInvested = remainingQty * avgPrice; // Invested Value reduces proportionally
+            // Current Value? We should probably fetch real time quote, but here we just reduce proportionally too?
+            // Or easier: Current Value = Old Current - (Old Current / Old Qty * Qty Sold)
+            const oldCurrentPrice = (targetAsset.quantity || 0) > 0 ? targetAsset.current_value / targetAsset.quantity! : 0;
+            const remainingCurrent = targetAsset.current_value - (oldCurrentPrice * qty);
+
+            await updateInvestment(targetAsset.id, {
+                quantity: remainingQty,
+                invested_value: remainingInvested,
+                current_value: remainingCurrent,
+                // price_per_unit (Avg Price) DOES NOT CHANGE on sell
+            });
+
+            alert(`Venda realizada! Lucro/Prejuízo: ${formatCurrency(profit)}`);
         }
+
         closeModal();
     };
 
@@ -162,7 +260,10 @@ const InvestmentTab: React.FC = () => {
         setName('');
         setCurrentValue('');
         setInvestedValue('');
+        setQuantity('');
+        setPricePerUnit('');
         setType('variable_income');
+        setModalMode('buy');
     };
 
     return (
@@ -322,7 +423,9 @@ const InvestmentTab: React.FC = () => {
                                                         <div>
                                                             <div className="font-bold text-slate-700 dark:text-slate-200 text-xs text-left">{item.name}</div>
                                                             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex gap-2">
-                                                                <span>Custo: {formatCurrency(item.invested_value)}</span>
+                                                                <span>Qtd: {item.quantity || 0}</span>
+                                                                <span className="text-slate-300">•</span>
+                                                                <span>PM: {formatCurrency(item.price_per_unit || 0)}</span>
                                                                 <span className="text-slate-300">•</span>
                                                                 <span>{item.owner === 'couple' ? 'Casal' : item.owner === 'person1' ? coupleInfo.person1Name.split(' ')[0] : coupleInfo.person2Name.split(' ')[0]}</span>
                                                             </div>
@@ -471,10 +574,18 @@ const InvestmentTab: React.FC = () => {
 
                         {/* Fake Tabs for visual fidelity */}
                         <div className="flex border-b border-slate-100 dark:border-white/5">
-                            <button className="flex-1 py-3 text-sm font-bold text-emerald-600 border-b-2 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10 dark:text-emerald-400">
+                            <button
+                                type="button"
+                                onClick={() => setModalMode('buy')}
+                                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${modalMode === 'buy' ? 'text-emerald-600 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10 dark:text-emerald-400' : 'text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            >
                                 Compra / Aporte
                             </button>
-                            <button className="flex-1 py-3 text-sm font-bold text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                            <button
+                                type="button"
+                                onClick={() => setModalMode('sell')}
+                                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${modalMode === 'sell' ? 'text-red-600 border-red-500 bg-red-50/50 dark:bg-red-500/10 dark:text-red-400' : 'text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                            >
                                 Venda / Resgate
                             </button>
                         </div>
@@ -515,22 +626,51 @@ const InvestmentTab: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Valor Investido (Custo)</label>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Quantidade {modalMode === 'sell' ? 'a Vender' : ''}</label>
                                     <input
-                                        type="text" value={investedValue} onChange={e => setInvestedValue(formatAsBRL(e.target.value))}
-                                        placeholder="R$ 0,00"
+                                        type="number" step="0.01" value={quantity} onChange={e => setQuantity(e.target.value)}
+                                        placeholder="0"
                                         className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-p1 outline-none dark:text-slate-100"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Valor Atual</label>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Preço Unitário {modalMode === 'sell' ? '(Venda)' : ''}</label>
                                     <input
-                                        type="text" value={currentValue} onChange={e => setCurrentValue(formatAsBRL(e.target.value))}
+                                        type="text" value={pricePerUnit} onChange={e => setPricePerUnit(formatAsBRL(e.target.value))}
                                         placeholder="R$ 0,00"
                                         className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-p1 outline-none dark:text-slate-100"
                                     />
                                 </div>
                             </div>
+
+                            {/* Total Auto Calc Display */}
+                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg flex justify-between items-center border border-slate-100 dark:border-white/5">
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total da Operação</span>
+                                <span className={`text-sm font-black ${modalMode === 'buy' ? 'text-emerald-600' : 'text-red-500'}`}>
+                                    {formatCurrency((parseFloat(quantity.replace(',', '.')) || 0) * parseBRL(pricePerUnit))}
+                                </span>
+                            </div>
+
+                            {modalMode === 'buy' && (
+                                <div className="grid grid-cols-2 gap-4 opacity-50 pointer-events-none grayscale">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Valor Investido (Total)</label>
+                                        <input
+                                            type="text" value={investedValue} readOnly
+                                            placeholder="Calculado..."
+                                            className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-sm font-medium outline-none dark:text-slate-100"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Valor Atual (Total)</label>
+                                        <input
+                                            type="text" value={currentValue} onChange={e => setCurrentValue(formatAsBRL(e.target.value))}
+                                            placeholder="Igual ao investido"
+                                            className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-p1 outline-none dark:text-slate-100"
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="space-y-1.5">
                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Pertence a</label>
