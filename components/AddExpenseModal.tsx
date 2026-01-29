@@ -282,8 +282,25 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 )}
                             </div>
                         </div>
+                        {/* 4. Parcelas */}
+                        {!(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Número de Parcelas</label>
+                                <div className="relative">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">#</span>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        value={installments || ''}
+                                        onChange={e => setInstallments(e.target.value)}
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                        placeholder="1x"
+                                    />
+                                </div>
+                            </div>
+                        )}
 
-                        {/* 4. Categoria */}
+                        {/* 5. Categoria */}
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Categoria</label>
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -322,25 +339,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                             </div>
                         </div>
 
-                        {/* 5. Parcelas */}
-                        {!(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Número de Parcelas</label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">#</span>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={installments || ''}
-                                        onChange={e => setInstallments(e.target.value)}
-                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
-                                        placeholder="1x"
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 5. Quem pagou / Detalhes de Divisão (apenas se for conjunto) */}
+                        {/* 6. Quem pagou / Detalhes de Divisão (apenas se for conjunto) */}
                         {isJoint && (
                             <div className="bg-slate-50 dark:bg-slate-950/40 p-6 rounded-[2rem] border border-slate-200 dark:border-white/5 space-y-6">
                                 <div className="space-y-3">
