@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Trip, TripDeposit, TripExpense, CoupleInfo } from '../types';
 import { formatCurrency, formatAsBRL, parseBRL } from '../utils';
 
@@ -98,10 +99,10 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
                 <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
             </div>
 
-            {isAddingTrip && (
+            {isAddingTrip && createPortal(
                 <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAddingTrip(false)} />
-                    <div className="relative bg-white dark:bg-slate-800 w-full max-w-xl rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                    <div className="relative bg-white dark:bg-slate-800 w-full max-w-xl rounded-[2rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5 max-h-[90vh] overflow-y-auto no-scrollbar">
                         <div className="mb-8">
                             <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">🎒 Planejar Nova Viagem</h3>
                             <p className="text-slate-500 font-bold text-sm">Organize as finanças da sua próxima aventura</p>
@@ -156,7 +157,8 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -231,6 +233,11 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
 
     const totalAportadoP1 = totalDepositsP1 + totalPaidP1;
     const totalAportadoP2 = totalDepositsP2 + totalPaidP2;
+
+
+    const totalDeposits = trip.deposits.reduce((acc, curr) => acc + curr.value, 0);
+    const totalPaidByFund = trip.expenses.filter(e => e.paidBy === 'fund').reduce((acc, curr) => acc + curr.value, 0);
+    const fundBalance = totalDeposits - totalPaidByFund;
 
     // Calcula Proporção
     let p1Percent = 50;
@@ -437,17 +444,35 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                         <label className="text-[10px] font-black text-slate-400 uppercase px-1">Valor</label>
                                         <input type="text" inputMode="decimal" value={value} onChange={e => setValue(formatAsBRL(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" placeholder="R$ 0,00" required />
                                     </div>
-                                    <div className="sm:col-span-2 space-y-1">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase px-1">
-                                            {view === 'expenses' ? 'Quem pagou?' : 'Quem depositou?'}
-                                        </label>
-                                        <div className="flex gap-2">
-                                            <button type="button" onClick={() => setPerson('person1')} className={`flex-1 py-3 rounded-xl font-bold text-[10px] uppercase transition-all ${person === 'person1' ? 'bg-p1 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{coupleInfo.person1Name.split(' ')[0]}</button>
-                                            <button type="button" onClick={() => setPerson('person2')} className={`flex-1 py-3 rounded-xl font-bold text-[10px] uppercase transition-all ${person === 'person2' ? 'bg-p2 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>{coupleInfo.person2Name.split(' ')[0]}</button>
+                                    <div className="sm:col-span-2 space-y-2">
+                                        <div className="flex justify-between items-center px-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase">
+                                                {view === 'expenses' ? 'Quem pagou?' : 'Quem depositou?'}
+                                            </label>
                                             {view === 'expenses' && (
-                                                <button type="button" onClick={() => setPerson('fund')} className={`flex-1 py-3 rounded-xl font-bold text-[10px] uppercase transition-all ${person === 'fund' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>Fundo</button>
+                                                <span className="text-[9px] font-bold text-slate-400">
+                                                    Saldo da Caixinha: <span className={fundBalance >= 0 ? 'text-emerald-500' : 'text-red-500'}>{formatCurrency(fundBalance)}</span>
+                                                </span>
                                             )}
                                         </div>
+                                        <div className="flex gap-2 h-14">
+                                            <button type="button" onClick={() => setPerson('person1')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center ${person === 'person1' ? 'bg-p1 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
+                                                <span>{coupleInfo.person1Name.split(' ')[0]}</span>
+                                            </button>
+                                            <button type="button" onClick={() => setPerson('person2')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center ${person === 'person2' ? 'bg-p2 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
+                                                <span>{coupleInfo.person2Name.split(' ')[0]}</span>
+                                            </button>
+                                            {view === 'expenses' && (
+                                                <button type="button" onClick={() => setPerson('fund')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center gap-0.5 ${person === 'fund' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
+                                                    <span>Caixinha 📦</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                        {view === 'expenses' && person === 'fund' && (
+                                            <div className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-200 dark:border-white/5 leading-relaxed">
+                                                <span className="font-bold">ℹ️ Como funciona:</span> Está usando o dinheiro que vocês já depositaram anteriormente. Isso debitará do saldo da viagem (Caixinha) e não será cobrado de ninguém agora.
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <button type="submit" className="w-full bg-p1 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all">
@@ -480,7 +505,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-black uppercase tracking-widest mt-0.5">
                                                     {exp.paidBy === 'person1' ? coupleInfo.person1Name.split(' ')[0] :
                                                         exp.paidBy === 'person2' ? coupleInfo.person2Name.split(' ')[0] :
-                                                            'Fundo da Viagem'}
+                                                            'Caixinha da Viagem'}
                                                     <span className="opacity-30 mx-1.5">•</span>
                                                     {new Date(exp.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
                                                 </p>
