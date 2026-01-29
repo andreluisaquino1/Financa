@@ -579,18 +579,21 @@ const InvestmentTab: React.FC = () => {
                                 onClick={() => setModalMode('buy')}
                                 className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${modalMode === 'buy' ? 'text-emerald-600 border-emerald-500 bg-emerald-50/50 dark:bg-emerald-500/10 dark:text-emerald-400' : 'text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}
                             >
-                                Compra / Aporte
+                                {editingId ? 'Editar Detalhes' : 'Compra / Aporte'}
                             </button>
-                            <button
-                                type="button"
-                                onClick={() => setModalMode('sell')}
-                                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${modalMode === 'sell' ? 'text-red-600 border-red-500 bg-red-50/50 dark:bg-red-500/10 dark:text-red-400' : 'text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}
-                            >
-                                Venda / Resgate
-                            </button>
+                            {!editingId && (
+                                <button
+                                    type="button"
+                                    onClick={() => setModalMode('sell')}
+                                    className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${modalMode === 'sell' ? 'text-red-600 border-red-500 bg-red-50/50 dark:bg-red-500/10 dark:text-red-400' : 'text-slate-400 border-transparent hover:bg-slate-50 dark:hover:bg-white/5'}`}
+                                >
+                                    Venda / Resgate
+                                </button>
+                            )}
                         </div>
 
                         <form onSubmit={handleSave} className="p-6 space-y-5">
+                            {/* Top Row */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Tipo de Ativo</label>
@@ -615,26 +618,72 @@ const InvestmentTab: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="space-y-1.5">
+                            {/* Ticker / Search Row */}
+                            <div className="space-y-1.5 relative">
                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Nome do Ativo / Ticker</label>
-                                <input
-                                    type="text" value={name} onChange={e => setName(e.target.value)}
-                                    placeholder="Ex: PETR4, Tesouro Selic 2029..."
-                                    className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-p1 outline-none dark:text-slate-100"
-                                />
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text" value={name} onChange={e => setName(e.target.value.toUpperCase())}
+                                        placeholder="Ex: PETR4, BCFF11, BTC..."
+                                        className="flex-1 h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-p1 outline-none dark:text-slate-100 uppercase"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (!name) return alert('Digite um ticker para buscar.');
+                                            const btn = document.getElementById('btn-fetch-quote');
+                                            if (btn) btn.innerHTML = '⏳';
+
+                                            try {
+                                                // Using Brapi.dev public API
+                                                const res = await fetch(`https://brapi.dev/api/quote/${name}?range=1d&interval=1d&fundamental=false`);
+                                                const data = await res.json();
+
+                                                if (data.results && data.results.length > 0) {
+                                                    const quote = data.results[0].regularMarketPrice;
+                                                    if (quote) {
+                                                        setPricePerUnit(formatAsBRL(quote.toString()));
+                                                        // If editing, also update current value based on qty
+                                                        const q = parseFloat(quantity.replace('.', '').replace(',', '.')) || 0;
+                                                        if (q > 0) {
+                                                            setCurrentValue(formatAsBRL((q * quote).toString()));
+                                                        }
+
+                                                        // If new entry and not editing, maybe update date? No, keep user date.
+                                                        alert(`Cotação encontrada: ${formatCurrency(quote)}`);
+                                                    }
+                                                } else {
+                                                    alert('Ativo não encontrado na B3/Cripto (Brapi). Verifique o ticker ou insira manualmente.');
+                                                }
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert('Erro ao buscar cotação. Verifique sua conexão.');
+                                            } finally {
+                                                if (btn) btn.innerHTML = '🔄';
+                                            }
+                                        }}
+                                        id="btn-fetch-quote"
+                                        className="h-10 px-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 rounded-lg font-bold text-xs hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                        title="Buscar Cotação Atual (B3/Cripto)"
+                                    >
+                                        🔄
+                                    </button>
+                                </div>
+                                <p className="text-[10px] text-slate-400 pt-1">Dica: Use tickers como PETR4, VALE3, BTC-USD para busca automática.</p>
                             </div>
 
+                            {/* Qty & Price Row */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Quantidade {modalMode === 'sell' ? 'a Vender' : ''}</label>
                                     <input
-                                        type="number" step="0.01" value={quantity} onChange={e => setQuantity(e.target.value)}
+                                        type="number" step="0.00000001" value={quantity} onChange={e => setQuantity(e.target.value)}
                                         placeholder="0"
                                         className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-p1 outline-none dark:text-slate-100"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Preço Unitário {modalMode === 'sell' ? '(Venda)' : ''}</label>
+                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Preço Unitário {modalMode === 'sell' ? '(Venda)' : '(Médio/Atual)'}</label>
                                     <input
                                         type="text" value={pricePerUnit} onChange={e => setPricePerUnit(formatAsBRL(e.target.value))}
                                         placeholder="R$ 0,00"
@@ -643,29 +692,43 @@ const InvestmentTab: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Total Auto Calc Display */}
-                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg flex justify-between items-center border border-slate-100 dark:border-white/5">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total da Operação</span>
-                                <span className={`text-sm font-black ${modalMode === 'buy' ? 'text-emerald-600' : 'text-red-500'}`}>
-                                    {formatCurrency((parseFloat(quantity.replace(',', '.')) || 0) * parseBRL(pricePerUnit))}
-                                </span>
-                            </div>
+                            {/* Auto Calculation Info */}
+                            {!editingId && (
+                                <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg flex justify-between items-center border border-slate-100 dark:border-white/5">
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total da Operação</span>
+                                    <span className={`text-sm font-black ${modalMode === 'buy' ? 'text-emerald-600' : 'text-red-500'}`}>
+                                        {formatCurrency((parseFloat(quantity.replace('.', '').replace(',', '.')) || 0) * parseBRL(pricePerUnit))}
+                                    </span>
+                                </div>
+                            )}
 
+                            {/* Values Row (Unlocked for Edit) */}
                             {modalMode === 'buy' && (
-                                <div className="grid grid-cols-2 gap-4 opacity-50 pointer-events-none grayscale">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Valor Investido (Total)</label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className={`space-y-1.5 ${!editingId ? 'opacity-70' : ''}`}>
+                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                            Valor Investido (Custo)
+                                            {!editingId && <span className="text-[10px] font-normal ml-1 opacity-60">(Auto)</span>}
+                                        </label>
                                         <input
-                                            type="text" value={investedValue} readOnly
-                                            placeholder="Calculado..."
-                                            className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-sm font-medium outline-none dark:text-slate-100"
+                                            type="text"
+                                            value={!editingId ? formatAsBRL(((parseFloat(quantity.replace('.', '').replace(',', '.')) || 0) * parseBRL(pricePerUnit)).toString()) : investedValue}
+                                            onChange={e => setInvestedValue(formatAsBRL(e.target.value))}
+                                            readOnly={!editingId}
+                                            className={`w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-sm font-medium outline-none dark:text-slate-100 ${!editingId ? 'cursor-not-allowed text-slate-500' : 'bg-white dark:bg-slate-900 focus:ring-2 focus:ring-p1'}`}
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400">Valor Atual (Total)</label>
+                                        <label className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                                            Valor Atual (Total)
+                                            <span className="text-[10px] font-normal ml-1 text-emerald-500 cursor-help" title="Atualize este campo manualmente ou use o botão de cotação para refletir o valor de mercado atual hoje.">ⓘ</span>
+                                        </label>
                                         <input
-                                            type="text" value={currentValue} onChange={e => setCurrentValue(formatAsBRL(e.target.value))}
-                                            placeholder="Igual ao investido"
+                                            type="text"
+                                            value={!editingId ? formatAsBRL(((parseFloat(quantity.replace('.', '').replace(',', '.')) || 0) * parseBRL(pricePerUnit)).toString()) : currentValue}
+                                            onChange={e => setCurrentValue(formatAsBRL(e.target.value))}
+                                            // New logic: Check if we are editing. If yes, this is editable. If adding new, it mirrors cost but is also editable? 
+                                            // Let's make it editable ALWAYS, but default to cost on new.
                                             className="w-full h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium focus:ring-2 focus:ring-p1 outline-none dark:text-slate-100"
                                         />
                                     </div>
