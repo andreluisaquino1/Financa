@@ -265,8 +265,12 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         };
 
         // If we have initial withdrawals, we should also increment current_savings
-        goalData.current_savings_p1 = (goalData.current_savings_p1 || 0) + (goalData.initial_withdrawal_p1 || 0);
-        goalData.current_savings_p2 = (goalData.current_savings_p2 || 0) + (goalData.initial_withdrawal_p2 || 0);
+        // IMPORTANT: Only do this for NEW goals or if we explicitly want to add more.
+        // For edits, we usually don't want to re-add what was already withdrawn.
+        if (!editingId) {
+            goalData.current_savings_p1 = (goalData.current_savings_p1 || 0) + (goalData.initial_withdrawal_p1 || 0);
+            goalData.current_savings_p2 = (goalData.current_savings_p2 || 0) + (goalData.initial_withdrawal_p2 || 0);
+        }
 
         if (editingId) {
             onUpdateGoal(editingId, goalData);
@@ -316,8 +320,9 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         setInvestmentLocationP2(goal.investment_location_p2 || '');
         setSplitP1(goal.split_p1_percentage || 50);
         setSplitP2(goal.split_p2_percentage || 50);
-        setInitialWithdrawP1(formatAsBRL(Math.round((goal.initial_withdrawal_p1 || 0) * 100).toString()));
-        setInitialWithdrawP2(formatAsBRL(Math.round((goal.initial_withdrawal_p2 || 0) * 100).toString()));
+        // Reset initial withdraw fields when editing, as the previous withdraw is already in the current_savings balance
+        setInitialWithdrawP1('');
+        setInitialWithdrawP2('');
         setIsAdding(true);
     };
 
