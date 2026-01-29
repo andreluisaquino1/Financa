@@ -62,105 +62,147 @@ export const TripManager: React.FC<Props> = ({ coupleInfo, onUpdateTrips }) => {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-slate-100">Viagens</h2>
-                    <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Planeje e divida seus momentos</p>
+            {/* Header com Status e Botão principal */}
+            <div className="flex flex-col lg:row justify-between items-start lg:items-center gap-6 lg:gap-0 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+                <div className="z-10">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="flex h-3 w-3 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-400"></span>
+                        </span>
+                        <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            Viagens
+                        </h2>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm max-w-md">
+                        Planeje suas viagens, controle orçamentos e divida os gastos de forma justa
+                    </p>
                 </div>
-                <button
-                    onClick={() => setIsAddingTrip(!isAddingTrip)}
-                    className={`px-6 py-3 rounded-2xl font-black text-sm transition-all shadow-lg active:scale-95 ${isAddingTrip ? 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400' : 'bg-p1 text-white shadow-p1/20'}`}
-                >
-                    {isAddingTrip ? 'Cancelar' : '+ Nova Viagem'}
-                </button>
+
+                <div className="flex items-center gap-6 w-full lg:w-auto z-10">
+                    <div className="hidden sm:flex flex-col items-end pr-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Viagens Ativas</span>
+                        <span className="text-2xl font-black text-blue-500 tabular-nums tracking-tighter">{trips.length}</span>
+                    </div>
+
+                    <button
+                        onClick={() => setIsAddingTrip(!isAddingTrip)}
+                        className={`flex-1 lg:flex-none ${isAddingTrip ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-[1.5rem] font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
+                    >
+                        <span className="text-xl">✈️</span> {isAddingTrip ? 'Cancelar' : 'Nova Viagem'}
+                    </button>
+                </div>
+
+                {/* Efeitos visuais de fundo */}
+                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
             </div>
 
             {isAddingTrip && (
-                <form onSubmit={handleAddTrip} className="bg-white dark:bg-slate-800/60 p-6 rounded-3xl border border-slate-100 dark:border-white/5 shadow-md space-y-6 animate-in zoom-in-95 duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Nome da Viagem</label>
-                            <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Viagem para Gramado" className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-2xl px-5 py-4 outline-none transition-all font-bold dark:text-slate-100 placeholder:opacity-30" required />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Orçamento (Opcional)</label>
-                            <input type="text" inputMode="decimal" value={newBudget} onChange={e => setNewBudget(formatAsBRL(e.target.value))} placeholder="R$ 0,00" className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-2xl px-5 py-4 outline-none transition-all font-bold text-p1" />
-                        </div>
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Divisão da Viagem</label>
-                            <div className="flex gap-3 bg-slate-50 dark:bg-slate-950/40 p-1 rounded-2xl">
-                                {(['proportional', 'custom'] as const).map(type => (
-                                    <button
-                                        key={type}
-                                        type="button"
-                                        onClick={() => setNewProportion(type)}
-                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${newProportion === type ? 'bg-white dark:bg-slate-800 shadow-sm text-p1' : 'text-slate-400'}`}
-                                    >
-                                        {type === 'proportional' ? 'Proporcional' : 'Percentual %'}
-                                    </button>
-                                ))}
-                            </div>
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAddingTrip(false)} />
+                    <div className="relative bg-white dark:bg-slate-800 w-full max-w-xl rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                        <div className="mb-8">
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">🎒 Planejar Nova Viagem</h3>
+                            <p className="text-slate-500 font-bold text-sm">Organize as finanças da sua próxima aventura</p>
                         </div>
 
-                        {newProportion === 'custom' && (
-                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300 bg-slate-50 dark:bg-slate-950/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 md:col-span-2">
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase">
-                                    <span className="text-p1">{coupleInfo.person1Name.split(' ')[0]} {newCustomP1}%</span>
-                                    <span className="text-p2">{coupleInfo.person2Name.split(' ')[0]} {100 - newCustomP1}%</span>
+                        <form onSubmit={handleAddTrip} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Nome da Viagem</label>
+                                    <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Gramado 2024" className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all" required />
                                 </div>
-                                <input
-                                    type="range" min="0" max="100" value={newCustomP1}
-                                    onChange={(e) => setNewCustomP1(Number(e.target.value))}
-                                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-p1"
-                                />
-                                <div className="flex justify-center">
-                                    <button
-                                        type="button"
-                                        onClick={() => setNewCustomP1(50)}
-                                        className="text-[9px] font-black uppercase text-slate-400 hover:text-p1 transition-colors"
-                                    >
-                                        Zerar em 50/50
-                                    </button>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Orçamento Estimado</label>
+                                    <input type="text" inputMode="decimal" value={newBudget} onChange={e => setNewBudget(formatAsBRL(e.target.value))} placeholder="R$ 0,00" className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-black text-xl text-blue-500 outline-none transition-all" />
                                 </div>
                             </div>
-                        )}
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Como dividir os custos?</label>
+                                <div className="flex p-1 bg-slate-100 dark:bg-slate-950/40 rounded-2xl gap-1 border border-slate-200 dark:border-white/5">
+                                    {(['proportional', 'custom'] as const).map(type => (
+                                        <button
+                                            key={type}
+                                            type="button"
+                                            onClick={() => setNewProportion(type)}
+                                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${newProportion === type ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400'}`}
+                                        >
+                                            {type === 'proportional' ? 'Proporcional ao Salário' : 'Percentual Personalizado %'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {newProportion === 'custom' && (
+                                <div className="space-y-3 p-5 bg-slate-50 dark:bg-slate-950/40 rounded-[2rem] border border-slate-100 dark:border-white/5 animate-in slide-in-from-top-4">
+                                    <div className="flex justify-between items-center text-[10px] font-black uppercase">
+                                        <span className="text-p1">{coupleInfo.person1Name.split(' ')[0]} {newCustomP1}%</span>
+                                        <span className="text-p2">{coupleInfo.person2Name.split(' ')[0]} {100 - newCustomP1}%</span>
+                                    </div>
+                                    <input
+                                        type="range" min="0" max="100" value={newCustomP1}
+                                        onChange={(e) => setNewCustomP1(Number(e.target.value))}
+                                        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer accent-p1"
+                                    />
+                                    <button type="button" onClick={() => setNewCustomP1(50)} className="w-full text-[9px] font-black uppercase text-slate-400 hover:text-p1">50/50</button>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-2 gap-4 pt-4">
+                                <button type="button" onClick={() => setIsAddingTrip(false)} className="w-full py-4 bg-slate-50 dark:bg-slate-800/50 text-slate-400 rounded-2xl font-black text-[10px] uppercase">Cancelar</button>
+                                <button type="submit" className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4 rounded-2xl shadow-xl hover:brightness-110 transition-all uppercase text-[10px] tracking-widest">Criar Planejamento</button>
+                            </div>
+                        </form>
                     </div>
-                    <button type="submit" className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-5 rounded-[1.8rem] shadow-xl hover:brightness-110 transition-all active:scale-[0.98]">
-                        Criar Viagem
-                    </button>
-                </form>
+                </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {trips.map(trip => (
-                    <div key={trip.id} onClick={() => setActiveTripId(trip.id)} className="bg-white dark:bg-slate-800/60 rounded-3xl p-6 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    <div key={trip.id} onClick={() => setActiveTripId(trip.id)} className="bg-white dark:bg-slate-800/60 rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col min-h-[240px]">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="w-16 h-16 bg-blue-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-inner border border-blue-100 dark:border-white/5">
                                 ✈️
                             </div>
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleDeleteTrip(trip.id); }}
-                                className="p-2 text-slate-200 dark:text-slate-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                className="w-10 h-10 flex items-center justify-center bg-transparent group-hover:bg-red-50 dark:group-hover:bg-red-500/10 text-slate-200 dark:text-slate-700 group-hover:text-red-500 rounded-2xl transition-all"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                         </div>
-                        <h4 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-1">{trip.name}</h4>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">
-                            {trip.expenses.length} Gastos • {trip.deposits.length} Depósitos
-                        </p>
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-white/5 mt-auto">
-                            <span className="text-sm font-black text-p1">{formatCurrency(trip.expenses.reduce((acc, current) => acc + current.value, 0))}</span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase">Total Gasto</span>
+
+                        <div className="flex-1">
+                            <h4 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-1 tracking-tight">{trip.name}</h4>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    {trip.expenses.length} Gastos • {trip.deposits.length} Aportes
+                                </span>
+                            </div>
                         </div>
+
+                        <div className="flex items-center justify-between pt-6 border-t border-slate-50 dark:border-white/5 mt-6">
+                            <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Gasto</p>
+                                <p className="text-xl font-black text-p1 tabular-nums tracking-tighter">{formatCurrency(trip.expenses.reduce((acc, current) => acc + current.value, 0))}</p>
+                            </div>
+                            <div className="w-12 h-12 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                            </div>
+                        </div>
+
+                        {/* Efeito sutil de fundo */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/5 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
                     </div>
                 ))}
 
                 {trips.length === 0 && !isAddingTrip && (
-                    <div className="col-span-full py-16 bg-white dark:bg-slate-800/40 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-3xl text-center">
-                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl opacity-50">🧭</div>
-                        <p className="text-slate-400 dark:text-slate-600 font-black uppercase tracking-widest text-xs">Nenhuma viagem planejada ainda</p>
-                        <p className="text-slate-300 dark:text-slate-700 font-medium mt-2">Clique em "+ Nova Viagem" para começar.</p>
+                    <div className="col-span-full py-24 bg-white dark:bg-slate-800/40 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-[3rem] text-center">
+                        <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto mb-8 text-4xl shadow-inner border border-slate-100 dark:border-white/5">🌍</div>
+                        <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 mb-2">Sua próxima viagem começa aqui</h3>
+                        <p className="text-slate-400 font-bold max-w-sm mx-auto">Crie seu planejamento, defina orçamentos e aproveite cada momento sem surpresas financeiras.</p>
+                        <button onClick={() => setIsAddingTrip(true)} className="mt-8 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 px-10 py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-xl transition-all active:scale-95">Planejar Viagem Agora</button>
                     </div>
                 )}
             </div>
@@ -275,11 +317,42 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 pb-12">
-            <button onClick={onBack} className="flex items-center gap-2 text-slate-400 hover:text-p1 font-bold text-xs uppercase tracking-widest transition-colors mb-4">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
-                Voltar às Viagens
-            </button>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+            {/* Header com Status e Botão principal */}
+            <div className="flex flex-col lg:row justify-between items-start lg:items-center gap-6 lg:gap-0 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+                <div className="z-10">
+                    <div className="flex items-center gap-4 mb-3">
+                        <button onClick={onBack} className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-950/40 rounded-xl text-slate-400 hover:text-p1 transition-all border border-slate-100 dark:border-white/5">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <div>
+                            <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                                {trip.name}
+                            </h2>
+                            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-0.5">
+                                Viagem em {trip.proportionType === 'proportional' ? 'Divisão Proporcional' : 'Divisão Personalizada'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-6 w-full lg:w-auto z-10">
+                    <div className="flex flex-col items-end pr-4 border-r border-slate-100 dark:border-white/5">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Gasto</span>
+                        <span className="text-2xl font-black text-p1 tabular-nums tracking-tighter">{formatCurrency(totalExpenses)}</span>
+                    </div>
+
+                    <button
+                        onClick={() => setIsAdding(!isAdding)}
+                        className={`flex-1 lg:flex-none ${isAdding ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-[1.5rem] font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
+                    >
+                        <span className="text-xl">✍️</span> {isAdding ? 'Cancelar' : (view === 'expenses' ? 'Novo Gasto' : 'Novo Aporte')}
+                    </button>
+                </div>
+
+                {/* Efeito visual */}
+                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-p1/5 rounded-full blur-3xl text-p1"></div>
+            </div>
 
             <div className="bg-white dark:bg-slate-800/60 rounded-[2.5rem] p-6 sm:p-8 border border-slate-100 dark:border-white/5 shadow-sm space-y-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -305,7 +378,8 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                         deposited={totalAportadoP1}
                         balance={balanceP1}
                         colorClass="text-p1"
-                        bgColorClass="bg-p1/5"
+                        bgColorClass="bg-white dark:bg-slate-900/40"
+                        person="person1"
                     />
                     <BalanceCard
                         name={coupleInfo.person2Name}
@@ -313,7 +387,8 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                         deposited={totalAportadoP2}
                         balance={balanceP2}
                         colorClass="text-p2"
-                        bgColorClass="bg-p2/5"
+                        bgColorClass="bg-white dark:bg-slate-900/40"
+                        person="person2"
                     />
                 </div>
 
@@ -390,8 +465,8 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
                                     <div key={exp.id} className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between group hover:shadow-md transition-shadow">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-sm ${exp.paidBy === 'person1' ? 'bg-p1/10 text-p1' :
-                                                    exp.paidBy === 'person2' ? 'bg-p2/10 text-p2' :
-                                                        'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                                exp.paidBy === 'person2' ? 'bg-p2/10 text-p2' :
+                                                    'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                                                 }`}>
                                                 {exp.description.toLowerCase().includes('uber') || exp.description.toLowerCase().includes('combust') ? '🚗' :
                                                     exp.description.toLowerCase().includes('jantar') || exp.description.toLowerCase().includes('almoço') || exp.description.toLowerCase().includes('comida') ? '🍕' :
@@ -470,7 +545,7 @@ const TripDetail: React.FC<{ trip: Trip, coupleInfo: CoupleInfo, onBack: () => v
     );
 };
 
-const BalanceCard: React.FC<{ name: string, responsibility: number, deposited: number, balance: number, colorClass: string, bgColorClass: string }> = ({ name, responsibility, deposited, balance, colorClass, bgColorClass }) => {
+const BalanceCard: React.FC<{ name: string, responsibility: number, deposited: number, balance: number, colorClass: string, bgColorClass: string, person: 'person1' | 'person2' }> = ({ name, responsibility, deposited, balance, colorClass, bgColorClass, person }) => {
     const pName = name.split(' ')[0];
     const needsToPay = balance > 0;
 

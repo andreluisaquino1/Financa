@@ -468,44 +468,84 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-slate-100">Planejador Financeiro</h2>
-                    <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Metas individuais e do casal</p>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+            {/* Header com Status e Botão principal */}
+            <div className={`flex flex-col lg:row justify-between items-start lg:items-center gap-6 lg:gap-0 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden`}>
+                <div className="z-10">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="flex h-3 w-3 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                        </span>
+                        <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            Planejador de Metas
+                        </h2>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm max-w-md">
+                        Defina objetivos, gerencie suas economias e acompanhe a evolução do seu patrimônio
+                    </p>
                 </div>
-                <button
-                    onClick={() => {
-                        if (isAdding) {
-                            cancelEdit();
-                        } else {
-                            setIsAdding(true);
-                        }
-                    }}
-                    className={`px-6 py-3 rounded-2xl font-black text-sm transition-all shadow-lg active:scale-95 ${isAdding ? 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400' : 'bg-p1 text-white shadow-p1/20'}`}
-                >
-                    {isAdding ? 'Cancelar' : '+ Nova Meta'}
-                </button>
+
+                <div className="flex items-center gap-6 w-full lg:w-auto z-10">
+                    <div className="hidden sm:flex flex-col items-end pr-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Patrimônio Alocado</span>
+                        <span className="text-2xl font-black text-emerald-500 tabular-nums tracking-tighter">{formatCurrency(goalSummary.combinedSavings)}</span>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            if (isAdding) cancelEdit();
+                            else setIsAdding(true);
+                        }}
+                        className={`flex-1 lg:flex-none ${isAdding ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-[1.5rem] font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
+                    >
+                        <span className="text-xl">🎯</span> {isAdding ? 'Cancelar' : 'Nova Meta'}
+                    </button>
+                </div>
+
+                {/* Efeitos visuais de fundo */}
+                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl"></div>
             </div>
 
             {/* Centro Financeiro - Bank & Reserves Hub */}
-            <div className="bg-white dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-white/5">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-500 text-white rounded-xl flex items-center justify-center text-xl shadow-lg shadow-indigo-500/20">🏦</div>
+            <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md p-6 sm:p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-xl space-y-8">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-indigo-500 text-white rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-indigo-500/20">🏦</div>
                         <div>
-                            <h3 className="font-black text-slate-800 dark:text-slate-100 tracking-tighter">Centro Financeiro</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase">Gestão de Saldo e Reservas</p>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Centro Financeiro</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gestão de Saldo e Reservas</p>
                         </div>
                     </div>
                     <button
                         onClick={() => isEditingHub ? handleSaveHub() : setIsEditingHub(true)}
-                        className={`px-4 py-2 rounded-xl font-black text-xs transition-all ${isEditingHub ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'}`}
+                        className={`px-8 py-4 rounded-2xl font-black text-xs transition-all uppercase tracking-widest ${isEditingHub ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 active:scale-95'}`}
                     >
                         {isEditingHub ? '✅ Salvar' : '✏️ Ajustar Saldos'}
                     </button>
                 </div>
+
+                {/* Visual context info */}
+                {!isEditingHub && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-2">
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Disponível</span>
+                            <span className="text-lg font-black text-slate-900 dark:text-slate-100">{formatCurrency((coupleInfo.bankBalanceP1 || 0) + (coupleInfo.bankBalanceP2 || 0))}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Reservas</span>
+                            <span className="text-lg font-black text-emerald-500">{formatCurrency((coupleInfo.emergencyReserveP1 || 0) + (coupleInfo.emergencyReserveP2 || 0))}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Investido em Metas</span>
+                            <span className="text-lg font-black text-indigo-500">{formatCurrency(goalSummary.combinedSavings)}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Geral</span>
+                            <span className="text-lg font-black text-slate-900 dark:text-slate-100">{formatCurrency((coupleInfo.bankBalanceP1 || 0) + (coupleInfo.bankBalanceP2 || 0) + (coupleInfo.emergencyReserveP1 || 0) + (coupleInfo.emergencyReserveP2 || 0))}</span>
+                        </div>
+                    </div>
+                )}
 
                 {!isEditingHub ? (
                     <div className="space-y-6">

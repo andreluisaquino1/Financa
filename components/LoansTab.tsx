@@ -119,118 +119,168 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
     const p2Name = coupleInfo.person2Name || 'Pessoa 2';
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total a Receber 💰</p>
-                    <h2 className="text-3xl font-black text-emerald-500">{formatCurrency(totalPending)}</h2>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header com Status e Botão principal */}
+            <div className="flex flex-col lg:row justify-between items-start lg:items-center gap-6 lg:gap-0 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+                <div className="z-10">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="flex h-3 w-3 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                        </span>
+                        <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            Empréstimos
+                        </h2>
+                    </div>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm max-w-md">
+                        Controle valores a receber de terceiros e gerencie os prazos de pagamento
+                    </p>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 flex flex-col justify-center">
+
+                <div className="flex items-center gap-6 w-full lg:w-auto z-10">
+                    <div className="hidden sm:flex flex-col items-end pr-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total a Receber</span>
+                        <span className="text-2xl font-black text-emerald-500 tabular-nums tracking-tighter">{formatCurrency(totalPending)}</span>
+                    </div>
+
                     <button
-                        onClick={() => setIsAdding(!isAdding)}
-                        className={`w-full py-3 rounded-xl font-black uppercase transition-all ${isAdding ? 'bg-slate-100 dark:bg-slate-700 text-slate-500' : 'bg-p1 text-white shadow-lg shadow-p1/20'}`}
+                        onClick={() => setIsAdding(true)}
+                        className="flex-1 lg:flex-none bg-slate-900 dark:bg-p1 hover:brightness-110 text-white px-10 py-5 rounded-[1.5rem] font-black text-sm shadow-2xl shadow-p1/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
                     >
-                        {isAdding ? '✕ Cancelar' : '+ Novo Empréstimo'}
+                        <span className="text-xl">🤝</span> Novo Empréstimo
                     </button>
                 </div>
+
+                {/* Efeitos visuais de fundo */}
+                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
             </div>
 
             {isAdding && (
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl border-2 border-p1/20 animate-in slide-in-from-top-4 duration-300">
-                    <h3 className="text-lg font-black mb-4 text-slate-800 dark:text-slate-100">{editingId ? 'Editar Empréstimo' : 'Cadastrar Empréstimo'}</h3>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAdding(false)} />
+                    <div className="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
+                        <div className="mb-8">
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                                {editingId ? 'Editar Empréstimo' : 'Cadastrar Empréstimo'}
+                            </h3>
+                            <p className="text-slate-500 font-bold text-sm">Preencha os dados do valor emprestado</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Quem pediu?</label>
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Quem pediu?</label>
                                 <input
                                     type="text" value={borrowerName} onChange={e => setBorrowerName(e.target.value)}
                                     placeholder="Ex: Primo João"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold"
+                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
                                 />
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Valor Total</label>
-                                <input
-                                    type="text" value={totalValue} onChange={handleValueChange}
-                                    placeholder="R$ 0,00"
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold text-emerald-500"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Parcelado em:</label>
-                                <div className="flex items-center bg-slate-50 dark:bg-slate-900 rounded-xl px-4 py-1 border-2 border-transparent focus-within:border-p1 transition-all">
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Valor Total</label>
                                     <input
-                                        type="number" min="1" value={installments} onChange={e => setInstallments(e.target.value)}
-                                        className="w-full bg-transparent py-2 outline-none font-bold"
+                                        type="text" value={totalValue} onChange={handleValueChange}
+                                        placeholder="R$ 0,00"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-black text-xl text-emerald-500 outline-none transition-all"
                                     />
-                                    <span className="text-[10px] font-black text-slate-400 uppercase ml-2">Vezes</span>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Parcelado em</label>
+                                    <div className="relative">
+                                        <input
+                                            type="number" min="1" value={installments} onChange={e => setInstallments(e.target.value)}
+                                            className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-black text-xl text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 uppercase">Vezes</span>
+                                    </div>
                                 </div>
                             </div>
+
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Primeiro Vencimento</label>
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Quem emprestou?</label>
+                                <div className="flex p-1 bg-slate-100 dark:bg-slate-950/40 rounded-2xl gap-1 border border-slate-200 dark:border-white/5">
+                                    <button
+                                        type="button" onClick={() => setLender('person1')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${lender === 'person1' ? 'bg-white dark:bg-slate-800 shadow-sm text-p1 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400'}`}
+                                    >
+                                        {p1Name}
+                                    </button>
+                                    <button
+                                        type="button" onClick={() => setLender('person2')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${lender === 'person2' ? 'bg-white dark:bg-slate-800 shadow-sm text-p2 ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-400'}`}
+                                    >
+                                        {p2Name}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Primeiro Vencimento</label>
                                 <input
                                     type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-1.5 outline-none transition-all font-bold"
+                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
                                 />
                             </div>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 uppercase px-1">Quem emprestou?</label>
-                            <div className="flex gap-2">
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Descrição / Motivo</label>
+                                <input
+                                    type="text" value={description} onChange={e => setDescription(e.target.value)}
+                                    placeholder="Ex: Viagem, Conserto do carro..."
+                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 pt-4">
                                 <button
-                                    type="button" onClick={() => setLender('person1')}
-                                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${lender === 'person1' ? 'border-p1 bg-p1 text-white shadow-lg shadow-p1/20' : 'border-slate-100 dark:border-white/5 text-slate-400 bg-slate-50 dark:bg-slate-900'}`}
+                                    type="button"
+                                    onClick={() => setIsAdding(false)}
+                                    className="w-full py-4 bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 rounded-2xl font-black text-[10px] uppercase transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
                                 >
-                                    {p1Name}
+                                    Cancelar
                                 </button>
-                                <button
-                                    type="button" onClick={() => setLender('person2')}
-                                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${lender === 'person2' ? 'border-p2 bg-p2 text-white shadow-lg shadow-p2/20' : 'border-slate-100 dark:border-white/5 text-slate-400 bg-slate-50 dark:bg-slate-900'}`}
-                                >
-                                    {p2Name}
+                                <button type="submit" className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4 rounded-2xl shadow-xl hover:brightness-110 transition-all active:scale-[0.98] uppercase text-[10px] tracking-widest">
+                                    {editingId ? 'Salvar Alterações 💾' : 'Confirmar 🚀'}
                                 </button>
                             </div>
-                        </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 uppercase px-1">Descrição / Motivo</label>
-                            <input
-                                type="text" value={description} onChange={e => setDescription(e.target.value)}
-                                placeholder="Ex: Viagem, Conserto do carro..."
-                                className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold"
-                            />
-                        </div>
-                        <button type="submit" className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 transition-all active:scale-[0.98]">
-                            {editingId ? '💾 Salvar Alterações' : 'Confirmar Empréstimo'}
-                        </button>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             )}
 
             {/* List */}
-            <div className="space-y-4">
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest px-1">Empréstimos Ativos</h3>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                    <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <span className="w-2 h-2 rounded-full bg-blue-500/40"></span>
+                        Empréstimos Ativos
+                    </h3>
+                    <span className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">{activeLoans.length} empréstimos</span>
+                </div>
+
                 {activeLoans.length === 0 ? (
-                    <div className="py-12 bg-white dark:bg-slate-800/40 border-2 border-dashed border-slate-100 dark:border-white/5 rounded-2xl text-center">
-                        <p className="text-slate-400 font-bold text-xs">Ninguém está te devendo por enquanto! 🙌</p>
+                    <div className="py-20 text-center bg-white dark:bg-slate-800/40 rounded-[2.5rem] border-2 border-dashed border-slate-100 dark:border-white/5">
+                        <div className="text-4xl mb-3 opacity-20">📂</div>
+                        <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest">Nenhum empréstimo ativo no momento! 🙌</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {activeLoans.map(loan => (
-                            <div key={loan.id} className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 relative group hover:shadow-md transition-all">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-black ${loan.lender === 'person1' ? 'bg-p1 shadow-lg shadow-p1/20' : 'bg-p2 shadow-lg shadow-p2/20'}`}>
+                            <div key={loan.id} className="bg-white dark:bg-slate-800/60 p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm space-y-5 hover:shadow-xl transition-all group relative overflow-hidden">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl ${loan.lender === 'person1' ? 'bg-p1 shadow-lg shadow-p1/20' : 'bg-p2 shadow-lg shadow-p2/20'}`}>
                                             {loan.lender === 'person1' ? p1Name[0] : p2Name[0]}
                                         </div>
                                         <div>
-                                            <h4 className="font-black text-slate-800 dark:text-slate-100">{loan.borrower_name}</h4>
+                                            <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base leading-tight mb-1">{loan.borrower_name}</h4>
                                             <div className="flex items-center gap-2">
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase">{loan.description || 'Sem descrição'}</p>
+                                                <span className="text-[9px] text-p1 font-black uppercase tracking-tighter bg-p1/5 px-1.5 py-0.5 rounded">
+                                                    {loan.description || 'Geral'}
+                                                </span>
                                                 {loan.installments && loan.installments > 1 && (
-                                                    <span className="text-[9px] bg-slate-100 dark:bg-slate-700 text-slate-500 px-2.5 rounded-full font-black uppercase">
+                                                    <span className="text-[9px] bg-slate-900 dark:bg-slate-700 text-white px-2 py-0.5 rounded-lg font-black uppercase tracking-widest">
                                                         {loan.paid_installments || 0}/{loan.installments}x
                                                     </span>
                                                 )}
@@ -238,43 +288,41 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-sm font-black text-emerald-500 leading-none mb-1">{formatCurrency(loan.remaining_value)}</p>
-                                        <p className="text-[8px] text-slate-400 uppercase font-black">Total: {formatCurrency(loan.total_value)}</p>
+                                        <p className="font-black text-emerald-500 text-xl tracking-tighter leading-none mb-1">{formatCurrency(loan.remaining_value)}</p>
+                                        <p className="text-[8px] text-slate-400 uppercase font-black tabular-nums opacity-60">Inicial: {formatCurrency(loan.total_value)}</p>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2">
-                                    {loan.installments && loan.installments > 1 && (
+                                <div className="flex items-center justify-between pt-5 border-t border-slate-50 dark:border-white/5 gap-3">
+                                    <div className="flex-1 flex gap-2">
+                                        {loan.installments && loan.installments > 1 && (
+                                            <button
+                                                onClick={() => handlePayInstallment(loan)}
+                                                className="flex-1 bg-blue-500 hover:brightness-110 text-white text-[9px] font-black uppercase py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/10 active:scale-95"
+                                            >
+                                                <span>➕</span> Parcela
+                                            </button>
+                                        )}
                                         <button
-                                            onClick={() => handlePayInstallment(loan)}
-                                            className="flex-1 bg-blue-500 text-white text-[10px] font-black uppercase py-2.5 rounded-lg hover:brightness-110 transition-all flex items-center justify-center gap-1 shadow-lg shadow-blue-500/10"
+                                            onClick={() => handlePayment(loan)}
+                                            className="flex-[1.5] bg-emerald-500 hover:brightness-110 text-white text-[9px] font-black uppercase py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 active:scale-95"
                                         >
-                                            <span>➕</span> Parcela
+                                            <span>💳</span> Receber
                                         </button>
-                                    )}
-                                    <button
-                                        onClick={() => handlePayment(loan)}
-                                        className="flex-[2] bg-emerald-500 text-white text-[10px] font-black uppercase py-2.5 rounded-lg hover:brightness-110 transition-all flex items-center justify-center gap-1 shadow-lg shadow-emerald-500/10"
-                                    >
-                                        <span>💳</span> Outro Valor
-                                    </button>
-                                    <button
-                                        onClick={() => handleEdit(loan)}
-                                        className="px-3 bg-slate-50 dark:bg-slate-900 text-slate-400 rounded-lg hover:text-amber-500 transition-all"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                    </button>
-                                    <button
-                                        onClick={() => confirm('Excluir empréstimo?') && onDeleteLoan(loan.id)}
-                                        className="px-3 bg-slate-50 dark:bg-slate-900 text-slate-400 rounded-lg hover:text-red-500 transition-all"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    </button>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleEdit(loan)} className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-2xl text-slate-400 hover:text-p1 transition-all active:scale-90">
+                                            📝
+                                        </button>
+                                        <button onClick={() => confirm('Excluir empréstimo?') && onDeleteLoan(loan.id)} className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-2xl text-slate-400 hover:text-red-500 transition-all active:scale-90">
+                                            🗑️
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {loan.due_date && (
-                                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-40">
-                                        <span className="text-[8px] text-slate-500 font-black uppercase">Vence em {new Date(loan.due_date + 'T12:00:00').toLocaleDateString()}</span>
+                                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-20 group-hover:opacity-60 transition-opacity">
+                                        <span className="text-[7px] text-slate-500 font-black uppercase">Vence {new Date(loan.due_date + 'T12:00:00').toLocaleDateString()}</span>
                                     </div>
                                 )}
                             </div>

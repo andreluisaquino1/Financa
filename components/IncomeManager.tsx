@@ -189,81 +189,99 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
-                <div>
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Gestão de Renda</h2>
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header com Status e Botão principal */}
+            <div className="flex flex-col lg:row justify-between items-start lg:items-center gap-6 lg:gap-0 bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+                <div className="z-10">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="flex h-3 w-3 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </span>
+                        <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            Gestão de Renda
+                        </h2>
                         {!isPremium && (
-                            <span className="px-2 py-1 bg-amber-100 text-amber-600 text-[10px] font-black rounded-lg uppercase tracking-widest">Recurso PRO</span>
+                            <span className="px-2 py-1 bg-amber-100 text-amber-600 text-[10px] font-black rounded-lg uppercase tracking-widest ml-2">Recurso PRO</span>
                         )}
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">Organize salários, bônus e investimentos</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm max-w-md">
+                        Organize seus ganhos, bonificações e acompanhe sua renda mensal total
+                    </p>
                 </div>
-                <button
-                    onClick={() => openModal()}
-                    className="bg-p1 hover:bg-p1/90 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg shadow-p1/20 transition-all active:scale-95 flex items-center gap-2"
-                >
-                    <span>+</span> Adicionar Entrada
-                </button>
+
+                <div className="flex items-center gap-6 w-full lg:w-auto z-10">
+                    <div className="hidden sm:flex flex-col items-end">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total {coupleInfo.person1Name.split(' ')[0]}</span>
+                        <span className="text-2xl font-black text-p1 tabular-nums tracking-tighter">{formatCurrency(totalP1)}</span>
+                    </div>
+
+                    <div className="hidden sm:flex flex-col items-end pr-4">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total {coupleInfo.person2Name.split(' ')[0]}</span>
+                        <span className="text-2xl font-black text-p2 tabular-nums tracking-tighter">{formatCurrency(totalP2)}</span>
+                    </div>
+
+                    <button
+                        onClick={() => openModal()}
+                        className="flex-1 lg:flex-none bg-slate-900 dark:bg-p1 hover:brightness-110 text-white px-10 py-5 rounded-[1.5rem] font-black text-sm shadow-2xl shadow-p1/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
+                    >
+                        <span className="text-xl">💰</span> Adicionar Entrada
+                    </button>
+                </div>
+
+                {/* Efeitos visuais de fundo */}
+                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"></div>
             </div>
 
             {/* Filtros e Busca */}
             <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 p-4 rounded-3xl shadow-sm">
-                    <div className="relative flex-1 min-w-[240px]">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                        <input
-                            type="text"
-                            placeholder="Buscar por descrição..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-11 pr-5 py-3 text-sm font-bold outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
-                        />
-                    </div>
+                <div className="bg-white dark:bg-slate-900/80 backdrop-blur-md border border-slate-200/50 dark:border-white/5 p-4 sm:p-6 rounded-[2.5rem] shadow-xl space-y-4">
+                    <div className="flex flex-col xl:flex-row xl:items-center gap-6">
+                        {/* Busca Principal */}
+                        <div className="relative flex-1">
+                            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-xl filter drop-shadow">🔍</span>
+                            <input
+                                type="text"
+                                placeholder="Busca por descrição..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full bg-slate-50 dark:bg-slate-950/40 border-2 border-slate-100 dark:border-white/10 rounded-2xl pl-16 pr-6 py-4 text-base font-bold outline-none focus:border-p1 focus:bg-white dark:focus:bg-slate-900 transition-all dark:text-slate-100 shadow-inner placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                            />
+                        </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                        <select
-                            value={filterPayer}
-                            onChange={(e) => setFilterPayer(e.target.value)}
-                            className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
-                        >
-                            <option value="all">Pessoa: Todas</option>
-                            <option value="person1">{coupleInfo.person1Name.split(' ')[0]}</option>
-                            <option value="person2">{coupleInfo.person2Name.split(' ')[0]}</option>
-                        </select>
-
-                        <select
-                            value={filterCategory}
-                            onChange={(e) => setFilterCategory(e.target.value)}
-                            className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-2xl border-none outline-none focus:ring-2 ring-p1/20 transition-all dark:text-slate-100"
-                        >
-                            <option value="all">Categoria: Todas</option>
-                            {CATEGORIES.map(cat => (
-                                <option key={cat.label} value={cat.label}>{cat.label}</option>
-                            ))}
-                        </select>
-
-                        {(search || filterPayer !== 'all' || filterCategory !== 'all') && (
-                            <button
-                                onClick={() => { setSearch(''); setFilterPayer('all'); setFilterCategory('all'); }}
-                                className="text-[10px] font-black uppercase text-p1 hover:underline px-2"
+                        {/* Ações Rápidas de Filtro */}
+                        <div className="flex flex-wrap items-center gap-3">
+                            <select
+                                value={filterPayer}
+                                onChange={(e) => setFilterPayer(e.target.value)}
+                                className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-200"
                             >
-                                Limpar
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
+                                <option value="all">👥 Todos Pagadores</option>
+                                <option value="person1">👤 {coupleInfo.person1Name.split(' ')[0]}</option>
+                                <option value="person2">👤 {coupleInfo.person2Name.split(' ')[0]}</option>
+                            </select>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 p-5 rounded-2xl shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total {coupleInfo.person1Name} (Filtro)</p>
-                    <p className="text-2xl font-black text-p1">{formatCurrency(totalP1)}</p>
-                </div>
-                <div className="bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 p-5 rounded-2xl shadow-sm">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Renda Total {coupleInfo.person2Name}</p>
-                    <p className="text-2xl font-black text-p2">{formatCurrency(totalP2)}</p>
+                            <select
+                                value={filterCategory}
+                                onChange={(e) => setFilterCategory(e.target.value)}
+                                className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-200"
+                            >
+                                <option value="all">🏷️ Todas Categorias</option>
+                                {CATEGORIES.map(cat => (
+                                    <option key={cat.label} value={cat.label}>{cat.icon} {cat.label}</option>
+                                ))}
+                            </select>
+
+                            {(search || filterPayer !== 'all' || filterCategory !== 'all') && (
+                                <button
+                                    onClick={() => { setSearch(''); setFilterPayer('all'); setFilterCategory('all'); }}
+                                    className="px-4 py-2 text-[10px] font-black uppercase text-p1 hover:underline flex items-center gap-2"
+                                >
+                                    <span>✕</span> Limpar Filtros
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -311,63 +329,73 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
             </div>
 
             {/* Desktop View */}
-            <div className="hidden lg:block bg-white dark:bg-slate-800/60 border border-slate-100 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full border-collapse text-left">
-                    <thead>
-                        <tr className="border-b border-slate-50 dark:border-white/5">
-                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[200px]">Tipo & Descrição</th>
-                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Pessoa</th>
-                            <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right min-w-[120px]">Valor</th>
-                            <th className="px-6 py-4"></th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-                        {monthIncomes.map(inc => (
-                            <tr key={inc.id} className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors ${(inc as any).isVirtual ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''}`}>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm shadow-sm ${(inc as any).isVirtual ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-500' : 'bg-slate-50 dark:bg-slate-800'}`}>
-                                            {(inc as any).isVirtual ? '🔄' : (CATEGORIES.find(c => c.label === inc.category)?.icon || '💰')}
-                                        </span>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <p className="font-bold text-slate-800 dark:text-slate-200 text-sm">{inc.description}</p>
-                                                {(inc as any).isVirtual && (
-                                                    <span className="text-[8px] font-black bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-300 px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
-                                                        Fixo Mensal
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">{inc.category}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${inc.paidBy === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'}`}>
-                                        {inc.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <p className="font-black text-slate-900 dark:text-slate-100 text-sm">{formatCurrency(inc.value)}</p>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <button onClick={() => openModal(inc)} className="p-2 text-slate-400 hover:text-p1 hover:bg-p1/5 rounded-xl transition-all" title={(inc as any).isVirtual ? "Editar este mês" : "Editar"}>📝</button>
-                                        <button onClick={() => {
-                                            if ((inc as any).isVirtual) {
-                                                if (confirm('Deseja remover este salário fixo recorrente?')) {
-                                                    onUpdateBaseSalary(inc.paidBy, 0, inc.description);
-                                                }
-                                            } else {
-                                                onDeleteIncome(inc.id);
-                                            }
-                                        }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">🗑️</button>
-                                    </div>
-                                </td>
+            <div className="hidden lg:block bg-white dark:bg-slate-800/40 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden backdrop-blur-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-white/10 text-slate-400 dark:text-slate-500">
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest min-w-[240px]">💼 Tipo & Descrição</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-center">👤 Pessoa</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-right min-w-[140px]">💰 Valor</th>
+                                <th className="px-8 py-5"></th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100/50 dark:divide-white/5">
+                            {monthIncomes.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="px-8 py-16 text-center">
+                                        <p className="text-slate-400 font-black uppercase text-[10px] tracking-widest opacity-60 italic">Nenhuma receita registrada.</p>
+                                    </td>
+                                </tr>
+                            ) : monthIncomes.map(inc => (
+                                <tr key={inc.id} className={`group hover:bg-p1/5 dark:hover:bg-p1/10 transition-all ${(inc as any).isVirtual ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''}`}>
+                                    <td className="px-8 py-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg shadow-sm border border-slate-100 dark:border-white/5 font-black ${(inc as any).isVirtual ? 'bg-blue-50 dark:bg-blue-900' : 'bg-slate-50 dark:bg-slate-900'}`}>
+                                                {(inc as any).isVirtual ? '🔄' : (CATEGORIES.find(c => c.label === inc.category)?.icon || '💰')}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <p className="font-extrabold text-slate-900 dark:text-slate-100 text-sm tracking-tight">{inc.description}</p>
+                                                    {(inc as any).isVirtual && (
+                                                        <span className="bg-blue-400/10 text-blue-600 dark:text-blue-400 text-[8px] px-1.5 py-0.5 rounded-full uppercase font-black">
+                                                            Fixo Mensal
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest tabular-nums italic">
+                                                    {inc.category}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-6 text-center">
+                                        <span className={`text-[9px] font-black uppercase px-3 py-1.5 rounded-full border ${inc.paidBy === 'person1' ? 'bg-p1/5 border-p1/20 text-p1' : 'bg-p2/5 border-p2/20 text-p2'}`}>
+                                            {inc.paidBy === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name}
+                                        </span>
+                                    </td>
+                                    <td className="px-8 py-6 text-right">
+                                        <span className="font-black text-slate-950 dark:text-white text-base tabular-nums tracking-tighter">{formatCurrency(inc.value)}</span>
+                                    </td>
+                                    <td className="px-8 py-6 text-right">
+                                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
+                                            <button onClick={() => openModal(inc)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-p1 rounded-2xl shadow-xl hover:shadow-p1/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90" title={(inc as any).isVirtual ? "Editar este mês" : "Editar"}>📝</button>
+                                            <button onClick={() => {
+                                                if ((inc as any).isVirtual) {
+                                                    if (confirm('Deseja remover este salário fixo recorrente?')) {
+                                                        onUpdateBaseSalary(inc.paidBy, 0, inc.description);
+                                                    }
+                                                } else {
+                                                    onDeleteIncome(inc.id);
+                                                }
+                                            }} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-red-500 rounded-2xl shadow-xl hover:shadow-red-500/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90 ml-1">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {isModalOpen && createPortal(
