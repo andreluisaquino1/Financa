@@ -126,7 +126,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 paidBy,
                 date,
                 type: currentType,
-                installments: parseInt(installments) || 1,
+                installments: isFixed ? 1 : (parseInt(installments) || 1),
                 reminderDay: reminderDay ? parseInt(reminderDay) : undefined,
                 onlyThisMonth,
                 splitMethod: isJoint ? splitMethod : undefined,
