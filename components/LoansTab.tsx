@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Loan, CoupleInfo } from '../types';
-import { formatCurrency, parseBRL } from '../utils';
+import { formatCurrency, parseBRL, formatAsBRL } from '../utils';
 
 interface Props {
     loans: Loan[];
@@ -18,17 +18,27 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
     const [borrowerName, setBorrowerName] = useState('');
     const [description, setDescription] = useState('');
     const [totalValue, setTotalValue] = useState('');
+    const [installments, setInstallments] = useState('1');
     const [dueDate, setDueDate] = useState('');
     const [lender, setLender] = useState<'person1' | 'person2'>('person1');
+
+    useEffect(() => {
+        if (!isAdding) resetForm();
+    }, [isAdding]);
 
     const resetForm = () => {
         setBorrowerName('');
         setDescription('');
         setTotalValue('');
+        setInstallments('1');
         setDueDate('');
         setLender('person1');
-        setIsAdding(false);
         setEditingId(null);
+    };
+
+    const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setTotalValue(formatAsBRL(val));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -36,34 +46,35 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
         const value = parseBRL(totalValue);
         if (!borrowerName || value <= 0) return;
 
+        const data = {
+            borrower_name: borrowerName,
+            description,
+            total_value: value,
+            installments: parseInt(installments) || 1,
+            due_date: dueDate || undefined,
+            lender
+        };
+
         if (editingId) {
-            onUpdateLoan(editingId, {
-                borrower_name: borrowerName,
-                description,
-                total_value: value,
-                due_date: dueDate || undefined,
-                lender
-            });
+            onUpdateLoan(editingId, data);
         } else {
             onAddLoan({
-                borrower_name: borrowerName,
-                description,
-                total_value: value,
+                ...data,
                 remaining_value: value,
-                due_date: dueDate || undefined,
-                lender,
+                paid_installments: 0,
                 status: 'pending',
-                user_id: '', // Will be filled by hook
-                household_id: '' // Will be filled by hook
+                user_id: '',
+                household_id: ''
             });
         }
-        resetForm();
+        setIsAdding(false);
     };
 
     const handleEdit = (loan: Loan) => {
         setBorrowerName(loan.borrower_name);
         setDescription(loan.description);
-        setTotalValue(loan.total_value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+        setTotalValue(formatAsBRL((loan.total_value * 100).toString()));
+        setInstallments((loan.installments || 1).toString());
         setDueDate(loan.due_date || '');
         setLender(loan.lender);
         setEditingId(loan.id);
@@ -71,10 +82,10 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
     };
 
     const handlePayment = (loan: Loan) => {
-        const payment = prompt(`Valor pago por ${loan.borrower_name}:`, loan.remaining_value.toFixed(2));
+        const payment = prompt(`Valor pago por ${loan.borrower_name}:`, (loan.remaining_value).toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
         if (payment) {
-            const payVal = parseFloat(payment.replace(',', '.'));
-            if (!isNaN(payVal) && payVal > 0) {
+            const payVal = parseBRL(payment);
+            if (payVal > 0) {
                 const newRemaining = Math.max(0, loan.remaining_value - payVal);
                 const newStatus = newRemaining === 0 ? 'paid' : 'partial';
                 onUpdateLoan(loan.id, { remaining_value: newRemaining, status: newStatus });
@@ -82,9 +93,26 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
         }
     };
 
+    const handlePayInstallment = (loan: Loan) => {
+        const totalInst = loan.installments || 1;
+        if (totalInst <= 1) return;
+
+        const installmentValue = loan.total_value / totalInst;
+        const nextPaidCount = (loan.paid_installments || 0) + 1;
+
+        if (confirm(`Confirmar recebimento da parcela ${nextPaidCount} de ${totalInst} (${formatCurrency(installmentValue)})?`)) {
+            const newRemaining = Math.max(0, loan.remaining_value - installmentValue);
+            const newStatus = newRemaining <= 0 || nextPaidCount >= totalInst ? 'paid' : 'partial';
+            onUpdateLoan(loan.id, {
+                remaining_value: newRemaining,
+                paid_installments: nextPaidCount,
+                status: newStatus
+            });
+        }
+    };
+
     const activeLoans = useMemo(() => loans.filter(l => l.status !== 'paid'), [loans]);
     const paidLoans = useMemo(() => loans.filter(l => l.status === 'paid'), [loans]);
-
     const totalPending = useMemo(() => activeLoans.reduce((acc, curr) => acc + curr.remaining_value, 0), [activeLoans]);
 
     const p1Name = coupleInfo.person1Name || 'Pessoa 1';
@@ -101,7 +129,7 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 flex flex-col justify-center">
                     <button
                         onClick={() => setIsAdding(!isAdding)}
-                        className={`w-full py-3 rounded-xl font-black uppercase transition-all ${isAdding ? 'bg-slate-100 text-slate-500' : 'bg-p1 text-white shadow-lg shadow-p1/20'}`}
+                        className={`w-full py-3 rounded-xl font-black uppercase transition-all ${isAdding ? 'bg-slate-100 dark:bg-slate-700 text-slate-500' : 'bg-p1 text-white shadow-lg shadow-p1/20'}`}
                     >
                         {isAdding ? '✕ Cancelar' : '+ Novo Empréstimo'}
                     </button>
@@ -117,14 +145,14 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                                 <label className="text-[10px] font-black text-slate-400 uppercase px-1">Quem pediu?</label>
                                 <input
                                     type="text" value={borrowerName} onChange={e => setBorrowerName(e.target.value)}
-                                    placeholder="Nome da pessoa"
+                                    placeholder="Ex: Primo João"
                                     className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold"
                                 />
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase px-1">Valor Total</label>
                                 <input
-                                    type="text" value={totalValue} onChange={e => setTotalValue(e.target.value)}
+                                    type="text" value={totalValue} onChange={handleValueChange}
                                     placeholder="R$ 0,00"
                                     className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold text-emerald-500"
                                 />
@@ -132,28 +160,38 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Data Prevista (Opcional)</label>
-                                <input
-                                    type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold"
-                                />
+                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Parcelado em:</label>
+                                <div className="flex items-center bg-slate-50 dark:bg-slate-900 rounded-xl px-4 py-1 border-2 border-transparent focus-within:border-p1 transition-all">
+                                    <input
+                                        type="number" min="1" value={installments} onChange={e => setInstallments(e.target.value)}
+                                        className="w-full bg-transparent py-2 outline-none font-bold"
+                                    />
+                                    <span className="text-[10px] font-black text-slate-400 uppercase ml-2">Vezes</span>
+                                </div>
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Quem emprestou?</label>
-                                <div className="flex gap-2">
-                                    <button
-                                        type="button" onClick={() => setLender('person1')}
-                                        className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${lender === 'person1' ? 'border-p1 bg-p1 text-white' : 'border-slate-100 dark:border-white/5 text-slate-400'}`}
-                                    >
-                                        {p1Name}
-                                    </button>
-                                    <button
-                                        type="button" onClick={() => setLender('person2')}
-                                        className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${lender === 'person2' ? 'border-p2 bg-p2 text-white' : 'border-slate-100 dark:border-white/5 text-slate-400'}`}
-                                    >
-                                        {p2Name}
-                                    </button>
-                                </div>
+                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Primeiro Vencimento</label>
+                                <input
+                                    type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+                                    className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-1.5 outline-none transition-all font-bold"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black text-slate-400 uppercase px-1">Quem emprestou?</label>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button" onClick={() => setLender('person1')}
+                                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${lender === 'person1' ? 'border-p1 bg-p1 text-white shadow-lg shadow-p1/20' : 'border-slate-100 dark:border-white/5 text-slate-400 bg-slate-50 dark:bg-slate-900'}`}
+                                >
+                                    {p1Name}
+                                </button>
+                                <button
+                                    type="button" onClick={() => setLender('person2')}
+                                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${lender === 'person2' ? 'border-p2 bg-p2 text-white shadow-lg shadow-p2/20' : 'border-slate-100 dark:border-white/5 text-slate-400 bg-slate-50 dark:bg-slate-900'}`}
+                                >
+                                    {p2Name}
+                                </button>
                             </div>
                         </div>
                         <div className="space-y-1">
@@ -164,7 +202,7 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                                 className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold"
                             />
                         </div>
-                        <button type="submit" className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 transition-all">
+                        <button type="submit" className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 transition-all active:scale-[0.98]">
                             {editingId ? '💾 Salvar Alterações' : 'Confirmar Empréstimo'}
                         </button>
                     </form>
@@ -181,7 +219,7 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {activeLoans.map(loan => (
-                            <div key={loan.id} className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 relative group">
+                            <div key={loan.id} className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 relative group hover:shadow-md transition-all">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-black ${loan.lender === 'person1' ? 'bg-p1 shadow-lg shadow-p1/20' : 'bg-p2 shadow-lg shadow-p2/20'}`}>
@@ -189,21 +227,36 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                                         </div>
                                         <div>
                                             <h4 className="font-black text-slate-800 dark:text-slate-100">{loan.borrower_name}</h4>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase">{loan.description || 'Sem descrição'}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase">{loan.description || 'Sem descrição'}</p>
+                                                {loan.installments && loan.installments > 1 && (
+                                                    <span className="text-[9px] bg-slate-100 dark:bg-slate-700 text-slate-500 px-2.5 rounded-full font-black uppercase">
+                                                        {loan.paid_installments || 0}/{loan.installments}x
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xs font-black text-emerald-500">{formatCurrency(loan.remaining_value)}</p>
-                                        <p className="text-[8px] text-slate-400 uppercase font-black">de {formatCurrency(loan.total_value)}</p>
+                                        <p className="text-sm font-black text-emerald-500 leading-none mb-1">{formatCurrency(loan.remaining_value)}</p>
+                                        <p className="text-[8px] text-slate-400 uppercase font-black">Total: {formatCurrency(loan.total_value)}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-2">
+                                    {loan.installments && loan.installments > 1 && (
+                                        <button
+                                            onClick={() => handlePayInstallment(loan)}
+                                            className="flex-1 bg-blue-500 text-white text-[10px] font-black uppercase py-2.5 rounded-lg hover:brightness-110 transition-all flex items-center justify-center gap-1 shadow-lg shadow-blue-500/10"
+                                        >
+                                            <span>➕</span> Parcela
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => handlePayment(loan)}
-                                        className="flex-1 bg-emerald-500 text-white text-[10px] font-black uppercase py-2.5 rounded-lg hover:brightness-110 transition-all"
+                                        className="flex-[2] bg-emerald-500 text-white text-[10px] font-black uppercase py-2.5 rounded-lg hover:brightness-110 transition-all flex items-center justify-center gap-1 shadow-lg shadow-emerald-500/10"
                                     >
-                                        💳 Receber Pagamento
+                                        <span>💳</span> Outro Valor
                                     </button>
                                     <button
                                         onClick={() => handleEdit(loan)}
@@ -220,8 +273,8 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                                 </div>
 
                                 {loan.due_date && (
-                                    <div className="absolute top-2 right-2 flex items-center gap-1">
-                                        <span className="text-[10px] text-slate-300 font-bold">{new Date(loan.due_date).toLocaleDateString()}</span>
+                                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-40">
+                                        <span className="text-[8px] text-slate-500 font-black uppercase">Vence em {new Date(loan.due_date + 'T12:00:00').toLocaleDateString()}</span>
                                     </div>
                                 )}
                             </div>

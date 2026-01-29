@@ -630,6 +630,8 @@ export const useAppData = () => {
                     description: loan.description,
                     total_value: loan.total_value,
                     remaining_value: loan.remaining_value,
+                    installments: loan.installments || 1,
+                    paid_installments: 0,
                     due_date: loan.due_date || null,
                     lender: loan.lender,
                     status: loan.status
@@ -661,6 +663,8 @@ export const useAppData = () => {
                     description: updates.description,
                     total_value: updates.total_value,
                     remaining_value: updates.remaining_value,
+                    installments: updates.installments,
+                    paid_installments: updates.paid_installments,
                     due_date: updates.due_date || null,
                     lender: updates.lender,
                     status: updates.status

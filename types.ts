@@ -186,6 +186,8 @@ export interface Loan {
   description: string;
   total_value: number;
   remaining_value: number;
+  installments?: number;
+  paid_installments?: number;
   due_date?: string;
   lender: 'person1' | 'person2';
   status: 'pending' | 'partial' | 'paid';
