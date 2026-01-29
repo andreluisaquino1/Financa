@@ -33,39 +33,62 @@ const InvestmentTab: React.FC = () => {
     const [calcInitial, setCalcInitial] = useState<number>(1000);
     const [calcMonthly, setCalcMonthly] = useState<number>(500);
     const [calcRate, setCalcRate] = useState<number>(10);
-    const [calcYears, setCalcYears] = useState<number>(5);
-    const [calcPeriod, setCalcPeriod] = useState<'monthly' | 'yearly'>('yearly');
+    const [calcRatePeriod, setCalcRatePeriod] = useState<'yearly' | 'monthly'>('yearly');
+    const [calcDuration, setCalcDuration] = useState<number>(5);
+    const [calcDurationType, setCalcDurationType] = useState<'years' | 'months'>('years');
     const [calcData, setCalcData] = useState<any[]>([]);
 
     // --- CALCULATOR LOGIC ---
     useEffect(() => {
         const rate = calcRate / 100;
-        const months = calcYears * 12;
-        const monthlyRate = Math.pow(1 + rate, 1 / 12) - 1;
+
+        // Determine monthly rate based on selection
+        let monthlyRate = 0;
+        if (calcRatePeriod === 'yearly') {
+            monthlyRate = Math.pow(1 + rate, 1 / 12) - 1;
+        } else {
+            monthlyRate = rate;
+        }
+
+        // Determine total months
+        const totalMonths = calcDurationType === 'years' ? calcDuration * 12 : calcDuration;
 
         let currentTotal = calcInitial;
         let totalInvested = calcInitial;
         const data = [];
 
-        for (let i = 0; i <= months; i++) {
+        for (let i = 0; i <= totalMonths; i++) {
             // Record data point
-            if (i % (calcYears > 5 ? 12 : 1) === 0) { // Optimize points for long periods
-                data.push({
-                    name: calcYears > 5 ? `${Math.floor(i / 12)}a` : `Mês ${i}`,
-                    'Valor Investido': Math.round(totalInvested),
-                    'Juros Acumulados': Math.round(currentTotal - totalInvested),
-                    'Total Acumulado': Math.round(currentTotal)
-                });
+            // For long periods (byte years > 5), show yearly. For short (months or < 5 years), show monthly or periodic
+            const shouldPush = totalMonths > 60 ? i % 12 === 0 : true;
+
+            if (shouldPush || i === totalMonths) {
+                let label = '';
+                if (calcDurationType === 'years') {
+                    label = totalMonths > 60 ? `${Math.floor(i / 12)}a` : `Mês ${i}`;
+                } else {
+                    label = `Mês ${i}`;
+                }
+
+                // Avoid duplicates if last month coincides with loop step
+                if (data.length === 0 || data[data.length - 1].name !== label) {
+                    data.push({
+                        name: label,
+                        'Valor Investido': Math.round(totalInvested),
+                        'Juros Acumulados': Math.round(currentTotal - totalInvested),
+                        'Total Acumulado': Math.round(currentTotal)
+                    });
+                }
             }
 
             // Next month calculation
-            if (i < months) {
+            if (i < totalMonths) {
                 currentTotal = currentTotal * (1 + monthlyRate) + calcMonthly;
                 totalInvested += calcMonthly;
             }
         }
         setCalcData(data);
-    }, [calcInitial, calcMonthly, calcRate, calcYears]);
+    }, [calcInitial, calcMonthly, calcRate, calcRatePeriod, calcDuration, calcDurationType]);
 
     // --- WALLET METRICS ---
     const summary = useMemo(() => {
@@ -244,7 +267,7 @@ const InvestmentTab: React.FC = () => {
                                                 ))}
                                             </Pie>
                                             <RechartsTooltip formatter={(value: any) => formatCurrency(value)} />
-                                            <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 700 }} />
+                                            {/* Removido Legend para evitar flicker no tooltip/render */}
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -345,11 +368,48 @@ const InvestmentTab: React.FC = () => {
                         </h3>
 
                         {/* Inputs Layout */}
+                        {/* Inputs Layout */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                             <CalcInput label="Valor Inicial" value={calcInitial} onChange={setCalcInitial} prefix="R$" />
                             <CalcInput label="Aporte Mensal" value={calcMonthly} onChange={setCalcMonthly} prefix="R$" />
-                            <CalcInput label="Taxa (% a.a.)" value={calcRate} onChange={setCalcRate} suffix="%" />
-                            <CalcInput label="Período (Anos)" value={calcYears} onChange={setCalcYears} suffix="anos" />
+
+                            {/* Taxa com Select */}
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Taxa de Juros</label>
+                                <div className="flex">
+                                    <input
+                                        type="number" value={calcRate || ''} onChange={e => setCalcRate(Number(e.target.value))}
+                                        className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-l-xl py-3 pl-4 font-bold text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-p1 outline-none transition-all"
+                                    />
+                                    <select
+                                        value={calcRatePeriod}
+                                        onChange={e => setCalcRatePeriod(e.target.value as 'yearly' | 'monthly')}
+                                        className="bg-slate-100 dark:bg-slate-800 border-y border-r border-slate-200 dark:border-slate-700 rounded-r-xl px-2 text-xs font-bold text-slate-500 dark:text-slate-400 outline-none"
+                                    >
+                                        <option value="yearly">% a.a.</option>
+                                        <option value="monthly">% a.m.</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Período com Select */}
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Período</label>
+                                <div className="flex">
+                                    <input
+                                        type="number" value={calcDuration || ''} onChange={e => setCalcDuration(Number(e.target.value))}
+                                        className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-l-xl py-3 pl-4 font-bold text-sm text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-p1 outline-none transition-all"
+                                    />
+                                    <select
+                                        value={calcDurationType}
+                                        onChange={e => setCalcDurationType(e.target.value as 'years' | 'months')}
+                                        className="bg-slate-100 dark:bg-slate-800 border-y border-r border-slate-200 dark:border-slate-700 rounded-r-xl px-2 text-xs font-bold text-slate-500 dark:text-slate-400 outline-none"
+                                    >
+                                        <option value="years">Anos</option>
+                                        <option value="months">Meses</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Result Big Numbers */}
