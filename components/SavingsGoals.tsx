@@ -191,30 +191,41 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         setSplitP1(p1);
         setSplitP2(100 - p1);
 
-        // Opcionalmente atualiza os valores se já houver um total sendo planejado
-        const currentP1 = parseBRL(contributionP1);
-        const currentP2 = parseBRL(contributionP2);
-        const currentTotal = currentP1 + currentP2;
-
-        if (currentTotal > 0 || requiredMonthlyTotal > 0) {
-            const base = currentTotal > 0 ? currentTotal : requiredMonthlyTotal;
-            setContributionP1(formatAsBRL(Math.round(base * (p1 / 100) * 100).toString()));
-            setContributionP2(formatAsBRL(Math.round(base * ((100 - p1) / 100) * 100).toString()));
+        // Se temos um total necessário definido pelo prazo e valor da meta, calculamos os Reais na hora
+        if (requiredMonthlyTotal > 0) {
+            const p1Part = requiredMonthlyTotal * (p1 / 100);
+            const p2Part = requiredMonthlyTotal * ((100 - p1) / 100);
+            setContributionP1(formatAsBRL(Math.round(p1Part * 100).toString()));
+            setContributionP2(formatAsBRL(Math.round(p2Part * 100).toString()));
         }
     };
 
-    const handleContributionChange = (p1Val: string, p2Val: string) => {
-        setContributionP1(p1Val);
-        setContributionP2(p2Val);
+    const handleValueContributionChange = (who: 'p1' | 'p2', val: string) => {
+        const numVal = parseBRL(val);
+        const formatted = formatAsBRL(Math.round(numVal * 100).toString());
 
-        const v1 = parseBRL(p1Val);
-        const v2 = parseBRL(p2Val);
-        const total = v1 + v2;
+        if (who === 'p1') {
+            setContributionP1(formatted);
+            // Se temos um total necessário, o outro assume o resto automaticamente pela "Responsabilidade Geral"
+            if (requiredMonthlyTotal > 0) {
+                const p2Needed = Math.max(0, requiredMonthlyTotal - numVal);
+                setContributionP2(formatAsBRL(Math.round(p2Needed * 100).toString()));
 
-        if (total > 0) {
-            const perc1 = Math.round((v1 / total) * 100);
-            setSplitP1(perc1);
-            setSplitP2(100 - perc1);
+                // Atualiza os sliders de porcentagem
+                const perc1 = Math.round((numVal / requiredMonthlyTotal) * 100);
+                setSplitP1(perc1);
+                setSplitP2(100 - perc1);
+            }
+        } else {
+            setContributionP2(formatted);
+            if (requiredMonthlyTotal > 0) {
+                const p1Needed = Math.max(0, requiredMonthlyTotal - numVal);
+                setContributionP1(formatAsBRL(Math.round(p1Needed * 100).toString()));
+
+                const perc1 = Math.round((p1Needed / requiredMonthlyTotal) * 100);
+                setSplitP1(perc1);
+                setSplitP2(100 - perc1);
+            }
         }
     };
 
@@ -350,6 +361,33 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
         } else {
             return { months: Math.ceil(remaining / totalMonthly), reached: false };
         }
+    };
+
+    const calculateBottleneck = (goal: Partial<SavingsGoal>) => {
+        const target = goal.target_value || 0;
+        const p1Perc = goal.split_p1_percentage || 50;
+        const p2Perc = 100 - p1Perc;
+
+        const p1Target = target * (p1Perc / 100);
+        const p2Target = target * (p2Perc / 100);
+
+        const p1Remaining = Math.max(0, p1Target - (goal.current_savings_p1 || 0));
+        const p2Remaining = Math.max(0, p2Target - (goal.current_savings_p2 || 0));
+
+        const p1Months = (goal.monthly_contribution_p1 || 0) > 0 ? p1Remaining / goal.monthly_contribution_p1! : (p1Remaining > 0 ? Infinity : 0);
+        const p2Months = (goal.monthly_contribution_p2 || 0) > 0 ? p2Remaining / goal.monthly_contribution_p2! : (p2Remaining > 0 ? Infinity : 0);
+
+        const diff = Math.abs(p1Months - p2Months);
+        const isBottleneck = diff > 2 && p1Months !== Infinity && p2Months !== Infinity;
+
+        return {
+            p1Months: Math.ceil(p1Months),
+            p2Months: Math.ceil(p2Months),
+            bottleneck: isBottleneck,
+            who: p1Months > p2Months ? 'p1' : 'p2',
+            diff: Math.ceil(diff),
+            totalMonths: Math.ceil(Math.max(p1Months, p2Months))
+        };
     };
 
     const getGoalTypeLabel = (type: GoalType) => {
@@ -846,6 +884,29 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                     <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-tight">
                                         Para atingir <span className="font-bold text-slate-800 dark:text-slate-100">{formatCurrency(parseBRL(target))}</span> no prazo definido, vocês precisam investir <span className="font-extrabold text-p1">{formatCurrency(requiredMonthlyTotal)}/mês</span> no total.
                                     </p>
+
+                                    {(() => {
+                                        const b = calculateBottleneck({
+                                            target_value: parseBRL(target),
+                                            split_p1_percentage: splitP1,
+                                            current_savings_p1: parseBRL(savingsP1) + parseBRL(initialWithdrawP1),
+                                            current_savings_p2: parseBRL(savingsP2) + parseBRL(initialWithdrawP2),
+                                            monthly_contribution_p1: parseBRL(contributionP1),
+                                            monthly_contribution_p2: parseBRL(contributionP2)
+                                        });
+                                        if (b.bottleneck && goalType === 'couple') {
+                                            return (
+                                                <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg flex gap-2 items-start animate-in fade-in slide-in-from-top-2">
+                                                    <span className="text-sm">⚠️</span>
+                                                    <p className="text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase leading-snug">
+                                                        Atenção: {b.who === 'p1' ? p1Name : p2Name} é o gargalo! Vai demorar <span className="text-amber-600 font-extrabold">{b.diff} meses a mais</span> que o parceiro para bater a sua parte da meta.
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+
                                     <button
                                         type="button"
                                         onClick={handleApplyIncomeSplit}
@@ -869,7 +930,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                             type="text"
                                             inputMode="decimal"
                                             value={contributionP1}
-                                            onChange={e => handleContributionChange(formatAsBRL(e.target.value), contributionP2)}
+                                            onChange={e => handleValueContributionChange('p1', e.target.value)}
                                             placeholder="R$ 0,00"
                                             className="w-full bg-white dark:bg-slate-800 border-2 border-p1/20 focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold"
                                         />
@@ -887,7 +948,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                             type="text"
                                             inputMode="decimal"
                                             value={contributionP2}
-                                            onChange={e => handleContributionChange(contributionP1, formatAsBRL(e.target.value))}
+                                            onChange={e => handleValueContributionChange('p2', e.target.value)}
                                             placeholder="R$ 0,00"
                                             className="w-full bg-white dark:bg-slate-800 border-2 border-p2/20 focus:border-p2 rounded-xl px-4 py-3 outline-none transition-all font-bold"
                                         />
@@ -1258,6 +1319,23 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Bottleneck Warning in Card */}
+                                {(() => {
+                                    const b = calculateBottleneck(goal);
+                                    if (b.bottleneck && goal.goal_type === 'couple') {
+                                        return (
+                                            <div className="mx-5 mb-4 p-2.5 bg-amber-50 dark:bg-amber-500/5 border border-amber-200 dark:border-amber-500/10 rounded-xl flex items-start gap-2">
+                                                <div className="w-5 h-5 bg-amber-500 text-white rounded-full flex items-center justify-center text-[10px] shrink-0 mt-0.5">⚠️</div>
+                                                <p className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-tight leading-normal">
+                                                    Equilíbrio: {b.who === 'p1' ? p1Name : p2Name} é o gargalo. <br />
+                                                    Vai demorar <span className="text-amber-700 dark:text-amber-300">+{b.diff} meses</span> para concluir sua parte.
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
                             </div>
 
 
@@ -1318,10 +1396,13 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
 
                             {/* Time Estimate and Check-in */}
                             <div className="px-5 pb-5 flex flex-col sm:flex-row gap-2">
-                                <div className="flex-1 flex items-center justify-between bg-slate-900 dark:bg-slate-700 text-white p-3 rounded-xl">
-                                    <span className="text-xs font-bold">Tempo Real:</span>
-                                    <span className="font-black text-xs">
-                                        {timeToGoal.reached ? '✅ Ok!' : timeToGoal.months === Infinity ? '♾️' : `${timeToGoal.months}m`}
+                                <div className="flex-1 flex items-center justify-between bg-slate-900 dark:bg-slate-700 text-white p-3 rounded-xl border border-white/5 shadow-inner">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Previsão Real:</span>
+                                    <span className="font-black text-sm">
+                                        {(() => {
+                                            const b = calculateBottleneck(goal);
+                                            return b.totalMonths === Infinity ? '♾️' : `${b.totalMonths} meses`;
+                                        })()}
                                     </span>
                                 </div>
 
