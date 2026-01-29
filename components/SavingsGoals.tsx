@@ -170,10 +170,10 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
     }, [target, savingsP1, savingsP2, initialWithdrawP1, initialWithdrawP2, monthsRemaining]);
 
     const incomeSplitP1 = useMemo(() => {
-        const totalSalary = (coupleInfo.salary1 || 0) + (coupleInfo.salary2 || 0);
-        if (totalSalary <= 0) return 50;
-        return Math.round((coupleInfo.salary1 / totalSalary) * 100);
-    }, [coupleInfo.salary1, coupleInfo.salary2]);
+        const totalIncome = (summary.person1TotalIncome || 0) + (summary.person2TotalIncome || 0);
+        if (totalIncome <= 0) return 50;
+        return Math.round((summary.person1TotalIncome / totalIncome) * 100);
+    }, [summary.person1TotalIncome, summary.person2TotalIncome]);
 
     const handleApplyIncomeSplit = () => {
         setSplitP1(incomeSplitP1);
