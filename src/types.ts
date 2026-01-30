@@ -215,3 +215,80 @@ export interface Investment {
   updated_at?: string;
   deleted_at?: string;
 }
+
+
+export interface MonthlyConfig {
+  id: string;
+  household_id: string;
+  month_key: string;
+  salary1: number;
+  salary2: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Database Interfaces
+export interface ExpenseDB {
+  id: string;
+  user_id: string;
+  household_id: string;
+  date: string;
+  type: string;
+  category: string;
+  description: string;
+  total_value: number;
+  installments: number;
+  paid_by: string;
+  split_method: string | null;
+  reminder_day: number | null;
+  metadata: any;
+  created_at: string;
+  deleted_at: string | null;
+}
+
+export interface IncomeDB {
+  id: string;
+  user_id: string;
+  household_id: string;
+  date: string;
+  category: string;
+  description: string;
+  value: number;
+  paid_by: string;
+  created_at: string;
+  deleted_at: string | null;
+}
+
+export interface SavingsGoalDB {
+  id: string;
+  user_id: string;
+  household_id: string;
+  title: string;
+  goal_type: string;
+  target_value: number;
+  current_value: number;
+  monthly_contribution_p1: number;
+  monthly_contribution_p2: number;
+  current_savings_p1: number;
+  current_savings_p2: number;
+  interest_rate: number;
+  expected_monthly_expense: number;
+  start_date: string | null;
+  deadline: string | null;
+  icon: string;
+  priority: string;
+  investment_location_p1: string;
+  investment_location_p2: string;
+  last_contribution_month: string | null;
+  is_completed: boolean;
+  split_p1_percentage: number;
+  split_p2_percentage: number;
+  initial_withdrawal_p1: number;
+  initial_withdrawal_p2: number;
+  created_at: string;
+  deleted_at: string | null;
+}
+
+export interface LoanDB extends Loan { } // Structure matches except strict typing, but Loan in types.ts is already snake_case mostly using strict types now
+export interface InvestmentDB extends Investment { } // Structure matches
+export interface TripDB extends Trip { } // Structure matches

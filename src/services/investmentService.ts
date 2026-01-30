@@ -1,6 +1,14 @@
 import { supabase } from '@/supabaseClient';
-import { Investment } from '@/types';
+import { Investment, InvestmentDB } from '@/types';
 import { handleServiceResponse, ServiceResponse } from './supabaseService';
+
+const mapInvestment = (inv: InvestmentDB): Investment => ({
+    ...inv,
+    current_value: Number(inv.current_value),
+    invested_value: Number(inv.invested_value),
+    quantity: Number(inv.quantity || 0),
+    price_per_unit: Number(inv.price_per_unit || 0)
+});
 
 export const investmentService = {
     async getAll(householdId: string): Promise<ServiceResponse<Investment[]>> {
@@ -11,7 +19,8 @@ export const investmentService = {
             .is('deleted_at', null)
             .order('created_at', { ascending: false });
 
-        return handleServiceResponse(data, error);
+        const mappedData = data ? (data as unknown as InvestmentDB[]).map(mapInvestment) : null;
+        return handleServiceResponse(mappedData, error);
     },
 
     async create(investment: Omit<Investment, 'id' | 'created_at'>): Promise<ServiceResponse<Investment>> {
@@ -21,7 +30,8 @@ export const investmentService = {
             .select()
             .single();
 
-        return handleServiceResponse(data, error);
+        const mappedData = data ? mapInvestment(data as unknown as InvestmentDB) : null;
+        return handleServiceResponse(mappedData, error);
     },
 
     async update(id: string, updates: Partial<Investment>): Promise<ServiceResponse<Investment>> {
@@ -32,7 +42,8 @@ export const investmentService = {
             .select()
             .single();
 
-        return handleServiceResponse(data, error);
+        const mappedData = data ? mapInvestment(data as unknown as InvestmentDB) : null;
+        return handleServiceResponse(mappedData, error);
     },
 
     async softDelete(id: string): Promise<ServiceResponse<null>> {
@@ -40,6 +51,25 @@ export const investmentService = {
             .from('investments')
             .update({ deleted_at: new Date().toISOString() })
             .eq('id', id);
+
+        return handleServiceResponse(null, error);
+    },
+
+    async softDeleteAll(householdId: string): Promise<ServiceResponse<null>> {
+        const { error } = await supabase
+            .from('investments')
+            .update({ deleted_at: new Date().toISOString() })
+            .eq('household_id', householdId);
+
+        return handleServiceResponse(null, error);
+    },
+
+    async restoreAll(householdId: string): Promise<ServiceResponse<null>> {
+        const { error } = await supabase
+            .from('investments')
+            .update({ deleted_at: null })
+            .eq('household_id', householdId)
+            .not('deleted_at', 'is', null);
 
         return handleServiceResponse(null, error);
     }

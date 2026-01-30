@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment, Trip, TripExpense, TripDeposit } from '@/types';
 import { scheduleReminder, cancelReminder } from '@/notificationService';
-import { getMonthYearKey, calculateSummary, formatCurrency } from '@/utils';
+import { getMonthYearKey, formatCurrency } from '@/domain/formatters';
+import { calculateSummary } from '@/domain/financial';
+import { validateExpense, validateIncome, validateGoal } from '@/domain/validation';
 import { useAuth } from '@/AuthContext';
 import { expenseService } from '@/services/expenseService';
 import { incomeService } from '@/services/incomeService';
@@ -10,7 +12,8 @@ import { loanService } from '@/services/loanService';
 import { investmentService } from '@/services/investmentService';
 import { tripService } from '@/services/tripService';
 import { profileService } from '@/services/profileService';
-import { supabase } from '@/supabaseClient'; // Kept for auth/specific queries if needed, but mostly replaced
+import { monthlyConfigService } from '@/services/monthlyConfigService';
+
 
 export const useAppData = () => {
     const { user, loading: authLoading, signOut } = useAuth();
@@ -97,129 +100,46 @@ export const useAppData = () => {
                 const { data: expensesData } = await expenseService.getAll(activeHouseholdId);
 
                 if (expensesData) {
-                    setExpenses(expensesData.map(e => ({
-                        id: e.id,
-                        date: e.date,
-                        type: e.type as ExpenseType,
-                        category: e.category,
-                        description: e.description,
-                        totalValue: Number(e.total_value),
-                        installments: Number(e.installments || 1),
-                        paidBy: e.paid_by as 'person1' | 'person2',
-                        createdAt: e.created_at,
-                        metadata: e.metadata,
-                        household_id: e.household_id,
-                        splitMethod: e.split_method,
-                        splitPercentage1: e.metadata?.splitPercentage1,
-                        specificValueP1: e.metadata?.specificValueP1,
-                        specificValueP2: e.metadata?.specificValueP2,
-                        reminderDay: e.reminder_day ? Number(e.reminder_day) : undefined
-                    })));
+                    setExpenses(expensesData);
                 }
 
                 // 3. Load goals
                 const { data: goalsData } = await goalService.getAll(activeHouseholdId);
 
                 if (goalsData) {
-                    setGoals(goalsData.map((g: any) => ({
-                        ...g,
-                        target_value: Number(g.target_value),
-                        current_value: Number(g.current_value),
-                        monthly_contribution_p1: g.monthly_contribution_p1 ? Number(g.monthly_contribution_p1) : 0,
-                        monthly_contribution_p2: g.monthly_contribution_p2 ? Number(g.monthly_contribution_p2) : 0,
-                        current_savings_p1: g.current_savings_p1 ? Number(g.current_savings_p1) : 0,
-                        current_savings_p2: g.current_savings_p2 ? Number(g.current_savings_p2) : 0,
-                        interest_rate: g.interest_rate ? Number(g.interest_rate) : 0,
-                        expected_monthly_expense: g.expected_monthly_expense ? Number(g.expected_monthly_expense) : 0,
-                        split_p1_percentage: g.split_p1_percentage ? Number(g.split_p1_percentage) : 50,
-                        split_p2_percentage: g.split_p2_percentage ? Number(g.split_p2_percentage) : 50,
-                        initial_withdrawal_p1: g.initial_withdrawal_p1 ? Number(g.initial_withdrawal_p1) : 0,
-                        initial_withdrawal_p2: g.initial_withdrawal_p2 ? Number(g.initial_withdrawal_p2) : 0,
-                    })));
+                    setGoals(goalsData);
                 }
 
                 // 3.5 Load Loans
                 const { data: loansData } = await loanService.getAll(activeHouseholdId);
 
                 if (loansData) {
-                    setLoans(loansData.map((l: any) => ({
-                        ...l,
-                        total_value: Number(l.total_value),
-                        remaining_value: Number(l.remaining_value)
-                    })));
+                    setLoans(loansData);
                 }
 
                 // 3.6 Load Investments
                 const { data: investmentsData } = await investmentService.getAll(activeHouseholdId);
 
                 if (investmentsData) {
-                    setInvestments(investmentsData.map((inv: any) => ({
-                        ...inv,
-                        current_value: Number(inv.current_value),
-                        invested_value: Number(inv.invested_value),
-                        quantity: Number(inv.quantity || 0),
-                        price_per_unit: Number(inv.price_per_unit || 0)
-                    })));
+                    setInvestments(investmentsData);
                 }
 
                 // 4. Load incomes
                 const { data: incomesData } = await incomeService.getAll(activeHouseholdId);
 
                 if (incomesData) {
-                    setIncomes(incomesData.map(i => ({
-                        id: i.id,
-                        description: i.description,
-                        value: Number(i.value),
-                        category: i.category || 'Salário',
-                        paidBy: i.paid_by,
-                        date: i.date,
-                        household_id: i.household_id,
-                        user_id: i.user_id,
-                        createdAt: i.created_at
-                    })));
+                    setIncomes(incomesData);
                 }
 
                 // 4.5 Load Trips
                 const { data: tripsData } = await tripService.getAll(activeHouseholdId);
 
                 if (tripsData) {
-                    setTrips(tripsData.map((t: any) => ({
-                        id: t.id,
-                        household_id: t.household_id,
-                        name: t.name,
-                        budget: Number(t.budget),
-                        proportionType: t.proportion_type,
-                        customPercentage1: Number(t.custom_percentage_1),
-                        created_at: t.created_at,
-                        expenses: (t.expenses || []).map((e: any) => ({
-                            id: e.id,
-                            trip_id: e.trip_id,
-                            description: e.description,
-                            value: Number(e.value),
-                            paidBy: e.paid_by,
-                            date: e.date,
-                            category: e.category,
-                            created_at: e.created_at
-                        })),
-                        deposits: (t.deposits || []).map((d: any) => ({
-                            id: d.id,
-                            trip_id: d.trip_id,
-                            person: d.person,
-                            value: Number(d.value),
-                            date: d.date,
-                            description: d.description,
-                            created_at: d.created_at
-                        }))
-                    })));
+                    setTrips(tripsData);
                 }
 
                 // 5. Load monthly config
-                const { data: monthConfig } = await supabase
-                    .from('monthly_configs')
-                    .select('*')
-                    .eq('household_id', activeHouseholdId)
-                    .eq('month_key', selectedMonth)
-                    .maybeSingle();
+                const { data: monthConfig } = await monthlyConfigService.get(activeHouseholdId, selectedMonth);
 
                 if (monthConfig) {
                     setCoupleInfo(prev => ({
@@ -260,29 +180,27 @@ export const useAppData = () => {
                     updated_at: new Date().toISOString()
                 });
 
-                await supabase
-                    .from('monthly_configs')
-                    .update({
-                        salary1: newInfo.salary1,
-                        salary2: newInfo.salary2
-                    })
-                    .eq('household_id', householdId)
-                    .gt('month_key', selectedMonth);
+                await monthlyConfigService.updateGlobalSalaries(householdId, selectedMonth, newInfo.salary1, newInfo.salary2);
             }
 
-            await supabase
-                .from('monthly_configs')
-                .upsert({
-                    household_id: householdId,
-                    month_key: selectedMonth,
-                    salary1: newInfo.salary1,
-                    salary2: newInfo.salary2
-                }, { onConflict: 'household_id, month_key' });
+            await monthlyConfigService.upsert({
+                household_id: householdId,
+                month_key: selectedMonth,
+                salary1: newInfo.salary1,
+                salary2: newInfo.salary2
+            });
         }
     }, [user, householdId, selectedMonth]);
 
     const addExpense = useCallback(async (exp: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
+
+        const validation = validateExpense(exp);
+        if (!validation.success) {
+            alert('Erro de validação: ' + validation.error.message);
+            return;
+        }
+
         const activeHouseholdId = householdId || user.id;
 
         const tempId = 'temp-' + Date.now();
@@ -297,23 +215,19 @@ export const useAppData = () => {
 
         try {
             const { data, error } = await expenseService.create({
-                user_id: user.id,
-                household_id: activeHouseholdId,
                 date: exp.date,
                 type: exp.type,
                 category: exp.category,
                 description: exp.description,
-                total_value: exp.totalValue,
+                totalValue: exp.totalValue,
                 installments: exp.installments,
-                paid_by: exp.paidBy,
-                metadata: {
-                    ...(exp.metadata || {}),
-                    splitPercentage1: exp.splitPercentage1,
-                    specificValueP1: exp.specificValueP1,
-                    specificValueP2: exp.specificValueP2
-                },
-                split_method: exp.splitMethod || null,
-                reminder_day: exp.reminderDay
+                paidBy: exp.paidBy,
+                metadata: exp.metadata,
+                splitPercentage1: exp.splitPercentage1,
+                specificValueP1: exp.specificValueP1,
+                specificValueP2: exp.specificValueP2,
+                splitMethod: exp.splitMethod || undefined,
+                reminderDay: exp.reminderDay
             });
 
             if (error) throw error;
@@ -325,19 +239,18 @@ export const useAppData = () => {
                     type: data.type as ExpenseType,
                     category: data.category,
                     description: data.description,
-                    totalValue: Number(data.total_value),
-                    installments: Number(data.installments || 1),
-                    paidBy: data.paid_by as 'person1' | 'person2',
-                    createdAt: data.created_at,
+                    totalValue: data.totalValue,
+                    installments: data.installments,
+                    paidBy: data.paidBy,
+                    createdAt: data.createdAt,
                     metadata: data.metadata,
                     household_id: data.household_id,
-                    splitMethod: data.split_method,
-                    splitPercentage1: data.metadata?.splitPercentage1,
-                    specificValueP1: data.metadata?.specificValueP1,
-                    specificValueP2: data.metadata?.specificValueP2,
-                    reminderDay: data.reminder_day ? Number(data.reminder_day) : undefined
+                    splitMethod: data.splitMethod,
+                    splitPercentage1: data.splitPercentage1,
+                    specificValueP1: data.specificValueP1,
+                    specificValueP2: data.specificValueP2,
+                    reminderDay: data.reminderDay
                 };
-
                 setExpenses(prev => prev.map(e => e.id === tempId ? newExp : e));
             }
         } catch (err: any) {
@@ -348,45 +261,38 @@ export const useAppData = () => {
 
     const updateExpense = useCallback(async (id: string, updates: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
+
+        // Partial validation for updates? Or assume frontend is correct?
+        // Let's validate the resulting object conceptually or just the fields if we can.
+        // For simplicity, we skip full schema validation on partial updates or check specific fields.
+        // Actually updates here is full Omit<Expense...>, so we can validate!
+
+        const validation = validateExpense(updates);
+        if (!validation.success) {
+            alert('Erro de validação: ' + validation.error.message);
+            return;
+        }
+
         try {
             const { data, error } = await expenseService.update(id, {
                 date: updates.date,
                 type: updates.type,
                 category: updates.category,
                 description: updates.description,
-                total_value: updates.totalValue,
+                totalValue: updates.totalValue,
                 installments: updates.installments,
-                paid_by: updates.paidBy,
-                metadata: {
-                    ...(updates.metadata || {}),
-                    splitPercentage1: updates.splitPercentage1,
-                    specificValueP1: updates.specificValueP1,
-                    specificValueP2: updates.specificValueP2
-                },
-                split_method: updates.splitMethod || null,
-                reminder_day: updates.reminderDay
+                paidBy: updates.paidBy,
+                metadata: updates.metadata,
+                splitPercentage1: updates.splitPercentage1,
+                specificValueP1: updates.specificValueP1,
+                specificValueP2: updates.specificValueP2,
+                splitMethod: updates.splitMethod || undefined,
+                reminderDay: updates.reminderDay
             });
 
             if (error) throw error;
             if (data) {
-                const updatedExp: Expense = {
-                    id: data.id,
-                    date: data.date,
-                    type: data.type as ExpenseType,
-                    category: data.category,
-                    description: data.description,
-                    totalValue: Number(data.total_value),
-                    installments: Number(data.installments || 1),
-                    paidBy: data.paid_by as 'person1' | 'person2',
-                    createdAt: data.created_at,
-                    metadata: data.metadata,
-                    household_id: data.household_id,
-                    splitMethod: data.split_method,
-                    splitPercentage1: data.metadata?.splitPercentage1,
-                    specificValueP1: data.metadata?.specificValueP1,
-                    specificValueP2: data.metadata?.specificValueP2,
-                    reminderDay: data.reminder_day ? Number(data.reminder_day) : undefined
-                };
+                const updatedExp = data;
                 setExpenses(prev => prev.map(e => e.id === id ? updatedExp : e));
             }
         } catch (err: any) {
@@ -473,14 +379,14 @@ export const useAppData = () => {
 
         setDataLoading(true);
         try {
-            // Using low-level supabase calls for bulk updates as strict individual service calls might be inefficient or not implemented for bulk
-            // However, we should be consistent.
-            // Since services don't have bulkSoftDelete yet, and this is a rare admin action, keeping as is (but using deleted_at logic).
-            const now = new Date().toISOString();
-            await supabase.from('expenses').update({ deleted_at: now }).eq('household_id', activeHouseholdId);
-            await supabase.from('incomes').update({ deleted_at: now }).eq('household_id', activeHouseholdId);
-            await supabase.from('savings_goals').update({ deleted_at: now }).eq('household_id', activeHouseholdId);
-            await supabase.from('monthly_configs').delete().eq('household_id', activeHouseholdId);
+            // Using services for bulk updates
+            await expenseService.softDeleteAll(activeHouseholdId);
+            await incomeService.softDeleteAll(activeHouseholdId);
+            await goalService.softDeleteAll(activeHouseholdId);
+            await loanService.softDeleteAll(activeHouseholdId);
+            await investmentService.softDeleteAll(activeHouseholdId);
+            await tripService.softDeleteAll(activeHouseholdId);
+            await monthlyConfigService.deleteByHousehold(activeHouseholdId);
 
             const defaultInfo: CoupleInfo = {
                 person1Name: 'André',
@@ -514,10 +420,8 @@ export const useAppData = () => {
 
         setDataLoading(true);
         try {
-            const now = new Date().toISOString();
-            // Complex queries (like 'date' LIKE) not yet in simple service. Keeping supabase call for specific query pattern.
-            await supabase.from('expenses').update({ deleted_at: now }).eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
-            await supabase.from('incomes').update({ deleted_at: now }).eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
+            await expenseService.softDeleteByMonth(activeHouseholdId, monthKey);
+            await incomeService.softDeleteByMonth(activeHouseholdId, monthKey);
 
             setExpenses(prev => prev.filter(e => !e.date.startsWith(monthKey)));
             setIncomes(prev => prev.filter(i => !i.date.startsWith(monthKey)));
@@ -530,6 +434,13 @@ export const useAppData = () => {
 
     const addIncome = useCallback(async (inc: Omit<Income, 'id' | 'createdAt'>) => {
         if (!user) return;
+
+        const validation = validateIncome(inc);
+        if (!validation.success) {
+            alert('Erro de validação: ' + validation.error.message);
+            return;
+        }
+
         const activeHouseholdId = householdId || user.id;
 
         try {
@@ -539,58 +450,45 @@ export const useAppData = () => {
                 description: inc.description,
                 value: inc.value,
                 category: inc.category,
-                paid_by: inc.paidBy,
+                paidBy: inc.paidBy,
                 date: inc.date
             });
 
             if (error) throw error;
             if (data) {
-                const newInc: Income = {
-                    id: data.id,
-                    description: data.description,
-                    value: Number(data.value),
-                    category: data.category,
-                    paidBy: data.paid_by,
-                    date: data.date,
-                    household_id: data.household_id,
-                    user_id: data.user_id,
-                    createdAt: data.created_at
-                };
+                const newInc = data;
                 setIncomes(prev => [newInc, ...prev]);
             }
         } catch (err: any) {
-            alert('Erro ao adicionar receita: ' + err.message);
+            alert('Erro ao salvar renda: ' + err.message);
         }
     }, [user, householdId]);
 
     const updateIncome = useCallback(async (id: string, updates: Omit<Income, 'id' | 'createdAt'>) => {
         if (!user) return;
+
+        const validation = validateIncome(updates);
+        if (!validation.success) {
+            alert('Erro de validação: ' + validation.error.message);
+            return;
+        }
+
         try {
             const { data, error } = await incomeService.update(id, {
                 description: updates.description,
                 value: updates.value,
                 category: updates.category,
-                paid_by: updates.paidBy,
+                paidBy: updates.paidBy,
                 date: updates.date
             });
 
             if (error) throw error;
             if (data) {
-                const updatedInc: Income = {
-                    id: data.id,
-                    description: data.description,
-                    value: Number(data.value),
-                    category: data.category,
-                    paidBy: data.paid_by,
-                    date: data.date,
-                    household_id: data.household_id,
-                    user_id: data.user_id,
-                    createdAt: data.created_at
-                };
+                const updatedInc = data;
                 setIncomes(prev => prev.map(i => i.id === id ? updatedInc : i));
             }
         } catch (err: any) {
-            alert('Erro ao atualizar receita: ' + err.message);
+            alert('Erro ao atualizar: ' + err.message);
         }
     }, [user]);
 
@@ -624,11 +522,7 @@ export const useAppData = () => {
 
             if (error) throw error;
             if (data) {
-                const newLoan: Loan = {
-                    ...data,
-                    total_value: Number(data.total_value),
-                    remaining_value: Number(data.remaining_value)
-                };
+                const newLoan = data;
                 setLoans(prev => [newLoan, ...prev]);
             }
         } catch (err: any) {
@@ -643,11 +537,7 @@ export const useAppData = () => {
 
             if (error) throw error;
             if (data) {
-                const updatedLoan: Loan = {
-                    ...data,
-                    total_value: Number(data.total_value),
-                    remaining_value: Number(data.remaining_value)
-                };
+                const updatedLoan = data;
                 setLoans(prev => prev.map(l => l.id === id ? updatedLoan : l));
             }
         } catch (err: any) {
@@ -683,13 +573,7 @@ export const useAppData = () => {
 
             if (error) throw error;
             if (data) {
-                const newInv: Investment = {
-                    ...data,
-                    current_value: Number(data.current_value),
-                    invested_value: Number(data.invested_value),
-                    quantity: Number(data.quantity || 0),
-                    price_per_unit: Number(data.price_per_unit || 0)
-                };
+                const newInv = data;
                 setInvestments(prev => [newInv, ...prev]);
             }
         } catch (err: any) {
@@ -707,13 +591,7 @@ export const useAppData = () => {
 
             if (error) throw error;
             if (data) {
-                const updatedInv: Investment = {
-                    ...data,
-                    current_value: Number(data.current_value),
-                    invested_value: Number(data.invested_value),
-                    quantity: Number(data.quantity || 0),
-                    price_per_unit: Number(data.price_per_unit || 0)
-                };
+                const updatedInv = data;
                 setInvestments(prev => prev.map(i => i.id === id ? updatedInv : i));
             }
         } catch (err: any) {
@@ -738,12 +616,12 @@ export const useAppData = () => {
         // For now, leaving as placeholder or implementing basic restore for all
         // This was in the task list: "Add a restoreData function"
         try {
-            await supabase.from('expenses').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
-            await supabase.from('incomes').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
-            await supabase.from('savings_goals').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
-            await supabase.from('loans').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
-            await supabase.from('investments').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
-            await supabase.from('trips').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
+            await expenseService.restoreAll(householdId);
+            await incomeService.restoreAll(householdId);
+            await goalService.restoreAll(householdId);
+            await loanService.restoreAll(householdId);
+            await investmentService.restoreAll(householdId);
+            await tripService.restoreAll(householdId);
             alert('Dados restaurados (soft delete revertido). Recarregue a página.');
         } catch (e: any) {
             alert('Erro ao restaurar: ' + e.message);
@@ -758,23 +636,13 @@ export const useAppData = () => {
                 household_id: householdId,
                 name: trip.name,
                 budget: trip.budget,
-                proportion_type: trip.proportionType,
-                custom_percentage_1: trip.customPercentage1
+                proportionType: trip.proportionType,
+                customPercentage1: trip.customPercentage1
             });
 
             if (error) throw error;
             if (data) {
-                const newTrip: Trip = {
-                    id: data.id,
-                    household_id: data.household_id,
-                    name: data.name,
-                    budget: Number(data.budget),
-                    proportionType: data.proportion_type,
-                    customPercentage1: Number(data.custom_percentage_1),
-                    created_at: data.created_at,
-                    expenses: [],
-                    deposits: []
-                };
+                const newTrip = data;
                 setTrips(prev => [newTrip, ...prev]);
             }
         } catch (err: any) {
@@ -788,8 +656,8 @@ export const useAppData = () => {
             const { data, error } = await tripService.update(id, {
                 name: updates.name,
                 budget: updates.budget,
-                proportion_type: updates.proportionType,
-                custom_percentage_1: updates.customPercentage1
+                proportionType: updates.proportionType,
+                customPercentage1: updates.customPercentage1
             });
 
             if (error) throw error;
@@ -798,9 +666,9 @@ export const useAppData = () => {
                 setTrips(prev => prev.map(t => t.id === id ? {
                     ...t,
                     name: data.name,
-                    budget: Number(data.budget),
-                    proportionType: data.proportion_type,
-                    customPercentage1: Number(data.custom_percentage_1)
+                    budget: data.budget,
+                    proportionType: data.proportionType,
+                    customPercentage1: data.customPercentage1
                 } : t));
             }
         } catch (err: any) {
@@ -826,7 +694,7 @@ export const useAppData = () => {
                 trip_id: tripId,
                 description: expense.description,
                 value: expense.value,
-                paid_by: expense.paidBy,
+                paidBy: expense.paidBy,
                 date: expense.date,
                 category: expense.category
             });
@@ -838,7 +706,7 @@ export const useAppData = () => {
                     trip_id: data.trip_id,
                     description: data.description,
                     value: Number(data.value),
-                    paidBy: data.paid_by,
+                    paidBy: data.paidBy,
                     date: data.date,
                     category: data.category,
                     created_at: data.created_at
