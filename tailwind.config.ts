@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        p1: '#2563eb',
-        p2: '#ec4899',
+        p1: 'var(--p1-color)',
+        p2: 'var(--p2-color)',
       },
       borderRadius: {
         'xl': '1rem',
