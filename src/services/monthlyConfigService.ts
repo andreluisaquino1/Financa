@@ -9,6 +9,7 @@ export const monthlyConfigService = {
             .select('*')
             .eq('household_id', householdId)
             .eq('month_key', monthKey)
+            .is('deleted_at', null)
             .maybeSingle();
 
         return handleServiceResponse(data, error);
@@ -37,11 +38,21 @@ export const monthlyConfigService = {
         return handleServiceResponse(null, error);
     },
 
-    async deleteByHousehold(householdId: string): Promise<ServiceResponse<void>> {
+    async softDeleteByHousehold(householdId: string): Promise<ServiceResponse<void>> {
         const { error } = await supabase
             .from('monthly_configs')
-            .delete()
+            .update({ deleted_at: new Date().toISOString() })
             .eq('household_id', householdId);
+
+        return handleServiceResponse(null, error);
+    },
+
+    async restoreAll(householdId: string): Promise<ServiceResponse<null>> {
+        const { error } = await supabase
+            .from('monthly_configs')
+            .update({ deleted_at: null })
+            .eq('household_id', householdId)
+            .not('deleted_at', 'is', null);
 
         return handleServiceResponse(null, error);
     }

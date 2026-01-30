@@ -197,14 +197,14 @@ const AppContent: React.FC = () => {
             <div className="w-24 h-24 rounded-3xl bg-white dark:bg-slate-800 shadow-xl flex items-center justify-center animate-pulse border border-slate-100 dark:border-white/5">
               <img src="/logo.png" alt="Loading" className="h-14 w-14 object-contain opacity-50" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-p1 rounded-full border-4 border-white dark:border-slate-800 animate-bounce shadow-lg"></div>
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-brand rounded-full border-4 border-white dark:border-slate-800 animate-bounce shadow-lg"></div>
           </div>
           <div className="text-center space-y-2">
             <h2 className="text-slate-800 dark:text-slate-200 font-black text-xl tracking-tight">Preparando tudo</h2>
             <div className="flex items-center justify-center space-x-1.5">
-              <div className="w-1.5 h-1.5 bg-p1 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-              <div className="w-1.5 h-1.5 bg-p1 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-              <div className="w-1.5 h-1.5 bg-p1 rounded-full animate-bounce"></div>
+              <div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+              <div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div className="w-1.5 h-1.5 bg-brand rounded-full animate-bounce"></div>
             </div>
           </div>
         </div>
@@ -234,7 +234,7 @@ const AppContent: React.FC = () => {
           <div className="flex items-center justify-between py-3 md:py-4 gap-4">
             <div className="flex items-center space-x-3 shrink-0">
               <button onClick={() => setIsMenuOpen(true)} className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all active:scale-95 group">
-                <svg className="w-6 h-6 text-slate-600 dark:text-slate-400 group-hover:text-p1 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-slate-600 dark:text-slate-400 group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
@@ -432,7 +432,7 @@ const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }>
   <button
     onClick={onClick}
     className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${active
-      ? 'bg-white dark:bg-p1 text-p1 dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10'
+      ? 'bg-white dark:bg-brand text-brand dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10'
       : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800'
       }`}
   >
@@ -441,11 +441,11 @@ const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }>
 );
 
 const MobileTab: React.FC<{ active: boolean, onClick: () => void, icon: string, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex flex-col items-center justify-center px-1.5 py-1 transition-all rounded-xl ${active ? 'bg-p1/5' : ''} min-w-[64px] relative`}>
-    <div className={`p-1.5 rounded-xl transition-all ${active ? 'text-p1 scale-110' : 'text-slate-400 dark:text-slate-600'}`}>
+  <button onClick={onClick} className={`flex flex-col items-center justify-center px-1.5 py-1 transition-all rounded-xl ${active ? 'bg-brand/5' : ''} min-w-[64px] relative`}>
+    <div className={`p-1.5 rounded-xl transition-all ${active ? 'text-brand scale-110' : 'text-slate-400 dark:text-slate-600'}`}>
       <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2} d={icon} /></svg>
     </div>
-    <span className={`text-[9px] font-black uppercase tracking-tighter whitespace-nowrap transition-all flex items-center gap-1 ${active ? 'text-p1 opacity-100 mt-0.5' : 'text-slate-400 opacity-60'}`}>
+    <span className={`text-[9px] font-black uppercase tracking-tighter whitespace-nowrap transition-all flex items-center gap-1 ${active ? 'text-brand opacity-100 mt-0.5' : 'text-slate-400 opacity-60'}`}>
       {label}
     </span>
   </button>

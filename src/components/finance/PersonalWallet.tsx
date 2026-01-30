@@ -259,7 +259,7 @@ const PersonalWallet: React.FC<Props> = ({
                                 const instInfo = getInstallmentInfo(exp, monthKey);
 
                                 return (
-                                    <tr key={exp.id} className="group hover:bg-p1/5 dark:hover:bg-p1/10 transition-all">
+                                    <tr key={exp.id} className={`group hover:${accentBg}/5 dark:hover:${accentBg}/10 transition-all`}>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center shadow-inner border border-slate-100 dark:border-white/5 font-black text-slate-400 dark:text-slate-500 tabular-nums">
@@ -303,7 +303,7 @@ const PersonalWallet: React.FC<Props> = ({
                                         </td>
                                         <td className="px-8 py-6 text-right">
                                             <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-                                                <button onClick={() => onUpdateExpense(exp.id, exp)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-p1 rounded-2xl shadow-xl hover:shadow-p1/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90">📝</button>
+                                                <button onClick={() => onUpdateExpense(exp.id, exp)} className={`w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:${accentText} rounded-2xl shadow-xl hover:shadow-${person === 'person1' ? 'p1' : 'p2'}/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90`}>📝</button>
                                                 <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-red-500 rounded-2xl shadow-xl hover:shadow-red-500/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90 ml-1">🗑️</button>
                                             </div>
                                         </td>

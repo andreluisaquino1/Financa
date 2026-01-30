@@ -150,7 +150,7 @@ const SidebarMenu: React.FC<Props> = ({
             <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-0.5">Conta & Preferências</p>
             {userEmail && (
               <div className="mt-4 flex items-center gap-2 bg-white/5 border border-white/10 p-1.5 rounded-xl">
-                <div className="w-8 h-8 rounded-lg bg-p1 flex items-center justify-center text-[10px] font-black">{userEmail.slice(0, 2).toUpperCase()}</div>
+                <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-[10px] font-black">{userEmail.slice(0, 2).toUpperCase()}</div>
                 <p className="text-[9px] font-bold opacity-60 truncate">{userEmail}</p>
               </div>
             )}
@@ -188,7 +188,7 @@ const SidebarMenu: React.FC<Props> = ({
                     <button
                       type="button"
                       onClick={() => setShowIconPicker(!showIconPicker)}
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border transition-all ${showIconPicker ? 'bg-p1 text-white border-p1' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border transition-all ${showIconPicker ? 'bg-brand text-white border-brand' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}
                     >
                       {selectedIcon}
                     </button>
@@ -223,19 +223,19 @@ const SidebarMenu: React.FC<Props> = ({
                     className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl px-5 text-sm font-bold outline-none dark:text-slate-100"
                   />
                 </div>
-                <button onClick={addCategory} className="w-full bg-slate-900 dark:bg-p1 border hover:brightness-110 border-transparent text-white py-3.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-p1/10 active:scale-95 transition-all">Adicionar Categoria</button>
+                <button onClick={addCategory} className="w-full bg-slate-900 dark:bg-brand border hover:brightness-110 border-transparent text-white py-3.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/10 active:scale-95 transition-all">Adicionar Categoria</button>
               </div>
 
               <div className="flex flex-col gap-2">
                 {categories.map((cat, index) => {
                   const isEditing = editingCategoryIndex === index;
                   return (
-                    <div key={cat.name} className={`group flex flex-col bg-white dark:bg-slate-800/60 p-2 rounded-2xl border transition-all ${isEditing ? 'border-p1 shadow-lg' : 'border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md'}`}>
+                    <div key={cat.name} className={`group flex flex-col bg-white dark:bg-slate-800/60 p-2 rounded-2xl border transition-all ${isEditing ? 'border-brand shadow-lg' : 'border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md'}`}>
                       <div className="flex items-center justify-between px-2 py-1">
                         <div className="flex items-center gap-3">
                           <button
                             onClick={() => setEditingCategoryIndex(isEditing ? null : index)}
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner transition-colors ${isEditing ? 'bg-p1 text-white' : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300'}`}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner transition-colors ${isEditing ? 'bg-brand text-white' : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300'}`}
                           >
                             {cat.icon || '📦'}
                           </button>
@@ -270,11 +270,11 @@ const SidebarMenu: React.FC<Props> = ({
                                   className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
                                 >▼</button>
                               </div>
-                              <button onClick={() => setEditingCategoryIndex(index)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-p1 hover:bg-p1/5 rounded-xl font-bold transition-all">📝</button>
+                              <button onClick={() => setEditingCategoryIndex(index)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-brand hover:bg-brand/5 rounded-xl font-bold transition-all">📝</button>
                               <button onClick={() => removeCategory(cat.name)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all">×</button>
                             </>
                           ) : (
-                            <button onClick={() => setEditingCategoryIndex(null)} className="px-3 py-1 bg-p1 text-white rounded-lg text-[10px] font-black uppercase">OK</button>
+                            <button onClick={() => setEditingCategoryIndex(null)} className="px-3 py-1 bg-brand text-white rounded-lg text-[10px] font-black uppercase">OK</button>
                           )}
                         </div>
                       </div>
@@ -290,7 +290,7 @@ const SidebarMenu: React.FC<Props> = ({
                                 newCats[index].icon = icon;
                                 setCategories(newCats);
                               }}
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-white dark:hover:bg-slate-800 transition-colors ${cat.icon === icon ? 'bg-white dark:bg-slate-800 ring-1 ring-p1' : ''}`}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-white dark:hover:bg-slate-800 transition-colors ${cat.icon === icon ? 'bg-white dark:bg-slate-800 ring-1 ring-brand' : ''}`}
                             >
                               {icon}
                             </button>
@@ -317,18 +317,18 @@ const SidebarMenu: React.FC<Props> = ({
                 onClick={() => setShowPassForm(true)}
                 className="w-full p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group"
               >
-                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm group-hover:text-p1 transition-colors">🔐</div>
+                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm group-hover:text-brand transition-colors">🔐</div>
                 <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tight">Alterar Senha</span>
               </button>
             ) : (
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-p1/30 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-brand/30 space-y-3 animate-in fade-in zoom-in-95 duration-200">
                 <div className="space-y-1">
                   <label className="text-[8px] font-black text-slate-400 uppercase ml-1">Nova Senha</label>
                   <input
                     type="password"
                     value={newPass}
                     onChange={e => setNewPass(e.target.value)}
-                    className="w-full bg-white dark:bg-slate-900 px-3 py-2 rounded-xl text-xs font-bold border border-slate-100 dark:border-white/10 outline-none focus:border-p1"
+                    className="w-full bg-white dark:bg-slate-900 px-3 py-2 rounded-xl text-xs font-bold border border-slate-100 dark:border-white/10 outline-none focus:border-brand"
                   />
                 </div>
                 <div className="space-y-1">
@@ -337,14 +337,14 @@ const SidebarMenu: React.FC<Props> = ({
                     type="password"
                     value={confirmPass}
                     onChange={e => setConfirmPass(e.target.value)}
-                    className="w-full bg-white dark:bg-slate-900 px-3 py-2 rounded-xl text-xs font-bold border border-slate-100 dark:border-white/10 outline-none focus:border-p1"
+                    className="w-full bg-white dark:bg-slate-900 px-3 py-2 rounded-xl text-xs font-bold border border-slate-100 dark:border-white/10 outline-none focus:border-brand"
                   />
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={handleChangePassword}
                     disabled={passLoading}
-                    className="flex-1 bg-p1 text-white py-2 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-p1/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
+                    className="flex-1 bg-brand text-white py-2 rounded-xl font-black text-[10px] uppercase shadow-lg shadow-brand/20 transition-all hover:brightness-110 active:scale-95 disabled:opacity-50"
                   >
                     {passLoading ? 'Salvando...' : 'Confirmar'}
                   </button>
@@ -367,7 +367,7 @@ const SidebarMenu: React.FC<Props> = ({
             </h3>
             <button
               onClick={() => { if (onShowHouseholdLink) { onShowHouseholdLink(); onClose(); } }}
-              className="w-full p-4 bg-p1 text-white rounded-2xl shadow-lg shadow-p1/20 flex flex-col items-start gap-1 hover:brightness-110 active:scale-[0.98] transition-all"
+              className="w-full p-4 bg-brand text-white rounded-2xl shadow-lg shadow-brand/20 flex flex-col items-start gap-1 hover:brightness-110 active:scale-[0.98] transition-all"
             >
               <span className="text-[10px] font-black uppercase tracking-widest">Conectar Parceiro</span>
               <span className="text-[8px] opacity-70 font-bold">CÓDIGO: {inviteCode || userId?.slice(0, 8)}</span>
@@ -385,7 +385,7 @@ const SidebarMenu: React.FC<Props> = ({
                 <button onClick={() => setTheme('light')} className={`p-1.5 rounded-lg transition-all ${theme === 'light' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </button>
-                <button onClick={() => setTheme('dark')} className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-p1 text-white' : 'text-slate-400'}`}>
+                <button onClick={() => setTheme('dark')} className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-brand text-white' : 'text-slate-400'}`}>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 </button>
               </div>
@@ -445,7 +445,7 @@ const SidebarMenu: React.FC<Props> = ({
         </div>
 
         <div className="p-8 border-t border-slate-50 dark:border-white/5 bg-white dark:bg-slate-900 shrink-0">
-          <button onClick={handleSave} className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-4.5 rounded-[1.25rem] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+          <button onClick={handleSave} className="w-full bg-slate-900 dark:bg-brand text-white font-black py-4.5 rounded-[1.25rem] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
             Salvar Alterações
           </button>
         </div>
@@ -456,7 +456,7 @@ const SidebarMenu: React.FC<Props> = ({
 
 const SidebarBtn: React.FC<{ icon: string, label: string, onClick?: () => void, variant?: 'default' | 'danger' }> = ({ icon, label, onClick, variant = 'default' }) => (
   <button onClick={onClick} className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all group ${variant === 'danger' ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
-    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${variant === 'danger' ? 'bg-red-100 dark:bg-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:text-p1'}`}>{icon}</div>
+    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${variant === 'danger' ? 'bg-red-100 dark:bg-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 group-hover:text-brand'}`}>{icon}</div>
     <span className="text-[10px] font-black uppercase tracking-tight">{label}</span>
   </button>
 );
@@ -465,7 +465,7 @@ const MoneyInput: React.FC<{ label: string, value: string, onChange: (v: string)
   <div className="space-y-1">
     <label className="block text-[8px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest px-1">{label}</label>
     <div className="relative group/input">
-      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[10px] transition-colors group-focus-within/input:text-p1">R$</span>
+      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[10px] transition-colors group-focus-within/input:text-brand">R$</span>
       <input
         type="text" inputMode="decimal" value={value}
         onChange={e => onChange(formatAsBRL(e.target.value))}

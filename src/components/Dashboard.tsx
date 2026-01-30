@@ -101,7 +101,7 @@ const Dashboard: React.FC<Props> = ({
                 </button>
                 <button
                   onClick={() => setShowBreakdown(!showBreakdown)}
-                  className={`w-16 h-16 flex items-center justify-center rounded-[1.5rem] transition-all active:scale-95 border shadow-2xl ${showBreakdown ? 'bg-p1/20 border-p1 text-p1' : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'}`}
+                  className={`w-16 h-16 flex items-center justify-center rounded-[1.5rem] transition-all active:scale-95 border shadow-2xl ${showBreakdown ? 'bg-brand/20 border-brand text-brand' : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:bg-white/10'}`}
                 >
                   <svg className={`w-6 h-6 transition-transform ${showBreakdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                 </button>
@@ -128,7 +128,7 @@ const Dashboard: React.FC<Props> = ({
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Renda Total</p>
           </div>
           <p className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">{formatCurrency(totalIncome)}</p>
-          <button onClick={onNavigateToIncomes} className="mt-3 text-[10px] font-black text-p1 uppercase tracking-widest hover:translate-x-1 transition-transform inline-flex items-center gap-1">Ver Entradas <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg></button>
+          <button onClick={onNavigateToIncomes} className="mt-3 text-[10px] font-black text-brand uppercase tracking-widest hover:translate-x-1 transition-transform inline-flex items-center gap-1">Ver Entradas <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg></button>
         </div>
 
         {/* Card Gastos Casa */}
@@ -154,7 +154,7 @@ const Dashboard: React.FC<Props> = ({
         {/* Card Sobra */}
         <div className="bg-white dark:bg-slate-900/40 p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm group hover:shadow-xl transition-all">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-blue-50 dark:bg-p1/10 text-p1 rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform shadow-inner">✨</div>
+            <div className="w-12 h-12 bg-blue-50 dark:bg-brand/10 text-brand rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform shadow-inner">✨</div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sobra Livre</p>
           </div>
           <p className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">{formatCurrency(p1Left + p2Left)}</p>

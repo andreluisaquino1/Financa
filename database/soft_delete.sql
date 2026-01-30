@@ -40,4 +40,19 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'trip_deposits' AND column_name = 'deleted_at') THEN
     ALTER TABLE trip_deposits ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;
   END IF;
+  
+  -- Goal Transactions
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'goal_transactions' AND column_name = 'deleted_at') THEN
+    ALTER TABLE goal_transactions ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;
+  END IF;
+
+  -- Investment Movements
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'investment_movements' AND column_name = 'deleted_at') THEN
+    ALTER TABLE investment_movements ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;
+  END IF;
+
+  -- Monthly Configs
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'monthly_configs' AND column_name = 'deleted_at') THEN
+    ALTER TABLE monthly_configs ADD COLUMN deleted_at TIMESTAMPTZ DEFAULT NULL;
+  END IF;
 END $$;
