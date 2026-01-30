@@ -237,8 +237,8 @@ export const calculateSummary = (
     }
 
     // Savings Goals Calculations (Transaction-Based)
-    const goalData = goals.map(g => {
-        const goalTransactionsForGoal = goalTransactions.filter(t => t.goal_id === g.id);
+    const goalData = (goals || []).map(g => {
+        const goalTransactionsForGoal = (goalTransactions || []).filter(t => t.goal_id === g.id);
         return {
             goal: g,
             stats: calculateGoalStats(g, goalTransactionsForGoal)
@@ -256,11 +256,11 @@ export const calculateSummary = (
         .filter(item => !item.stats.isCompleted)
         .reduce((sum, item) => roundMoney(sum + (item.goal.monthly_contribution_p2 || 0)), 0);
 
-    const person1GoalsRealized = goalTransactions
+    const person1GoalsRealized = (goalTransactions || [])
         .filter(t => t.person === 'person1' && t.type === 'deposit' && t.date.startsWith(monthKey))
         .reduce((sum, t) => roundMoney(sum + t.value), 0);
 
-    const person2GoalsRealized = goalTransactions
+    const person2GoalsRealized = (goalTransactions || [])
         .filter(t => t.person === 'person2' && t.type === 'deposit' && t.date.startsWith(monthKey))
         .reduce((sum, t) => roundMoney(sum + t.value), 0);
 

@@ -148,5 +148,14 @@ describe('Financial Domain Logic', () => {
             expect(result.person2Remaining).toBe(4700);
             expect(result.totalGoalSavings).toBe(1300);
         });
+        it('should handle null/undefined goals and transactions gracefully', () => {
+            const result = calculateSummary([], [], getMockCoupleInfo(), '2024-01', undefined as any, undefined as any);
+
+            expect(result.person1GoalContribution).toBe(0);
+            expect(result.person2GoalContribution).toBe(0);
+            expect(result.person1Remaining).toBe(5000);
+            expect(result.person2Remaining).toBe(5000);
+            expect(result.totalGoalSavings).toBe(0);
+        });
     });
 });

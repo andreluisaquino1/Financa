@@ -23,6 +23,10 @@ Para testar no PC sem um celular físico:
     *   *Nota: O download é grande (1.5GB+).*
 5.  Termine a criação e clique no "Play" (triângulo verde) para abrir o celular virtual.
 
+### "Unable to delete directory"
+Se este erro aparecer, é quase certo que o **Google Drive** ou **OneDrive** está tentando sincronizar os arquivos enquanto o Android Studio trabalha.
+*   **Solução:** Pause a sincronização da nuvem enquanto programa ou mova o projeto para uma pasta fora do Drive (ex: `C:\Projetos`).
+
 ## 3. Rodando o App
 Com o celular (virtual ou físico via USB) conectado:
 1.  No topo da tela, verifique se o **módulo** selecionado é `app`.

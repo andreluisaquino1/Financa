@@ -44,7 +44,7 @@ export const goalService = {
             .is('deleted_at', null)
             .order('created_at', { ascending: false });
 
-        const mappedData = data ? (data as unknown as SavingsGoalDB[]).map(mapGoal) : null;
+        const mappedData = data ? (data as unknown as SavingsGoalDB[]).map(mapGoal) : [];
         return handleServiceResponse(mappedData, error);
     },
 
