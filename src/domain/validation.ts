@@ -50,11 +50,27 @@ export const loanSchema = z.object({
 export const investmentSchema = z.object({
     name: z.string().min(1, 'Nome é obrigatório'),
     type: z.enum(['fixed_income', 'variable_income', 'crypto', 'funds', 'real_estate', 'custom']),
-    current_value: z.number().min(0, 'Valor atual não pode ser negativo'),
-    invested_value: z.number().min(0, 'Valor investido não pode ser negativo'),
+    institution: z.string().optional(),
+    indexer: z.string().optional(),
+    risk: z.enum(['low', 'medium', 'high']).optional(),
+    liquidity: z.string().optional(),
+    notes: z.string().optional(),
+    owner: z.enum(['person1', 'person2', 'couple']),
+    current_value: z.number().min(0).optional().default(0),
+    invested_value: z.number().min(0).optional().default(0),
     quantity: z.number().min(0).optional(),
     price_per_unit: z.number().min(0).optional(),
-    owner: z.enum(['person1', 'person2', 'couple']),
+});
+
+export const investmentMovementSchema = z.object({
+    investment_id: z.string().uuid('Investimento inválido'),
+    type: z.enum(['buy', 'sell', 'yield', 'adjustment']),
+    value: z.number(),
+    quantity: z.number().optional(),
+    price_per_unit: z.number().min(0).optional(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+    person: z.enum(['person1', 'person2']),
+    description: z.string().optional(),
 });
 
 export const tripSchema = z.object({
@@ -113,5 +129,6 @@ export const validateTripExpense = (data: unknown) => tripExpenseSchema.safePars
 export const validateTripDeposit = (data: unknown) => tripDepositSchema.safeParse(data);
 export const validateProfile = (data: unknown) => profileSchema.safeParse(data);
 export const validateGoalTransaction = (data: unknown) => goalTransactionSchema.safeParse(data);
+export const validateInvestmentMovement = (data: unknown) => investmentMovementSchema.safeParse(data);
 
 

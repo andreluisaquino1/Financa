@@ -225,13 +225,37 @@ export interface Investment {
   household_id: string;
   name: string;
   type: 'fixed_income' | 'variable_income' | 'crypto' | 'funds' | 'real_estate' | 'custom';
+  institution?: string;
+  indexer?: string;
+  risk?: 'low' | 'medium' | 'high';
+  liquidity?: string;
+  notes?: string;
+  owner: 'person1' | 'person2' | 'couple';
+
+  // Legacy fields (to be derived later)
   current_value: number;
   invested_value: number;
   quantity?: number;
   price_per_unit?: number;
-  owner: 'person1' | 'person2' | 'couple';
+
   created_at: string;
   updated_at?: string;
+  deleted_at?: string;
+}
+
+export type InvestmentMovementType = 'buy' | 'sell' | 'yield' | 'adjustment';
+
+export interface InvestmentMovement {
+  id: string;
+  investment_id: string;
+  type: InvestmentMovementType;
+  value: number;
+  quantity?: number;
+  price_per_unit?: number;
+  date: string;
+  person: 'person1' | 'person2';
+  description?: string;
+  created_at: string;
   deleted_at?: string;
 }
 
@@ -311,6 +335,7 @@ export interface SavingsGoalDB {
 
 export interface LoanDB extends Loan { } // Structure matches except strict typing, but Loan in types.ts is already snake_case mostly using strict types now
 export interface InvestmentDB extends Investment { } // Structure matches
+export interface InvestmentMovementDB extends InvestmentMovement { }
 export interface TripDB extends Trip { } // Structure matches
 export interface UserProfileDB {
   id: string;

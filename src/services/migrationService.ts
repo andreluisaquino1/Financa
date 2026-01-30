@@ -1,7 +1,9 @@
 import { goalService } from './goalService';
 import { goalTransactionService } from './goalTransactionService';
+import { investmentService } from './investmentService';
+import { investmentMovementService } from './investmentMovementService';
 import { profileService } from './profileService';
-import { SavingsGoal, CoupleInfo, UserProfileDB } from '@/types';
+import { SavingsGoal, CoupleInfo, UserProfileDB, Investment } from '@/types';
 
 export const migrationService = {
     async migrateToTransactions(userId: string, householdId: string, coupleInfo: CoupleInfo) {
@@ -95,6 +97,46 @@ export const migrationService = {
                             description: 'Saldo Inicial Reserva P2'
                         });
                     }
+                }
+            }
+        }
+    },
+
+    async migrateInvestments(householdId: string) {
+        const { data: investments } = await investmentService.getAll(householdId);
+        if (!investments) return;
+
+        for (const inv of investments) {
+            const { data: existingMovements } = await investmentMovementService.getByInvestment(inv.id);
+            if (!existingMovements || existingMovements.length === 0) {
+                // Determine initial movements based on legacy fields
+                const invested = Number(inv.invested_value) || 0;
+                const current = Number(inv.current_value) || 0;
+                const person = (inv.owner === 'person2') ? 'person2' : 'person1';
+
+                if (invested > 0) {
+                    await investmentMovementService.create({
+                        investment_id: inv.id,
+                        type: 'buy',
+                        value: invested,
+                        quantity: inv.quantity,
+                        price_per_unit: inv.price_per_unit,
+                        date: inv.created_at.split('T')[0],
+                        person: person,
+                        description: 'Custo Histórico (Migração)'
+                    });
+                }
+
+                const diff = current - invested;
+                if (Math.abs(diff) > 0.01) {
+                    await investmentMovementService.create({
+                        investment_id: inv.id,
+                        type: 'yield',
+                        value: diff,
+                        date: new Date().toISOString().split('T')[0],
+                        person: person,
+                        description: 'Rendimento Acumulado (Migração)'
+                    });
                 }
             }
         }

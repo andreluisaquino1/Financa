@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment, Trip, TripExpense, TripDeposit, GoalTransaction, UserProfileDB } from '@/types';
+import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment, InvestmentMovement, Trip, TripExpense, TripDeposit, GoalTransaction, UserProfileDB } from '@/types';
 import { scheduleReminder, cancelReminder } from '@/notificationService';
 import { getMonthYearKey, formatCurrency } from '@/domain/formatters';
 import { calculateSummary } from '@/domain/financial';
@@ -10,6 +10,7 @@ import { incomeService } from '@/services/incomeService';
 import { goalService } from '@/services/goalService';
 import { loanService } from '@/services/loanService';
 import { investmentService } from '@/services/investmentService';
+import { investmentMovementService } from '@/services/investmentMovementService';
 import { tripService } from '@/services/tripService';
 import { profileService } from '@/services/profileService';
 import { monthlyConfigService } from '@/services/monthlyConfigService';
@@ -34,6 +35,7 @@ export const useAppData = () => {
     const [goalTransactions, setGoalTransactions] = useState<GoalTransaction[]>([]);
     const [loans, setLoans] = useState<Loan[]>([]);
     const [investments, setInvestments] = useState<Investment[]>([]);
+    const [investmentMovements, setInvestmentMovements] = useState<InvestmentMovement[]>([]);
     const [trips, setTrips] = useState<Trip[]>([]);
     const [selectedMonth, setSelectedMonth] = useState(getMonthYearKey(new Date()));
     const [dataLoading, setDataLoading] = useState(true);
@@ -147,13 +149,24 @@ export const useAppData = () => {
                 if (transactionsData) {
                     setGoalTransactions(transactionsData);
 
-                    // Trigger migration if needed (one-way check)
-                    // We check if we have goals but no transactions at all
+                    // Trigger goals migration if needed
                     if (goalsData && goalsData.length > 0 && transactionsData.length === 0) {
                         await migrationService.migrateToTransactions(user.id, activeHouseholdId, coupleInfo);
-                        // Reload transactions after migration
                         const { data: migratedData } = await goalTransactionService.getAllByHousehold(activeHouseholdId);
                         if (migratedData) setGoalTransactions(migratedData);
+                    }
+                }
+
+                // 4.7 Load Investment Movements
+                const { data: invMovementsData } = await investmentMovementService.getAllByHousehold(activeHouseholdId);
+                if (invMovementsData) {
+                    setInvestmentMovements(invMovementsData);
+
+                    // Trigger investments migration if needed
+                    if (investmentsData && investmentsData.length > 0 && invMovementsData.length === 0) {
+                        await migrationService.migrateInvestments(activeHouseholdId);
+                        const { data: migratedInvData } = await investmentMovementService.getAllByHousehold(activeHouseholdId);
+                        if (migratedInvData) setInvestmentMovements(migratedInvData);
                     }
                 }
 
@@ -631,6 +644,28 @@ export const useAppData = () => {
         }
     }, [user]);
 
+    const addInvestmentMovement = useCallback(async (movement: Omit<InvestmentMovement, 'id' | 'created_at'>) => {
+        if (!user) return;
+        try {
+            const { data, error } = await investmentMovementService.create(movement);
+            if (error) throw error;
+            if (data) setInvestmentMovements(prev => [data, ...prev]);
+        } catch (err: any) {
+            alert('Erro ao registrar movimentação de investimento: ' + err.message);
+        }
+    }, [user]);
+
+    const deleteInvestmentMovement = useCallback(async (id: string) => {
+        if (!user) return;
+        try {
+            const { error } = await investmentMovementService.delete(id);
+            if (error) throw error;
+            setInvestmentMovements(prev => prev.filter(m => m.id !== id));
+        } catch (err: any) {
+            alert('Erro ao deletar movimentação de investimento: ' + err.message);
+        }
+    }, [user]);
+
     const deleteInvestment = useCallback(async (id: string) => {
         if (!user) return;
         try {
@@ -870,6 +905,9 @@ export const useAppData = () => {
         deleteTripExpense,
         addTripDeposit,
         deleteTripDeposit,
+        investmentMovements,
+        addInvestmentMovement,
+        deleteInvestmentMovement,
         restoreData
     };
 };
