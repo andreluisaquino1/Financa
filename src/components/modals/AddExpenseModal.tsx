@@ -145,7 +145,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 {/* Header */}
                 <div className="px-8 py-6 flex justify-between items-center border-b dark:border-white/5 bg-white dark:bg-slate-900 z-10 shrink-0">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-p1/10 flex items-center justify-center text-xl shadow-inner border border-p1/5">✨</div>
+                        <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-xl shadow-inner border border-brand/5">✨</div>
                         <div>
                             <h3 className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight text-lg leading-tight">
                                 {initialData ? 'Editar Registro' : 'Novo Lançamento'}
@@ -171,7 +171,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                             if (isReimbursement) setCurrentType(ExpenseType.REIMBURSEMENT);
                                             else setCurrentType(ExpenseType.COMMON);
                                         }}
-                                        className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${!isFixed ? 'bg-white dark:bg-p1 text-p1 dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800'}`}
+                                        className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${!isFixed ? 'bg-white dark:bg-brand text-brand dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800'}`}
                                     >
                                         <span className="text-sm">📅</span>
                                         Pontual / Variável
@@ -182,7 +182,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                             if (isReimbursement) setCurrentType(ExpenseType.REIMBURSEMENT_FIXED);
                                             else setCurrentType(ExpenseType.FIXED);
                                         }}
-                                        className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${isFixed ? 'bg-white dark:bg-p1 text-p1 dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800'}`}
+                                        className={`flex-1 py-3 rounded-xl font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${isFixed ? 'bg-white dark:bg-brand text-brand dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800'}`}
                                     >
                                         <span className="text-sm">🏠</span>
                                         Mensal / Fixo
@@ -200,7 +200,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                     required
                                     value={date}
                                     onChange={e => setDate(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
+                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
                                 />
                             </div>
                             <div className="space-y-1">
@@ -214,7 +214,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                     value={reminderDay}
                                     onChange={e => setReminderDay(e.target.value)}
                                     placeholder="Ex: 05"
-                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
+                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
                                 />
                             </div>
                         </div>
@@ -227,7 +227,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 required
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
                                 placeholder="O que você comprou?"
                             />
                         </div>
@@ -248,7 +248,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                             value={value}
                                             onChange={e => handleValueChange(e.target.value)}
                                             onFocus={e => e.target.select()}
-                                            className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
+                                            className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
                                             placeholder="0,00"
                                         />
                                     </div>
@@ -267,11 +267,11 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                                 value={installmentValue}
                                                 onChange={e => handleInstallmentValueChange(e.target.value)}
                                                 onFocus={e => e.target.select()}
-                                                className="w-full bg-p1/5 border border-p1/20 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-p1 outline-none transition-all"
+                                                className="w-full bg-brand/5 border border-brand/20 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-brand outline-none transition-all"
                                                 placeholder="0,00"
                                             />
                                         </div>
-                                        <p className="text-[9px] font-bold text-p1/60 px-1 uppercase italic">
+                                        <p className="text-[9px] font-bold text-brand/60 px-1 uppercase italic">
                                             Preencha um para calcular o outro
                                         </p>
                                     </div>
@@ -289,7 +289,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                         min="1"
                                         value={installments || ''}
                                         onChange={e => setInstallments(e.target.value)}
-                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
                                         placeholder="1x"
                                     />
                                 </div>
@@ -321,12 +321,12 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                             type="button"
                                             onClick={() => setCategory(catName)}
                                             className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all duration-300 gap-1.5 ${isSelected
-                                                ? 'bg-p1/10 border-p1 shadow-sm ring-1 ring-p1/20'
-                                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 hover:border-p1/30 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                ? 'bg-brand/10 border-brand shadow-sm ring-1 ring-brand/20'
+                                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/5 hover:border-brand/30 hover:bg-slate-50 dark:hover:bg-slate-800'
                                                 }`}
                                         >
                                             <span className={`text-xl transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{catIcon}</span>
-                                            <span className={`text-[9px] font-black uppercase tracking-tighter truncate w-full text-center ${isSelected ? 'text-p1' : 'text-slate-500 dark:text-slate-400'}`}>
+                                            <span className={`text-[9px] font-black uppercase tracking-tighter truncate w-full text-center ${isSelected ? 'text-brand' : 'text-slate-500 dark:text-slate-400'}`}>
                                                 {catName}
                                             </span>
                                         </button>
@@ -366,7 +366,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                                 <button
                                                     type="button"
                                                     onClick={() => { setSplitMethod('proportional'); setShowAdvancedSplit(false); }}
-                                                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${splitMethod === 'proportional' ? 'bg-white dark:bg-slate-800 text-p1 shadow-md' : 'text-slate-400'}`}
+                                                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${splitMethod === 'proportional' ? 'bg-white dark:bg-slate-800 text-brand shadow-md' : 'text-slate-400'}`}
                                                 >
                                                     <span className="text-sm">⚖️</span>
                                                     Proporcional
@@ -374,7 +374,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                                 <button
                                                     type="button"
                                                     onClick={() => setSplitMethod('custom')}
-                                                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${splitMethod === 'custom' ? 'bg-white dark:bg-slate-800 text-p1 shadow-md' : 'text-slate-400'}`}
+                                                    className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${splitMethod === 'custom' ? 'bg-white dark:bg-slate-800 text-brand shadow-md' : 'text-slate-400'}`}
                                                 >
                                                     <span className="text-sm">🎯</span>
                                                     Manual / %
@@ -434,7 +434,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowAdvancedSplit(!showAdvancedSplit)}
-                                                        className="w-full py-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase text-slate-500 hover:text-p1 transition-all flex items-center justify-center gap-3 active:scale-95 shadow-sm"
+                                                        className="w-full py-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase text-slate-500 hover:text-brand transition-all flex items-center justify-center gap-3 active:scale-95 shadow-sm"
                                                     >
                                                         <span className="text-base">{showAdvancedSplit ? '➖' : '➕'}</span>
                                                         {showAdvancedSplit ? 'Ocultar Valores Exatos' : 'Informar Valores em Reais (R$)'}
@@ -508,7 +508,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         type="submit"
                         disabled={isSubmitting}
                         onClick={handleSubmit}
-                        className="w-full bg-slate-900 dark:bg-p1 text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 text-sm uppercase tracking-widest flex items-center justify-center gap-3"
+                        className="w-full bg-slate-900 dark:bg-brand text-white font-black py-5 rounded-[1.5rem] shadow-xl hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 text-sm uppercase tracking-widest flex items-center justify-center gap-3"
                     >
                         {isSubmitting ? (
                             <>

@@ -494,8 +494,8 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                 <div className="z-10">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="flex h-3 w-3 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-500 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-brand"></span>
                         </span>
                         <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                             Planejador de Metas
@@ -517,7 +517,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                             if (isAdding) cancelEdit();
                             else setIsAdding(true);
                         }}
-                        className={`flex-1 lg:flex-none ${isAdding ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
+                        className={`flex-1 lg:flex-none ${isAdding ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-brand text-white shadow-brand/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                         {isAdding ? 'Cancelar' : 'Nova Meta'}
@@ -525,14 +525,14 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                 </div>
 
                 {/* Efeitos visuais de fundo */}
-                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-brand/5 rounded-full blur-3xl"></div>
             </div>
 
             {/* Centro Financeiro - Bank & Reserves Hub */}
             <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md p-6 sm:p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-xl space-y-8">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/5 pb-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-indigo-500 text-white rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-indigo-500/20">🏦</div>
+                        <div className="w-14 h-14 bg-brand text-white rounded-2xl flex items-center justify-center text-2xl shadow-xl shadow-brand/20">🏦</div>
                         <div>
                             <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Centro Financeiro</h3>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Gestão de Saldo e Reservas</p>
@@ -540,7 +540,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                     </div>
                     <button
                         onClick={() => isEditingHub ? handleSaveHub() : setIsEditingHub(true)}
-                        className={`px-8 py-4 rounded-2xl font-black text-xs transition-all uppercase tracking-widest ${isEditingHub ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 active:scale-95'}`}
+                        className={`px-8 py-4 rounded-2xl font-black text-xs transition-all uppercase tracking-widest ${isEditingHub ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 active:scale-95'}`}
                     >
                         {isEditingHub ? '✅ Salvar' : '✏️ Ajustar Saldos'}
                     </button>
@@ -559,7 +559,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Investido em Metas</span>
-                            <span className="text-lg font-black text-indigo-500">{formatCurrency(goalSummary.combinedSavings - emergencyStats.total)}</span>
+                            <span className="text-lg font-black text-brand">{formatCurrency(goalSummary.combinedSavings - emergencyStats.total)}</span>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Geral</span>
@@ -588,9 +588,9 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         </p>
                                         <p className="text-sm font-black text-emerald-600">{formatCurrency(emergencyStats.p1)}</p>
                                     </div>
-                                    <div className="bg-indigo-50 dark:bg-indigo-500/5 p-3 rounded-xl border border-transparent hover:border-indigo-200 transition-all">
-                                        <p className="text-[9px] font-black text-indigo-500 uppercase mb-1">Outras Metas</p>
-                                        <p className="text-sm font-black text-indigo-600">{formatCurrency(goalSummary.p1SavingsTotal - emergencyStats.p1)}</p>
+                                    <div className="bg-brand/5 dark:bg-brand/5 transition-all">
+                                        <p className="text-[9px] font-black text-brand uppercase mb-1">Outras Metas</p>
+                                        <p className="text-sm font-black text-brand">{formatCurrency(goalSummary.p1SavingsTotal - emergencyStats.p1)}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-transparent border-dashed">
                                         <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Sobra Mensal</p>
@@ -602,7 +602,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                 <div className="flex items-center justify-between px-2 pt-1 border-t border-slate-100 dark:border-white/5 pt-3">
                                     <div>
                                         <p className="text-[8px] font-black text-slate-400 uppercase">Disponível p/ Metas</p>
-                                        <p className="text-xs font-black text-indigo-500">{formatCurrency(goalSummary.availableBankP1)}</p>
+                                        <p className="text-xs font-black text-brand">{formatCurrency(goalSummary.availableBankP1)}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[8px] font-black text-slate-400 uppercase">Aportes Planejados</p>
@@ -633,9 +633,9 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         </p>
                                         <p className="text-sm font-black text-emerald-600">{formatCurrency(emergencyStats.p2)}</p>
                                     </div>
-                                    <div className="bg-indigo-50 dark:bg-indigo-500/5 p-3 rounded-xl border border-transparent hover:border-indigo-200 transition-all">
-                                        <p className="text-[9px] font-black text-indigo-500 uppercase mb-1">Outras Metas</p>
-                                        <p className="text-sm font-black text-indigo-600">{formatCurrency(goalSummary.p2SavingsTotal - emergencyStats.p2)}</p>
+                                    <div className="bg-brand/5 dark:bg-brand/5 transition-all">
+                                        <p className="text-[9px] font-black text-brand uppercase mb-1">Outras Metas</p>
+                                        <p className="text-sm font-black text-brand">{formatCurrency(goalSummary.p2SavingsTotal - emergencyStats.p2)}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-transparent border-dashed">
                                         <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Sobra Mensal</p>
@@ -647,7 +647,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                 <div className="flex items-center justify-between px-2 pt-1 border-t border-slate-100 dark:border-white/5 pt-3">
                                     <div>
                                         <p className="text-[8px] font-black text-slate-400 uppercase">Disponível p/ Metas</p>
-                                        <p className="text-xs font-black text-indigo-500">{formatCurrency(goalSummary.availableBankP2)}</p>
+                                        <p className="text-xs font-black text-brand">{formatCurrency(goalSummary.availableBankP2)}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[8px] font-black text-slate-400 uppercase">Aportes Planejados</p>
@@ -665,7 +665,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                         {/* Combined Row */}
                         <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                             <div className="bg-slate-900 dark:bg-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-6 overflow-hidden relative">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-p1/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-brand/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                                 <div className="flex items-center gap-4 shrink-0">
                                     <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-2xl shadow-inner">👫</div>
                                     <div>
@@ -699,7 +699,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     <input
                                         type="text" inputMode="decimal"
                                         value={hubBankP1} onChange={e => setHubBankP1(formatAsBRL(e.target.value))}
-                                        className="w-full bg-white dark:bg-slate-800 px-3 py-2 rounded-xl font-bold text-sm outline-none border border-transparent focus:border-p1"
+                                        className="w-full bg-white dark:bg-slate-800 px-3 py-2 rounded-xl font-bold text-sm outline-none border border-transparent focus:border-brand"
                                     />
                                 </div>
                                 <div>
@@ -707,7 +707,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     <div className="w-full bg-slate-100 dark:bg-slate-800/50 px-3 py-2 rounded-xl font-bold text-sm text-slate-400 border border-transparent cursor-not-allowed">
                                         {formatCurrency(emergencyStats.p1)}
                                     </div>
-                                    <p className="text-[8px] text-indigo-500 font-bold mt-1 px-1">Edite esta valor na aba de Metas</p>
+                                    <p className="text-[8px] text-brand font-bold mt-1 px-1">Edite esta valor na aba de Metas</p>
                                 </div>
                                 <div>
                                     <label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Deseja investir/mês</label>
@@ -715,7 +715,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         type="text" inputMode="decimal"
                                         value={hubSavingsP1} onChange={e => setHubSavingsP1(formatAsBRL(e.target.value))}
                                         placeholder={formatCurrency(p1Surplus)}
-                                        className="w-full bg-white dark:bg-slate-800 px-3 py-2 rounded-xl font-bold text-sm outline-none border border-transparent focus:border-p1"
+                                        className="w-full bg-white dark:bg-slate-800 px-3 py-2 rounded-xl font-bold text-sm outline-none border border-transparent focus:border-brand"
                                     />
                                 </div>
                             </div>
@@ -738,7 +738,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     <div className="w-full bg-slate-100 dark:bg-slate-800/50 px-3 py-2 rounded-xl font-bold text-sm text-slate-400 border border-transparent cursor-not-allowed">
                                         {formatCurrency(emergencyStats.p2)}
                                     </div>
-                                    <p className="text-[8px] text-indigo-500 font-bold mt-1 px-1">Edite esta valor na aba de Metas</p>
+                                    <p className="text-[8px] text-brand font-bold mt-1 px-1">Edite esta valor na aba de Metas</p>
                                 </div>
                                 <div>
                                     <label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Deseja investir/mês</label>
@@ -772,10 +772,10 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 tracking-tighter uppercase tracking-widest text-xs opacity-50">Minhas Metas Ativas</h3>
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-indigo-500">{goals.filter(g => !g.is_completed).length} Metas</span>
+                    <span className="text-xs font-black text-brand">{goals.filter(g => !g.is_completed).length} Metas</span>
                 </div>
             </div>
-            <div className="bg-gradient-to-br from-p1 to-purple-600 p-5 rounded-2xl text-white">
+            <div className="bg-gradient-to-br from-brand to-purple-600 p-5 rounded-2xl text-white">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-lg">🎯</div>
                     <div>
@@ -796,7 +796,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                 isAdding && (
                     <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-lg space-y-6 animate-in zoom-in-95 duration-300">
                         <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-white/10">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${editingId ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-p1/10'}`}>{icon}</div>
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${editingId ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-brand/10'}`}>{icon}</div>
                             <div className="flex-1">
                                 <h3 className="font-black text-slate-800 dark:text-slate-100 text-lg">
                                     {editingId ? '✏️ Editando Meta' : 'Nova Meta Financeira'}
@@ -822,7 +822,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         type="button"
                                         onClick={() => setGoalType(type)}
                                         className={`p-3 rounded-xl font-bold text-sm transition-all ${goalType === type
-                                            ? 'bg-p1 text-white shadow-lg'
+                                            ? 'bg-brand text-white shadow-lg'
                                             : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
                                             }`}
                                     >
@@ -861,7 +861,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     value={title}
                                     onChange={e => setTitle(e.target.value)}
                                     placeholder="Ex: Casa Própria"
-                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold dark:text-slate-100"
+                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-brand rounded-xl px-4 py-3 outline-none transition-all font-bold dark:text-slate-100"
                                     required
                                 />
                             </div>
@@ -874,7 +874,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     value={target}
                                     onChange={e => setTarget(formatAsBRL(e.target.value))}
                                     placeholder="R$ 0,00"
-                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold text-p1"
+                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-brand rounded-xl px-4 py-3 outline-none transition-all font-bold text-brand"
                                     required
                                 />
                             </div>
@@ -885,7 +885,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     type="text"
                                     value={interestRate}
                                     onChange={e => setInterestRate(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold dark:text-slate-100"
+                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-brand rounded-xl px-4 py-3 outline-none transition-all font-bold dark:text-slate-100"
                                 />
                             </div>
                         </div>
@@ -897,7 +897,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                 <div className="flex bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-white/5">
                                     <button
                                         type="button" onClick={() => { setSplitP1(50); setSplitP2(50); }}
-                                        className={`px-3 py-1 rounded-md text-[9px] font-black uppercase transition-all ${splitP1 === 50 ? 'bg-indigo-500 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-50'}`}
+                                        className={`px-3 py-1 rounded-md text-[9px] font-black uppercase transition-all ${splitP1 === 50 ? 'bg-brand text-white shadow-sm' : 'text-slate-400 hover:bg-slate-50'}`}
                                     >
                                         50/50
                                     </button>
@@ -906,7 +906,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                             const p1perc = Math.round((coupleInfo.salary1 / (coupleInfo.salary1 + coupleInfo.salary2 || 1)) * 100);
                                             setSplitP1(p1perc); setSplitP2(100 - p1perc);
                                         }}
-                                        className={`px-3 py-1 rounded-md text-[9px] font-black uppercase transition-all ${splitP1 !== 50 && splitP1 !== 100 && splitP1 !== 0 ? 'bg-indigo-500 text-white shadow-sm' : 'text-slate-400 hover:bg-slate-50'}`}
+                                        className={`px-3 py-1 rounded-md text-[9px] font-black uppercase transition-all ${splitP1 !== 50 && splitP1 !== 100 && splitP1 !== 0 ? 'bg-brand text-white shadow-sm' : 'text-slate-400 hover:bg-slate-50'}`}
                                     >
                                         Prop.
                                     </button>
@@ -941,11 +941,11 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                             {requiredMonthlyTotal > 0 && (
                                 <div className="bg-white/50 dark:bg-slate-800/50 p-3 rounded-xl border border-dashed border-slate-200 dark:border-white/10">
                                     <div className="flex justify-between items-center mb-2">
-                                        <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Calculadora de Prazo</p>
+                                        <p className="text-[10px] font-black text-brand uppercase tracking-widest">Calculadora de Prazo</p>
                                         <span className="text-[10px] font-bold text-slate-500">{monthsRemaining} meses restantes</span>
                                     </div>
                                     <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 leading-tight">
-                                        Para atingir <span className="font-bold text-slate-800 dark:text-slate-100">{formatCurrency(parseBRL(target))}</span> no prazo definido, vocês precisam investir <span className="font-extrabold text-p1">{formatCurrency(requiredMonthlyTotal)}/mês</span> no total.
+                                        Para atingir <span className="font-bold text-slate-800 dark:text-slate-100">{formatCurrency(parseBRL(target))}</span> no prazo definido, vocês precisam investir <span className="font-extrabold text-brand">{formatCurrency(requiredMonthlyTotal)}/mês</span> no total.
                                     </p>
 
                                     {(() => {
@@ -973,7 +973,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     <button
                                         type="button"
                                         onClick={handleApplyIncomeSplit}
-                                        className="w-full py-2 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-600 dark:text-indigo-400 hover:text-white border border-indigo-500/20 rounded-lg text-[10px] font-black uppercase transition-all"
+                                        className="w-full py-2 bg-brand/10 hover:bg-brand text-brand dark:text-brand hover:text-white border border-brand/20 rounded-lg text-[10px] font-black uppercase transition-all"
                                     >
                                         ✨ Aplicar divisão sugerida pela renda ({incomeSplitP1}% / {100 - incomeSplitP1}%)
                                     </button>
@@ -1021,12 +1021,12 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                         </div>
 
                         {/* Withdrawal from Bank Section */}
-                        <div className="bg-indigo-50 dark:bg-indigo-500/10 p-4 rounded-xl space-y-4">
+                        <div className="bg-brand/5 dark:bg-brand/10 p-4 rounded-xl space-y-4">
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">🏦</span>
-                                <p className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">Alocar do Saldo em Banco (Disponível)</p>
+                                <p className="text-[10px] font-black text-brand uppercase tracking-widest">Alocar do Saldo em Banco (Disponível)</p>
                             </div>
-                            <p className="text-[10px] text-indigo-400 leading-tight">Escolha quanto do seu dinheiro parado no banco será usado agora para iniciar esta meta.</p>
+                            <p className="text-[10px] text-brand/60 leading-tight">Escolha quanto do seu dinheiro parado no banco será usado agora para iniciar esta meta.</p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {goalType !== 'individual_p2' && (
                                     <div className="space-y-2">
@@ -1040,7 +1040,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                             value={initialWithdrawP1}
                                             onChange={e => setInitialWithdrawP1(formatAsBRL(e.target.value))}
                                             placeholder="R$ 0,00"
-                                            className="w-full bg-white dark:bg-slate-800 border-2 border-indigo-100 dark:border-indigo-500/20 focus:border-indigo-500 rounded-xl px-4 py-3 outline-none transition-all font-bold"
+                                            className="w-full bg-white dark:bg-slate-800 border-2 border-brand/10 dark:border-brand/20 focus:border-brand rounded-xl px-4 py-3 outline-none transition-all font-bold"
                                         />
                                     </div>
                                 )}
@@ -1056,7 +1056,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                             value={initialWithdrawP2}
                                             onChange={e => setInitialWithdrawP2(formatAsBRL(e.target.value))}
                                             placeholder="R$ 0,00"
-                                            className="w-full bg-white dark:bg-slate-800 border-2 border-indigo-100 dark:border-indigo-500/20 focus:border-indigo-500 rounded-xl px-4 py-3 outline-none transition-all font-bold"
+                                            className="w-full bg-white dark:bg-slate-800 border-2 border-brand/10 dark:border-brand/20 focus:border-brand rounded-xl px-4 py-3 outline-none transition-all font-bold"
                                         />
                                     </div>
                                 )}
@@ -1140,7 +1140,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     type="month"
                                     value={startDate}
                                     onChange={e => setStartDate(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold text-slate-500"
+                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-brand rounded-xl px-4 py-3 outline-none transition-all font-bold text-slate-500"
                                 />
                             </div>
 
@@ -1150,7 +1150,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     type="date"
                                     value={deadline}
                                     onChange={e => setDeadline(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-p1 rounded-xl px-4 py-3 outline-none transition-all font-bold text-slate-500"
+                                    className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-brand rounded-xl px-4 py-3 outline-none transition-all font-bold text-slate-500"
                                 />
                             </div>
                         </div>
@@ -1164,7 +1164,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         key={i}
                                         type="button"
                                         onClick={() => setIcon(i)}
-                                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all ${icon === i ? 'bg-p1 text-white shadow-lg scale-110' : 'bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all ${icon === i ? 'bg-brand text-white shadow-lg scale-110' : 'bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                                     >
                                         {i}
                                     </button>
@@ -1172,7 +1172,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                             </div>
                         </div>
 
-                        <button type="submit" className={`w-full font-black py-4 rounded-2xl shadow-xl hover:brightness-110 transition-all active:scale-[0.98] ${editingId ? 'bg-amber-500 text-white' : 'bg-slate-900 dark:bg-p1 text-white'}`}>
+                        <button type="submit" className={`w-full font-black py-4 rounded-2xl shadow-xl hover:brightness-110 transition-all active:scale-[0.98] ${editingId ? 'bg-amber-500 text-white' : 'bg-slate-900 dark:bg-brand text-white'}`}>
                             {editingId ? '💾 Salvar Alterações' : 'Criar Meta Financeira'}
                         </button>
                     </form>
@@ -1280,11 +1280,11 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                             <div className="px-5 pb-4">
                                 <div className="flex justify-between text-xs mb-2">
                                     <span className="font-bold text-slate-500">{progress.toFixed(1)}% completo</span>
-                                    <span className="font-black text-p1">{formatCurrency(goal.target_value)}</span>
+                                    <span className="font-black text-brand">{formatCurrency(goal.target_value)}</span>
                                 </div>
                                 <div className="h-2 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
                                     <div
-                                        className="h-full bg-gradient-to-r from-p1 to-purple-500 rounded-full transition-all duration-500"
+                                        className="h-full bg-gradient-to-r from-brand to-purple-500 rounded-full transition-all duration-500"
                                         style={{ width: `${Math.min(progress, 100)}%` }}
                                     ></div>
                                 </div>
@@ -1300,7 +1300,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Plano Mensal</p>
-                                            <p className="text-sm font-black text-p1">{formatCurrency(originalContribution)}</p>
+                                            <p className="text-sm font-black text-brand">{formatCurrency(originalContribution)}</p>
                                         </div>
                                     </div>
 

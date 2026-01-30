@@ -134,7 +134,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 <div>
                   <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base leading-tight mb-1">{exp.description}</h4>
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                    <span className="text-[10px] text-p1 font-black uppercase tracking-tighter bg-p1/5 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] text-brand font-black uppercase tracking-tighter bg-brand/5 px-1.5 py-0.5 rounded">
                       {typeof exp.category === 'string' ? exp.category : (exp.category as any)?.name || 'Outros'}
                     </span>
                     <span className="text-[10px] font-black text-slate-300 dark:text-slate-600">•</span>
@@ -166,7 +166,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 )}
               </div>
               <div className="flex gap-2">
-                <button onClick={() => onUpdateExpense(exp.id, exp)} className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-2xl text-slate-400 hover:text-p1 transition-all active:scale-90">
+                <button onClick={() => onUpdateExpense(exp.id, exp)} className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-2xl text-slate-400 hover:text-brand transition-all active:scale-90">
                   📝
                 </button>
                 <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900 rounded-2xl text-slate-400 hover:text-red-500 transition-all active:scale-90">
@@ -192,7 +192,7 @@ const ExpenseTabs: React.FC<Props> = ({
       {title && (
         <div className="flex items-center justify-between px-2">
           <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] flex items-center gap-3">
-            <span className="w-2 h-2 rounded-full bg-p1/40"></span>
+            <span className="w-2 h-2 rounded-full bg-brand/40"></span>
             {title}
           </h3>
           <span className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">{list.length} {list.length === 1 ? 'item' : 'itens'}</span>
@@ -233,7 +233,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 const isP1 = exp.paidBy === 'person1';
 
                 return (
-                  <tr key={exp.id} className="group hover:bg-p1/5 dark:hover:bg-p1/10 transition-all">
+                  <tr key={exp.id} className="group hover:bg-brand/5 dark:hover:bg-brand/10 transition-all">
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-2xl bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center shadow-inner border border-slate-100 dark:border-white/5 font-black text-slate-400 dark:text-slate-500 tabular-nums">
@@ -296,7 +296,7 @@ const ExpenseTabs: React.FC<Props> = ({
                     </td>
                     <td className="px-8 py-6 text-right">
                       <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-                        <button onClick={() => onUpdateExpense(exp.id, exp)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-p1 rounded-2xl shadow-xl hover:shadow-p1/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90">📝</button>
+                        <button onClick={() => onUpdateExpense(exp.id, exp)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-brand rounded-2xl shadow-xl hover:shadow-brand/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90">📝</button>
                         <button onClick={() => { if (confirm('Excluir?')) onDeleteExpense(exp.id); }} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-red-500 rounded-2xl shadow-xl hover:shadow-red-500/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90 ml-1">🗑️</button>
                       </div>
                     </td>
@@ -317,8 +317,8 @@ const ExpenseTabs: React.FC<Props> = ({
         <div className="z-10">
           <div className="flex items-center gap-3 mb-2">
             <span className="flex h-3 w-3 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-p1 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-p1"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-brand"></span>
             </span>
             <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
               {activeTab === 'expenses' ? 'Contas da Casa' : 'Reembolsos'}
@@ -339,7 +339,7 @@ const ExpenseTabs: React.FC<Props> = ({
 
           <button
             onClick={() => onAddExpense(activeTab === 'expenses' ? ExpenseType.COMMON : ExpenseType.REIMBURSEMENT, null)}
-            className="flex-1 lg:flex-none bg-slate-900 dark:bg-p1 hover:brightness-110 text-white px-10 py-5 rounded-2xl font-black text-sm shadow-2xl shadow-p1/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
+            className="flex-1 lg:flex-none bg-slate-900 dark:bg-brand hover:brightness-110 text-white px-10 py-5 rounded-2xl font-black text-sm shadow-2xl shadow-brand/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
             Adicionar {activeTab === 'expenses' ? 'Gasto' : 'Reembolso'}
@@ -347,7 +347,7 @@ const ExpenseTabs: React.FC<Props> = ({
         </div>
 
         {/* Efeitos visuais de fundo */}
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-p1/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-64 h-64 bg-brand/5 rounded-full blur-3xl"></div>
       </div>
 
       {/* Filtros de Ultra Alta Performance */}
@@ -364,7 +364,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 placeholder="Busca avançada: descrição, categoria ou tags..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-950/40 border-2 border-slate-100 dark:border-white/10 rounded-2xl pl-16 pr-6 py-4 text-base font-bold outline-none focus:border-p1 focus:bg-white dark:focus:bg-slate-900 transition-all dark:text-slate-100 shadow-inner placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                className="w-full bg-slate-50 dark:bg-slate-950/40 border-2 border-slate-100 dark:border-white/10 rounded-2xl pl-16 pr-6 py-4 text-base font-bold outline-none focus:border-brand focus:bg-white dark:focus:bg-slate-900 transition-all dark:text-slate-100 shadow-inner placeholder:text-slate-400 dark:placeholder:text-slate-600"
               />
             </div>
 
@@ -372,7 +372,7 @@ const ExpenseTabs: React.FC<Props> = ({
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className={`px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 active:scale-95 ${showFilters ? 'bg-p1 text-white shadow-lg' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 hover:bg-slate-100'}`}
+                className={`px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 active:scale-95 ${showFilters ? 'bg-brand text-white shadow-lg' : 'bg-slate-50 dark:bg-slate-800 text-slate-500 hover:bg-slate-100'}`}
               >
                 <span className="text-base">{showFilters ? '✖️' : '🔧'}</span>
                 {showFilters ? 'Fechar Filtros' : 'Filtros Avançados'}
@@ -385,7 +385,7 @@ const ExpenseTabs: React.FC<Props> = ({
                   <button
                     key={order}
                     onClick={() => setSortOrder(order)}
-                    className={`px-4 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all ${sortOrder === order ? 'bg-white dark:bg-slate-900 text-p1 shadow-sm' : 'text-slate-400 opacity-50'}`}
+                    className={`px-4 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all ${sortOrder === order ? 'bg-white dark:bg-slate-900 text-brand shadow-sm' : 'text-slate-400 opacity-50'}`}
                   >
                     {order === 'asc' ? 'Crescente' : 'Decrescente'}
                   </button>
@@ -402,7 +402,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 <select
                   value={filterPeriod}
                   onChange={(e) => setFilterPeriod(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800/60 text-[11px] font-black uppercase tracking-widest px-4 py-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-200"
+                  className="w-full bg-slate-50 dark:bg-slate-800/60 text-[11px] font-black uppercase tracking-widest px-4 py-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-200"
                 >
                   <option value="all">📅 Todas Frequências</option>
                   <option value="fixed">🏠 Fixos / Mensais</option>
@@ -415,7 +415,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 <select
                   value={filterPayer}
                   onChange={(e) => setFilterPayer(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800/60 text-[11px] font-black uppercase tracking-widest px-4 py-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-200"
+                  className="w-full bg-slate-50 dark:bg-slate-800/60 text-[11px] font-black uppercase tracking-widest px-4 py-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-200"
                 >
                   <option value="all">👥 Todos Pagadores</option>
                   <option value="person1">👤 {coupleInfo.person1Name.split(' ')[0]}</option>
@@ -428,7 +428,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 <select
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value as any)}
-                  className="w-full bg-slate-50 dark:bg-slate-800/60 text-[11px] font-black uppercase tracking-widest px-4 py-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-200"
+                  className="w-full bg-slate-50 dark:bg-slate-800/60 text-[11px] font-black uppercase tracking-widest px-4 py-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-200"
                 >
                   <option value="date">📅 Por Data</option>
                   <option value="value">💰 Por Valor</option>
@@ -441,7 +441,7 @@ const ExpenseTabs: React.FC<Props> = ({
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-800/60 text-[11px] font-black uppercase tracking-widest px-4 py-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-200"
+                  className="w-full bg-slate-50 dark:bg-slate-800/60 text-[11px] font-black uppercase tracking-widest px-4 py-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-200"
                 >
                   <option value="all">🏷️ Todas Categorias</option>
                   {categories.filter(c => c !== 'all').map(cat => (
@@ -458,14 +458,14 @@ const ExpenseTabs: React.FC<Props> = ({
                     placeholder="Min"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
-                    className="flex-1 bg-slate-50 dark:bg-slate-800/60 text-xs font-black p-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-100"
+                    className="flex-1 bg-slate-50 dark:bg-slate-800/60 text-xs font-black p-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-100"
                   />
                   <input
                     type="number"
                     placeholder="Max"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
-                    className="flex-1 bg-slate-50 dark:bg-slate-800/60 text-xs font-black p-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-100"
+                    className="flex-1 bg-slate-50 dark:bg-slate-800/60 text-xs font-black p-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-100"
                   />
                 </div>
               </div>
@@ -475,11 +475,11 @@ const ExpenseTabs: React.FC<Props> = ({
           {/* Resumo de Filtros Ativos */}
           {(search || filterPeriod !== 'all' || filterPayer !== 'all' || filterCategory !== 'all' || minPrice || maxPrice) && (
             <div className="flex flex-wrap items-center gap-2 pt-2">
-              <span className="text-[9px] font-black text-p1 uppercase tracking-widest bg-p1/5 px-3 py-1.5 rounded-full border border-p1/20 flex items-center gap-2">
+              <span className="text-[9px] font-black text-brand uppercase tracking-widest bg-brand/5 px-3 py-1.5 rounded-full border border-brand/20 flex items-center gap-2">
                 Filtros Ativos: {filteredExpenses.length} itens mostrados
                 <button
                   onClick={() => { setSearch(''); setFilterPeriod('all'); setFilterPayer('all'); setFilterCategory('all'); setMinPrice(''); setMaxPrice(''); setSortField('date'); setSortOrder('desc'); setShowFilters(false); }}
-                  className="bg-p1 text-white p-0.5 rounded-full hover:scale-110 transition-transform"
+                  className="bg-brand text-white p-0.5 rounded-full hover:scale-110 transition-transform"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>

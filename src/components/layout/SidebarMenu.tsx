@@ -142,7 +142,7 @@ const SidebarMenu: React.FC<Props> = ({
       <div className={`fixed top-0 left-0 bottom-0 w-80 md:w-96 max-w-[85vw] bg-white dark:bg-slate-900 z-[9999] transform transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
         <div className="p-6 bg-slate-900 text-white rounded-br-[2rem] relative overflow-hidden shrink-0">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-20"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-brand rounded-full blur-[80px] opacity-20"></div>
           <div className="relative z-10 text-white">
             <div className="flex items-center gap-2 mb-1">
               <h2 className="text-2xl font-black tracking-tighter">Ajustes</h2>
@@ -208,7 +208,7 @@ const SidebarMenu: React.FC<Props> = ({
                                 setSelectedIcon(icon);
                                 setShowIconPicker(false);
                               }}
-                              className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${selectedIcon === icon ? 'bg-p1/10 ring-2 ring-p1 scale-105' : 'bg-slate-50 dark:bg-slate-800/50'}`}
+                              className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${selectedIcon === icon ? 'bg-brand/10 ring-2 ring-brand scale-105' : 'bg-slate-50 dark:bg-slate-800/50'}`}
                             >
                               {icon}
                             </button>

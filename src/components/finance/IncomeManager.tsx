@@ -211,7 +211,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
 
                     <button
                         onClick={() => openModal()}
-                        className="flex-1 lg:flex-none bg-slate-900 dark:bg-p1 hover:brightness-110 text-white px-10 py-5 rounded-2xl font-black text-sm shadow-2xl shadow-p1/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
+                        className="flex-1 lg:flex-none bg-slate-900 dark:bg-brand hover:brightness-110 text-white px-10 py-5 rounded-2xl font-black text-sm shadow-2xl shadow-brand/30 transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                         Adicionar Entrada
@@ -236,7 +236,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 placeholder="Busca por descrição..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-950/40 border-2 border-slate-100 dark:border-white/10 rounded-2xl pl-16 pr-6 py-4 text-base font-bold outline-none focus:border-p1 focus:bg-white dark:focus:bg-slate-900 transition-all dark:text-slate-100 shadow-inner placeholder:text-slate-400 dark:placeholder:text-slate-600"
+                                className="w-full bg-slate-50 dark:bg-slate-950/40 border-2 border-slate-100 dark:border-white/10 rounded-2xl pl-16 pr-6 py-4 text-base font-bold outline-none focus:border-brand focus:bg-white dark:focus:bg-slate-900 transition-all dark:text-slate-100 shadow-inner placeholder:text-slate-400 dark:placeholder:text-slate-600"
                             />
                         </div>
 
@@ -245,7 +245,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                             <select
                                 value={filterPayer}
                                 onChange={(e) => setFilterPayer(e.target.value)}
-                                className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-200"
+                                className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-200"
                             >
                                 <option value="all">👥 Todos Pagadores</option>
                                 <option value="person1">👤 {coupleInfo.person1Name.split(' ')[0]}</option>
@@ -255,7 +255,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                             <select
                                 value={filterCategory}
                                 onChange={(e) => setFilterCategory(e.target.value)}
-                                className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl border-2 border-transparent focus:border-p1/30 outline-none transition-all dark:text-slate-200"
+                                className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-200"
                             >
                                 <option value="all">🏷️ Todas Categorias</option>
                                 {CATEGORIES.map(cat => (
@@ -266,7 +266,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                             {(search || filterPayer !== 'all' || filterCategory !== 'all') && (
                                 <button
                                     onClick={() => { setSearch(''); setFilterPayer('all'); setFilterCategory('all'); }}
-                                    className="px-4 py-2 text-[10px] font-black uppercase text-p1 hover:underline flex items-center gap-2"
+                                    className="px-4 py-2 text-[10px] font-black uppercase text-brand hover:underline flex items-center gap-2"
                                 >
                                     <span>✕</span> Limpar Filtros
                                 </button>
@@ -339,7 +339,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                     </td>
                                 </tr>
                             ) : monthIncomes.map(inc => (
-                                <tr key={inc.id} className={`group hover:bg-p1/5 dark:hover:bg-p1/10 transition-all ${(inc as any).isVirtual ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''}`}>
+                                <tr key={inc.id} className={`group hover:bg-brand/5 dark:hover:bg-brand/10 transition-all ${(inc as any).isVirtual ? 'bg-blue-50/20 dark:bg-blue-900/5' : ''}`}>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg shadow-sm border border-slate-100 dark:border-white/5 font-black ${(inc as any).isVirtual ? 'bg-blue-50 dark:bg-blue-900' : 'bg-slate-50 dark:bg-slate-900'}`}>
@@ -370,7 +370,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-                                            <button onClick={() => openModal(inc)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-p1 rounded-2xl shadow-xl hover:shadow-p1/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90" title={(inc as any).isVirtual ? "Editar este mês" : "Editar"}>📝</button>
+                                            <button onClick={() => openModal(inc)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-900 text-slate-400 hover:text-brand rounded-2xl shadow-xl hover:shadow-brand/20 border border-slate-100 dark:border-white/5 transition-all active:scale-90" title={(inc as any).isVirtual ? "Editar este mês" : "Editar"}>📝</button>
                                             <button onClick={() => {
                                                 if ((inc as any).isVirtual) {
                                                     if (confirm('Deseja remover este salário fixo recorrente?')) {
@@ -431,7 +431,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                                         setCategory(cat.label);
                                                     }}
                                                     className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-3 ${category === cat.label
-                                                        ? 'bg-p1/5 border-p1 text-p1'
+                                                        ? 'bg-brand/5 border-brand text-brand'
                                                         : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-white/5 text-slate-400'
                                                         }`}
                                                 >
@@ -452,7 +452,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                         value={description}
                                         onChange={e => setDescription(e.target.value)}
                                         placeholder="Ex: Salário Mensal, Rendição NuBank..."
-                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
                                     />
                                 </div>
 
@@ -467,7 +467,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                             onChange={e => setValue(formatAsBRL(e.target.value))}
                                             placeholder="0,00"
                                             onFocus={e => e.target.select()}
-                                            className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-black text-2xl text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                            className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-black text-2xl text-slate-900 dark:text-slate-100 outline-none transition-all"
                                         />
                                     </div>
                                 </div>
@@ -476,7 +476,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                     <div className="flex items-center gap-3 px-1 py-1">
                                         <button
                                             onClick={() => setSetAsDefault(!setAsDefault)}
-                                            className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${setAsDefault ? 'bg-p1 border-p1' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-white/10'}`}
+                                            className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${setAsDefault ? 'bg-brand border-brand' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-white/10'}`}
                                         >
                                             {setAsDefault && <span className="text-white text-[10px]">✓</span>}
                                         </button>
@@ -503,7 +503,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 <button
                                     onClick={handleSave}
                                     disabled={!description || !value || isSubmitting}
-                                    className={`w-full py-4 bg-slate-900 dark:bg-p1 text-white rounded-2xl font-black text-[10px] uppercase transition-all hover:scale-[1.02] shadow-xl disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2`}
+                                    className={`w-full py-4 bg-slate-900 dark:bg-brand text-white rounded-2xl font-black text-[10px] uppercase transition-all hover:scale-[1.02] shadow-xl disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2`}
                                 >
                                     {isSubmitting ? (
                                         <>
