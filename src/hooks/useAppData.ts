@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment, Trip, TripExpense, TripDeposit } from '@/types';
+import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment, Trip, TripExpense, TripDeposit, GoalTransaction, UserProfileDB } from '@/types';
 import { scheduleReminder, cancelReminder } from '@/notificationService';
 import { getMonthYearKey, formatCurrency } from '@/domain/formatters';
 import { calculateSummary } from '@/domain/financial';
@@ -13,6 +13,8 @@ import { investmentService } from '@/services/investmentService';
 import { tripService } from '@/services/tripService';
 import { profileService } from '@/services/profileService';
 import { monthlyConfigService } from '@/services/monthlyConfigService';
+import { goalTransactionService } from '@/services/goalTransactionService';
+import { migrationService } from '@/services/migrationService';
 
 
 export const useAppData = () => {
@@ -29,6 +31,7 @@ export const useAppData = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [incomes, setIncomes] = useState<Income[]>([]);
     const [goals, setGoals] = useState<SavingsGoal[]>([]);
+    const [goalTransactions, setGoalTransactions] = useState<GoalTransaction[]>([]);
     const [loans, setLoans] = useState<Loan[]>([]);
     const [investments, setInvestments] = useState<Investment[]>([]);
     const [trips, setTrips] = useState<Trip[]>([]);
@@ -52,9 +55,10 @@ export const useAppData = () => {
                 const initialProfile = {
                     id: user.id,
                     household_id: user.id,
+                    invite_code: null,
                     couple_info: coupleInfo,
                     updated_at: new Date().toISOString()
-                };
+                } as UserProfileDB;
                 const { data: newProfile } = await profileService.create(initialProfile);
                 profile = newProfile || initialProfile;
             }
@@ -138,6 +142,21 @@ export const useAppData = () => {
                     setTrips(tripsData);
                 }
 
+                // 4.6 Load Goal Transactions
+                const { data: transactionsData } = await goalTransactionService.getAllByHousehold(activeHouseholdId);
+                if (transactionsData) {
+                    setGoalTransactions(transactionsData);
+
+                    // Trigger migration if needed (one-way check)
+                    // We check if we have goals but no transactions at all
+                    if (goalsData && goalsData.length > 0 && transactionsData.length === 0) {
+                        await migrationService.migrateToTransactions(user.id, activeHouseholdId, coupleInfo);
+                        // Reload transactions after migration
+                        const { data: migratedData } = await goalTransactionService.getAllByHousehold(activeHouseholdId);
+                        if (migratedData) setGoalTransactions(migratedData);
+                    }
+                }
+
                 // 5. Load monthly config
                 const { data: monthConfig } = await monthlyConfigService.get(activeHouseholdId, selectedMonth);
 
@@ -168,8 +187,8 @@ export const useAppData = () => {
     }, [loadData]);
 
     const summary = useMemo(() => {
-        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, true, goals);
-    }, [expenses, incomes, coupleInfo, selectedMonth, goals]);
+        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, true, goals, goalTransactions);
+    }, [expenses, incomes, coupleInfo, selectedMonth, goals, goalTransactions]);
 
     const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo, updateGlobal = false) => {
         setCoupleInfo(newInfo);
@@ -326,6 +345,7 @@ export const useAppData = () => {
                 investment_location_p2: goalData.investment_location_p2 || '',
                 last_contribution_month: goalData.last_contribution_month || null,
                 is_completed: false,
+                is_emergency: goalData.is_emergency || false,
                 split_p1_percentage: goalData.split_p1_percentage || 50,
                 split_p2_percentage: goalData.split_p2_percentage || 50,
                 initial_withdrawal_p1: goalData.initial_withdrawal_p1 || 0,
@@ -346,6 +366,28 @@ export const useAppData = () => {
             setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updates } : g));
         } catch (err: any) {
             alert('Erro ao atualizar meta: ' + err.message);
+        }
+    }, [user]);
+
+    const addGoalTransaction = useCallback(async (transaction: Omit<GoalTransaction, 'id' | 'created_at'>) => {
+        if (!user) return;
+        try {
+            const { data, error } = await goalTransactionService.create(transaction);
+            if (error) throw error;
+            if (data) setGoalTransactions(prev => [data, ...prev]);
+        } catch (err: any) {
+            alert('Erro ao registrar transação: ' + err.message);
+        }
+    }, [user]);
+
+    const deleteGoalTransaction = useCallback(async (id: string) => {
+        if (!user) return;
+        try {
+            const { error } = await goalTransactionService.delete(id);
+            if (error) throw error;
+            setGoalTransactions(prev => prev.filter(t => t.id !== id));
+        } catch (err: any) {
+            alert('Erro ao deletar transação: ' + err.message);
         }
     }, [user]);
 
@@ -791,6 +833,7 @@ export const useAppData = () => {
         expenses,
         incomes,
         goals,
+        goalTransactions,
         loans,
         investments,
         trips,
@@ -809,6 +852,8 @@ export const useAppData = () => {
         addGoal,
         updateGoal,
         deleteGoal,
+        addGoalTransaction,
+        deleteGoalTransaction,
         addIncome,
         updateIncome,
         deleteIncome,

@@ -62,7 +62,11 @@ const AppContent: React.FC = () => {
     addTripExpense,
     deleteTripExpense,
     addTripDeposit,
-    deleteTripDeposit
+    deleteTripDeposit,
+    // Mods for Goal Transactions
+    goalTransactions,
+    addGoalTransaction,
+    deleteGoalTransaction
   } = useAppData();
 
   // Aplicar Tema e Cores
@@ -326,9 +330,12 @@ const AppContent: React.FC = () => {
             {currentTab === 'goals' && (
               <SavingsGoals
                 goals={goals}
+                goalTransactions={goalTransactions}
                 onAddGoal={addGoal}
                 onUpdateGoal={updateGoal}
                 onDeleteGoal={deleteGoal}
+                onAddTransaction={addGoalTransaction}
+                onDeleteTransaction={deleteGoalTransaction}
                 coupleInfo={coupleInfo}
                 summary={summary}
                 onUpdateCoupleInfo={saveCoupleInfo}

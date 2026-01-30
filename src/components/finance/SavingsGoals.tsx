@@ -1,13 +1,17 @@
 
 import React, { useState, useMemo } from 'react';
-import { SavingsGoal, CoupleInfo, MonthlySummary } from '@/types';
+import { SavingsGoal, CoupleInfo, MonthlySummary, GoalTransaction } from '@/types';
 import { formatCurrency, formatAsBRL, parseBRL } from '@/utils';
+import { calculateGoalStats } from '@/domain/goals';
 
 interface Props {
     goals: SavingsGoal[];
+    goalTransactions: GoalTransaction[];
     onAddGoal: (goal: Partial<SavingsGoal>) => void;
     onUpdateGoal: (id: string, updates: Partial<SavingsGoal>) => void;
     onDeleteGoal: (id: string) => void;
+    onAddTransaction: (transaction: Omit<GoalTransaction, 'id' | 'created_at'>) => void;
+    onDeleteTransaction: (id: string) => void;
     coupleInfo: CoupleInfo;
     summary: MonthlySummary;
     onUpdateCoupleInfo: (info: CoupleInfo, updateGlobal: boolean) => void;
@@ -15,7 +19,7 @@ interface Props {
 
 type GoalType = 'couple' | 'individual_p1' | 'individual_p2';
 
-const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDeleteGoal, coupleInfo, summary, onUpdateCoupleInfo }) => {
+const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onUpdateGoal, onDeleteGoal, onAddTransaction, onDeleteTransaction, coupleInfo, summary, onUpdateCoupleInfo }) => {
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [whatIfContributions, setWhatIfContributions] = useState<Record<string, number>>({});
@@ -82,41 +86,42 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
 
     // Calculate total contributions from all goals
     const goalSummary = useMemo(() => {
-        let p1Total = 0;
-        let p2Total = 0;
-        let p1Savings = 0;
-        let p2Savings = 0;
+        let p1MonthlyTotal = 0;
+        let p2MonthlyTotal = 0;
+        let p1SavingsTotal = 0;
+        let p2SavingsTotal = 0;
         let p1Withdrawals = 0;
         let p2Withdrawals = 0;
 
         goals.forEach(g => {
-            if (!g.is_completed) {
-                p1Total += g.monthly_contribution_p1 || 0;
-                p2Total += g.monthly_contribution_p2 || 0;
-                p1Savings += g.current_savings_p1 || 0;
-                p2Savings += g.current_savings_p2 || 0;
-                p1Withdrawals += g.initial_withdrawal_p1 || 0;
-                p2Withdrawals += g.initial_withdrawal_p2 || 0;
+            const stats = calculateGoalStats(g, goalTransactions.filter(t => t.goal_id === g.id));
+            if (!stats.isCompleted) {
+                p1MonthlyTotal += g.monthly_contribution_p1 || 0;
+                p2MonthlyTotal += g.monthly_contribution_p2 || 0;
             }
+            p1SavingsTotal += stats.p1Balance;
+            p2SavingsTotal += stats.p2Balance;
+            p1Withdrawals += g.initial_withdrawal_p1 || 0;
+            p2Withdrawals += g.initial_withdrawal_p2 || 0;
         });
 
-        // Available Bank Balance (Total Bank - Emergency Reserve - Already Allocated for current goals)
-        const availableBankP1 = (coupleInfo.bankBalanceP1 || 0) - (coupleInfo.emergencyReserveP1 || 0) - p1Withdrawals;
-        const availableBankP2 = (coupleInfo.bankBalanceP2 || 0) - (coupleInfo.emergencyReserveP2 || 0) - p2Withdrawals;
+        const combinedSavings = p1SavingsTotal + p2SavingsTotal;
+        const availableBankP1 = (coupleInfo.bankBalanceP1 || 0) - (coupleInfo.emergencyReserveP1 || 0) - p1SavingsTotal;
+        const availableBankP2 = (coupleInfo.bankBalanceP2 || 0) - (coupleInfo.emergencyReserveP2 || 0) - p2SavingsTotal;
 
         return {
-            p1MonthlyTotal: p1Total,
-            p2MonthlyTotal: p2Total,
-            p1SavingsTotal: p1Savings,
-            p2SavingsTotal: p2Savings,
+            p1MonthlyTotal,
+            p2MonthlyTotal,
+            p1SavingsTotal,
+            p2SavingsTotal,
             p1Withdrawals,
             p2Withdrawals,
-            combinedMonthly: p1Total + p2Total,
-            combinedSavings: p1Savings + p2Savings,
+            combinedSavings,
             availableBankP1,
-            availableBankP2
+            availableBankP2,
+            combinedMonthly: p1MonthlyTotal + p2MonthlyTotal
         };
-    }, [goals, coupleInfo]);
+    }, [goals, goalTransactions, coupleInfo]);
 
     const icons = ['💰', '🏠', '🚗', '✈️', '💍', '👶', '🎮', '🏖️', '🎓', '🛡️', '💎', '🏝️', '📱', '💻', '🏋️'];
 
@@ -438,10 +443,30 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             : `Confirmar aporte mensal de ${formatCurrency(p1Aporte + p2Aporte)}? O valor será descontado do seu Saldo no Banco.`;
 
         if (confirm(confirmMsg)) {
-            // Update Goal
+            // Register Transactions
+            if (p1Aporte > 0) {
+                onAddTransaction({
+                    goal_id: goal.id,
+                    type: 'deposit',
+                    value: p1Aporte,
+                    person: 'person1',
+                    date: now.toISOString().split('T')[0],
+                    description: `Aporte Mensal - ${monthKey}`
+                });
+            }
+            if (p2Aporte > 0) {
+                onAddTransaction({
+                    goal_id: goal.id,
+                    type: 'deposit',
+                    value: p2Aporte,
+                    person: 'person2',
+                    date: now.toISOString().split('T')[0],
+                    description: `Aporte Mensal - ${monthKey}`
+                });
+            }
+
+            // Update Goal last check-in
             onUpdateGoal(goal.id, {
-                current_savings_p1: (goal.current_savings_p1 || 0) + p1Aporte,
-                current_savings_p2: (goal.current_savings_p2 || 0) + p2Aporte,
                 last_contribution_month: monthKey
             });
 
@@ -1156,6 +1181,11 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
             {/* Goals Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {goals.filter(g => !g.is_completed).map(goal => {
+                    const goalTransactionsForGoal = goalTransactions.filter(t => t.goal_id === goal.id);
+                    const stats = calculateGoalStats(goal, goalTransactionsForGoal);
+
+                    const { totalBalance, p1Balance, p2Balance, progress } = stats;
+
                     const extraP1 = whatIfContributions[`${goal.id}_p1`] || 0;
                     const extraP2 = whatIfContributions[`${goal.id}_p2`] || 0;
 
@@ -1164,9 +1194,6 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
 
                     const timeToGoal = calculateTimeToGoal(goal);
                     const whatIfTimeToGoal = calculateTimeToGoal(goal, whatIfContribution);
-
-                    const totalSaved = (goal.current_savings_p1 || 0) + (goal.current_savings_p2 || 0) + (goal.current_value || 0);
-                    const progress = goal.target_value > 0 ? (totalSaved / goal.target_value) * 100 : 0;
 
                     return (
                         <div key={goal.id} className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-md transition-all group/card">
@@ -1268,7 +1295,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                     <div className="grid grid-cols-2 gap-4 mb-4 pb-3 border-b border-slate-200 dark:border-white/5">
                                         <div>
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Saldo Total</p>
-                                            <p className="text-sm font-black text-emerald-500">{formatCurrency(totalSaved)}</p>
+                                            <p className="text-sm font-black text-emerald-500">{formatCurrency(totalBalance)}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Plano Mensal</p>
@@ -1289,7 +1316,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <div className="text-right">
-                                                        <span className="block font-black text-slate-900 dark:text-slate-100">{formatCurrency(goal.current_savings_p1 || 0)}</span>
+                                                        <span className="block font-black text-slate-900 dark:text-slate-100">{formatCurrency(p1Balance)}</span>
                                                         <span className="text-[8px] text-p1 font-bold">Aporte: {formatCurrency(goal.monthly_contribution_p1 || 0)}/mês</span>
                                                     </div>
                                                     <button
@@ -1297,7 +1324,14 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                                             const val = prompt(`Adicionar saldo extra para ${p1Name}:`);
                                                             if (val) {
                                                                 const num = parseBRL(val);
-                                                                if (num > 0) onUpdateGoal(goal.id, { current_savings_p1: (goal.current_savings_p1 || 0) + num });
+                                                                if (num > 0) onAddTransaction({
+                                                                    goal_id: goal.id,
+                                                                    type: 'deposit',
+                                                                    value: num,
+                                                                    person: 'person1',
+                                                                    date: new Date().toISOString().split('T')[0],
+                                                                    description: 'Aporte Extra'
+                                                                });
                                                             }
                                                         }}
                                                         className="w-6 h-6 bg-p1/10 text-p1 rounded-lg flex items-center justify-center hover:bg-p1 hover:text-white transition-all font-black text-xs"
@@ -1320,7 +1354,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                                 </div>
                                                 <div className="flex items-center gap-3">
                                                     <div className="text-right">
-                                                        <span className="block font-black text-slate-900 dark:text-slate-100">{formatCurrency(goal.current_savings_p2 || 0)}</span>
+                                                        <span className="block font-black text-slate-900 dark:text-slate-100">{formatCurrency(p2Balance)}</span>
                                                         <span className="text-[8px] text-p2 font-bold">Aporte: {formatCurrency(goal.monthly_contribution_p2 || 0)}/mês</span>
                                                     </div>
                                                     <button
@@ -1328,7 +1362,14 @@ const SavingsGoals: React.FC<Props> = ({ goals, onAddGoal, onUpdateGoal, onDelet
                                                             const val = prompt(`Adicionar saldo extra para ${p2Name}:`);
                                                             if (val) {
                                                                 const num = parseBRL(val);
-                                                                if (num > 0) onUpdateGoal(goal.id, { current_savings_p2: (goal.current_savings_p2 || 0) + num });
+                                                                if (num > 0) onAddTransaction({
+                                                                    goal_id: goal.id,
+                                                                    type: 'deposit',
+                                                                    value: num,
+                                                                    person: 'person2',
+                                                                    date: new Date().toISOString().split('T')[0],
+                                                                    description: 'Aporte Extra'
+                                                                });
                                                             }
                                                         }}
                                                         className="w-6 h-6 bg-p2/10 text-p2 rounded-lg flex items-center justify-center hover:bg-p2 hover:text-white transition-all font-black text-xs"

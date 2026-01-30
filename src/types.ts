@@ -146,6 +146,18 @@ export interface MonthlySummary {
   person2Remaining: number;
 }
 
+export interface GoalTransaction {
+  id: string;
+  goal_id: string;
+  type: 'deposit' | 'withdraw';
+  value: number;
+  person: 'person1' | 'person2';
+  date: string;
+  description: string;
+  created_at: string;
+  deleted_at?: string;
+}
+
 export interface SavingsGoal {
   id: string;
   user_id: string;
@@ -179,6 +191,7 @@ export interface SavingsGoal {
   investment_location_p2?: string;
   last_contribution_month?: string; // Format: YYYY-MM
   is_completed: boolean;
+  is_emergency: boolean;
 
   // New split & allocation fields
   split_p1_percentage?: number; // e.g. 50
@@ -287,6 +300,7 @@ export interface SavingsGoalDB {
   investment_location_p2: string;
   last_contribution_month: string | null;
   is_completed: boolean;
+  is_emergency: boolean;
   split_p1_percentage: number;
   split_p2_percentage: number;
   initial_withdrawal_p1: number;
@@ -304,4 +318,16 @@ export interface UserProfileDB {
   invite_code: string | null;
   couple_info: any; // Ideally this matches CoupleInfo
   updated_at: string;
+}
+
+export interface GoalTransactionDB {
+  id: string;
+  goal_id: string;
+  type: string;
+  value: number;
+  person: string;
+  date: string;
+  description: string;
+  created_at: string;
+  deleted_at: string | null;
 }

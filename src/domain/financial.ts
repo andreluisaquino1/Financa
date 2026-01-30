@@ -1,5 +1,6 @@
-import { Expense, ExpenseType, CoupleInfo, MonthlySummary, Income, SavingsGoal } from '@/types';
+import { Expense, ExpenseType, CoupleInfo, MonthlySummary, Income, SavingsGoal, GoalTransaction } from '@/types';
 import { parseSafeDate } from './formatters';
+import { calculateGoalStats } from './goals';
 
 const roundMoney = (num: number): number => {
     return Math.round((num + Number.EPSILON) * 100) / 100;
@@ -54,7 +55,8 @@ export const calculateSummary = (
     coupleInfo: CoupleInfo,
     monthKey: string,
     isPremium: boolean = false,
-    goals: SavingsGoal[] = []
+    goals: SavingsGoal[] = [],
+    goalTransactions: GoalTransaction[] = []
 ): MonthlySummary => {
     // Somar as rendas do mês por categoria e pessoa
     const monthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
@@ -210,17 +212,24 @@ export const calculateSummary = (
         whoTransfers = 'person2';
     }
 
-    // Savings Goals Calculations
-    const totalGoalSavings = goals.reduce((sum, g) =>
-        roundMoney(sum + (g.current_savings_p1 || 0) + (g.current_savings_p2 || 0) + (g.current_value || 0)), 0);
+    // Savings Goals Calculations (Transaction-Based)
+    const goalData = goals.map(g => {
+        const goalTransactionsForGoal = goalTransactions.filter(t => t.goal_id === g.id);
+        return {
+            goal: g,
+            stats: calculateGoalStats(g, goalTransactionsForGoal)
+        };
+    });
 
-    const person1GoalContribution = goals
-        .filter(g => !g.is_completed)
-        .reduce((sum, g) => roundMoney(sum + (g.monthly_contribution_p1 || 0)), 0);
+    const totalGoalSavings = goalData.reduce((sum, item) => roundMoney(sum + item.stats.totalBalance), 0);
 
-    const person2GoalContribution = goals
-        .filter(g => !g.is_completed)
-        .reduce((sum, g) => roundMoney(sum + (g.monthly_contribution_p2 || 0)), 0);
+    const person1GoalContribution = goalData
+        .filter(item => !item.stats.isCompleted)
+        .reduce((sum, item) => roundMoney(sum + (item.goal.monthly_contribution_p1 || 0)), 0);
+
+    const person2GoalContribution = goalData
+        .filter(item => !item.stats.isCompleted)
+        .reduce((sum, item) => roundMoney(sum + (item.goal.monthly_contribution_p2 || 0)), 0);
 
     const person1Remaining = roundMoney(totalIncome1 - p1Target - person1PersonalTotal - person1GoalContribution);
     const person2Remaining = roundMoney(totalIncome2 - p2Target - person2PersonalTotal - person2GoalContribution);

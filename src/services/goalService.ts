@@ -26,6 +26,7 @@ const mapGoal = (g: SavingsGoalDB): SavingsGoal => ({
     investment_location_p2: g.investment_location_p2,
     last_contribution_month: g.last_contribution_month,
     is_completed: g.is_completed,
+    is_emergency: g.is_emergency,
     split_p1_percentage: g.split_p1_percentage ? Number(g.split_p1_percentage) : 50,
     split_p2_percentage: g.split_p2_percentage ? Number(g.split_p2_percentage) : 50,
     initial_withdrawal_p1: g.initial_withdrawal_p1 ? Number(g.initial_withdrawal_p1) : 0,
@@ -96,6 +97,7 @@ export const goalService = {
         if (updates.investment_location_p2 !== undefined) dbUpdates.investment_location_p2 = updates.investment_location_p2;
         if (updates.last_contribution_month !== undefined) dbUpdates.last_contribution_month = updates.last_contribution_month;
         if (updates.is_completed !== undefined) dbUpdates.is_completed = updates.is_completed;
+        if (updates.is_emergency !== undefined) dbUpdates.is_emergency = updates.is_emergency;
         if (updates.split_p1_percentage !== undefined) dbUpdates.split_p1_percentage = updates.split_p1_percentage;
         if (updates.split_p2_percentage !== undefined) dbUpdates.split_p2_percentage = updates.split_p2_percentage;
         if (updates.initial_withdrawal_p1 !== undefined) dbUpdates.initial_withdrawal_p1 = updates.initial_withdrawal_p1;

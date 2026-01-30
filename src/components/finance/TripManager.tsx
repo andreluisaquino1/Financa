@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Trip, TripDeposit, TripExpense, CoupleInfo } from '@/types';
 import { formatCurrency, formatAsBRL, parseBRL } from '@/utils';
+import { calculateTripSettlement } from '@/domain/trips';
 
 interface Props {
     coupleInfo: CoupleInfo;
@@ -244,40 +245,33 @@ const TripDetail: React.FC<{
     const [value, setValue] = useState('');
     const [person, setPerson] = useState<'person1' | 'person2' | 'fund'>('person1');
 
+    const s1 = coupleInfo.salary1 || 0;
+    const s2 = coupleInfo.salary2 || 0;
+    const totalSalary = s1 + s2;
+    const p1SalaryRatio = totalSalary > 0 ? (s1 / totalSalary) : 0.5;
+
     const expenses = trip.expenses || [];
     const deposits = trip.deposits || [];
 
-    const totalExpenses = expenses.reduce((acc, curr) => acc + curr.value, 0);
-    const totalDepositsP1 = deposits.filter(d => d.person === 'person1').reduce((acc, curr) => acc + curr.value, 0);
-    const totalDepositsP2 = deposits.filter(d => d.person === 'person2').reduce((acc, curr) => acc + curr.value, 0);
+    const settlement = calculateTripSettlement(trip, p1SalaryRatio);
 
-    const totalPaidP1 = expenses.filter(e => e.paidBy === 'person1').reduce((acc, curr) => acc + curr.value, 0);
-    const totalPaidP2 = expenses.filter(e => e.paidBy === 'person2').reduce((acc, curr) => acc + curr.value, 0);
+    const {
+        totalExpenses,
+        totalPaidByP1,
+        totalPaidByP2,
+        totalPaidByFund,
+        p1Responsibility: responsibilityP1,
+        p2Responsibility: responsibilityP2,
+        p1Balance: balanceP1,
+        p2Balance: balanceP2,
+        fundBalance
+    } = settlement;
 
-    const totalAportadoP1 = totalDepositsP1 + totalPaidP1;
-    const totalAportadoP2 = totalDepositsP2 + totalPaidP2;
+    const totalAportadoP1 = totalPaidByP1 + deposits.filter(d => d.person === 'person1').reduce((acc, curr) => acc + curr.value, 0);
+    const totalAportadoP2 = totalPaidByP2 + deposits.filter(d => d.person === 'person2').reduce((acc, curr) => acc + curr.value, 0);
 
-    const totalDeposits = deposits.reduce((acc, curr) => acc + curr.value, 0);
-    const totalPaidByFund = expenses.filter(e => e.paidBy === 'fund').reduce((acc, curr) => acc + curr.value, 0);
-    const fundBalance = totalDeposits - totalPaidByFund;
-
-    // Calcula Proporção
-    let p1Percent = 50;
-    if (trip.proportionType === 'proportional') {
-        const s1 = coupleInfo.salary1 || 0;
-        const s2 = coupleInfo.salary2 || 0;
-        const totalSalary = s1 + s2;
-        p1Percent = totalSalary > 0 ? (s1 / totalSalary) * 100 : 50;
-    } else if (trip.proportionType === 'custom') {
-        p1Percent = trip.customPercentage1 ?? 50;
-    }
-
+    const p1Percent = trip.proportionType === 'proportional' ? p1SalaryRatio * 100 : (trip.customPercentage1 ?? 50);
     const p2Percent = 100 - p1Percent;
-    const responsibilityP1 = totalExpenses * (p1Percent / 100);
-    const responsibilityP2 = totalExpenses * (p2Percent / 100);
-
-    const balanceP1 = responsibilityP1 - totalAportadoP1;
-    const balanceP2 = responsibilityP2 - totalAportadoP2;
 
     const handleSubmitItem = async (e: React.FormEvent) => {
         e.preventDefault();

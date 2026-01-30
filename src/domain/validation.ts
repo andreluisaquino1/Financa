@@ -32,6 +32,7 @@ export const goalSchema = z.object({
     monthly_contribution_p1: z.number().min(0).optional(),
     monthly_contribution_p2: z.number().min(0).optional(),
     interest_rate: z.number().min(0).max(100).optional(),
+    is_emergency: z.boolean().optional(),
 });
 
 export const loanSchema = z.object({
@@ -93,6 +94,15 @@ export const profileSchema = z.object({
     invite_code: z.string().optional(),
 });
 
+export const goalTransactionSchema = z.object({
+    goal_id: z.string().uuid('Meta inválida'),
+    type: z.enum(['deposit', 'withdraw']),
+    value: z.number().positive('Valor deve ser positivo'),
+    person: z.enum(['person1', 'person2']),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
+    description: z.string().min(1, 'Descrição é obrigatória'),
+});
+
 export const validateExpense = (data: unknown) => expenseSchema.safeParse(data);
 export const validateIncome = (data: unknown) => incomeSchema.safeParse(data);
 export const validateGoal = (data: unknown) => goalSchema.safeParse(data);
@@ -102,5 +112,6 @@ export const validateTrip = (data: unknown) => tripSchema.safeParse(data);
 export const validateTripExpense = (data: unknown) => tripExpenseSchema.safeParse(data);
 export const validateTripDeposit = (data: unknown) => tripDepositSchema.safeParse(data);
 export const validateProfile = (data: unknown) => profileSchema.safeParse(data);
+export const validateGoalTransaction = (data: unknown) => goalTransactionSchema.safeParse(data);
 
 
