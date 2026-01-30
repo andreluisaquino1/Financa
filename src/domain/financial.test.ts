@@ -4,15 +4,16 @@ import { Expense, ExpenseType, Income, CoupleInfo } from '@/types';
 
 describe('Financial Domain Logic', () => {
     describe('calculateSummary', () => {
-        const mockCoupleInfo: CoupleInfo = {
-            id: '1',
+        const getMockCoupleInfo = (): CoupleInfo => ({
             salary1: 5000,
             salary2: 5000,
+            person1Name: 'P1',
+            person2Name: 'P2',
             salary1Description: 'Sal1',
             salary2Description: 'Sal2',
             person1RecurringIncomes: [],
             person2RecurringIncomes: []
-        };
+        });
 
         const mockIncomes: Income[] = []; // No extra incomes for simplicity
 
@@ -20,7 +21,7 @@ describe('Financial Domain Logic', () => {
             const expenses: Expense[] = [
                 {
                     id: '1',
-                    type: 'common' as ExpenseType,
+                    type: ExpenseType.COMMON,
                     totalValue: 1000,
                     date: '2024-01-15',
                     paidBy: 'person1',
@@ -34,7 +35,7 @@ describe('Financial Domain Logic', () => {
                 }
             ];
 
-            const result = calculateSummary(expenses, mockIncomes, mockCoupleInfo, '2024-01');
+            const result = calculateSummary(expenses, mockIncomes, getMockCoupleInfo(), '2024-01');
 
             // P1 paid 1000.
             // Split 50/50 -> P1 owes 500, P2 owes 500.
@@ -51,7 +52,7 @@ describe('Financial Domain Logic', () => {
 
         it('should handle proportional split based on salary', () => {
             const unequalSalaryInfo: CoupleInfo = {
-                ...mockCoupleInfo,
+                ...getMockCoupleInfo(),
                 salary1: 7000,
                 salary2: 3000
             };
@@ -60,7 +61,7 @@ describe('Financial Domain Logic', () => {
             const expenses: Expense[] = [
                 {
                     id: '1',
-                    type: 'common' as ExpenseType,
+                    type: ExpenseType.COMMON,
                     totalValue: 1000,
                     date: '2024-01-15',
                     paidBy: 'person1',
@@ -87,7 +88,7 @@ describe('Financial Domain Logic', () => {
             const expenses: Expense[] = [
                 {
                     id: '1',
-                    type: 'common' as ExpenseType,
+                    type: ExpenseType.COMMON,
                     totalValue: 1000,
                     date: '2024-01-15',
                     paidBy: 'person1',
@@ -107,7 +108,7 @@ describe('Financial Domain Logic', () => {
             // P1 Total Target = 200 + 400 = 600.
             // P2 Total Target = 0 + 400 = 400.
 
-            const result = calculateSummary(expenses, mockIncomes, mockCoupleInfo, '2024-01');
+            const result = calculateSummary(expenses, mockIncomes, getMockCoupleInfo(), '2024-01');
 
             expect(result.person1Responsibility).toBe(600);
             expect(result.person2Responsibility).toBe(400);
