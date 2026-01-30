@@ -268,21 +268,7 @@ const Dashboard: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Barra de Proporção */}
-      <div className="bg-white dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-100 dark:border-white/5">
-        <div className="flex items-center gap-4">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest shrink-0">Balanço</p>
-          <div className="flex-1 h-2.5 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden flex">
-            <div style={{ width: `${p1Ratio}%` }} className="bg-p1 h-full transition-all duration-700"></div>
-            <div style={{ width: `${p2Ratio}%` }} className="bg-p2 h-full transition-all duration-700"></div>
-          </div>
-          <div className="flex items-center gap-3 text-[10px] font-black shrink-0">
-            <span className="text-p1">{p1Ratio.toFixed(0)}%</span>
-            <span className="text-slate-300">|</span>
-            <span className="text-p2">{p2Ratio.toFixed(0)}%</span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Gastos do Mês - Breakdown */}
       <div className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden">
