@@ -33,28 +33,32 @@ export function calculateInvestmentStats(investment: Investment, movements: Inve
         const val = Number(m.value) || 0;
         const qty = Number(m.quantity) || 0;
 
-        // Balance is always cumulative
-        totalBalance += val;
-        if (m.person === 'person1') person1Balance += val;
-        else person2Balance += val;
-
         switch (m.type) {
             case 'buy':
+                totalBalance += val;
                 investedAmount += val;
                 netQuantity += qty;
+                if (m.person === 'person1') person1Balance += val;
+                else person2Balance += val;
                 break;
             case 'sell':
-                // According to user request: "capital investido = soma dos aportes - soma dos resgates"
-                // Note: 'sell' value in movements is usually the amount received.
+                totalBalance -= val;
+                // Invested amount (cost basis) is reduced by the sale amount
                 investedAmount -= val;
                 netQuantity -= qty;
+                if (m.person === 'person1') person1Balance -= val;
+                else person2Balance -= val;
                 break;
             case 'yield':
+                totalBalance += val;
                 totalYield += val;
+                if (m.person === 'person1') person1Balance += val;
+                else person2Balance += val;
                 break;
             case 'adjustment':
-                // Adjustments affect balance but don't count towards invested or yield normally
-                // unless the user wants them to.
+                totalBalance += val;
+                if (m.person === 'person1') person1Balance += val;
+                else person2Balance += val;
                 break;
         }
     });

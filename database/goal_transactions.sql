@@ -18,41 +18,54 @@ ALTER TABLE savings_goals ADD COLUMN IF NOT EXISTS is_emergency BOOLEAN DEFAULT 
 ALTER TABLE goal_transactions ENABLE ROW LEVEL SECURITY;
 
 -- Allow users to see transactions for goals in their household
-CREATE POLICY "Users can view transactions for their household goals"
+DROP POLICY IF EXISTS "Users can view transactions for their household goals" ON goal_transactions;
+CREATE POLICY "Household members can view goal transactions"
 ON goal_transactions
 FOR SELECT
 USING (
-    EXISTS (
-        SELECT 1 FROM savings_goals g
-        JOIN user_profiles p ON g.household_id = p.household_id
-        WHERE g.id = goal_transactions.goal_id
-        AND p.id = auth.uid()
+    goal_id IN (
+        SELECT id FROM savings_goals WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
     )
 );
 
 -- Allow users to insert transactions for goals in their household
-CREATE POLICY "Users can insert transactions for their household goals"
+DROP POLICY IF EXISTS "Users can insert transactions for their household goals" ON goal_transactions;
+CREATE POLICY "Household members can insert goal transactions"
 ON goal_transactions
 FOR INSERT
 WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM savings_goals g
-        JOIN user_profiles p ON g.household_id = p.household_id
-        WHERE g.id = goal_transactions.goal_id
-        AND p.id = auth.uid()
+    goal_id IN (
+        SELECT id FROM savings_goals WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
     )
 );
 
 -- Allow users to update their household goal transactions
-CREATE POLICY "Users can update their household goal transactions"
+DROP POLICY IF EXISTS "Users can update their household goal transactions" ON goal_transactions;
+CREATE POLICY "Household members can update goal transactions"
 ON goal_transactions
 FOR UPDATE
 USING (
-    EXISTS (
-        SELECT 1 FROM savings_goals g
-        JOIN user_profiles p ON g.household_id = p.household_id
-        WHERE g.id = goal_transactions.goal_id
-        AND p.id = auth.uid()
+    goal_id IN (
+        SELECT id FROM savings_goals WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+-- Allow users to delete their household goal transactions
+DROP POLICY IF EXISTS "Household members can delete goal transactions" ON goal_transactions;
+CREATE POLICY "Household members can delete goal transactions"
+ON goal_transactions
+FOR DELETE
+USING (
+    goal_id IN (
+        SELECT id FROM savings_goals WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
     )
 );
 

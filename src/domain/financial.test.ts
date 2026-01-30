@@ -121,13 +121,19 @@ describe('Financial Domain Logic', () => {
                     monthly_contribution_p1: 500,
                     monthly_contribution_p2: 300,
                     is_completed: false,
-                    current_value: 1000,
-                    current_savings_p1: 100,
-                    current_savings_p2: 200
+                    current_value: 0, // Post-migration state
+                    current_savings_p1: 0,
+                    current_savings_p2: 0
                 }
             ];
 
-            const result = calculateSummary([], [], getMockCoupleInfo(), '2024-01', false, goals);
+            const goalTransactions: any[] = [
+                { goal_id: 'g1', type: 'deposit', value: 1000, person: 'person1', date: '2024-01-01', description: 'Migração' },
+                { goal_id: 'g1', type: 'deposit', value: 100, person: 'person1', date: '2024-01-01', description: 'Migração P1' },
+                { goal_id: 'g1', type: 'deposit', value: 200, person: 'person2', date: '2024-01-01', description: 'Migração P2' },
+            ];
+
+            const result = calculateSummary([], [], getMockCoupleInfo(), '2024-01', false, goals, goalTransactions);
 
             // Total Income P1=5000, P2=5000 (from getMockCoupleInfo)
             // No expenses -> Responsibility 0

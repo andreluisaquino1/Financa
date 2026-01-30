@@ -51,6 +51,13 @@ export const migrationService = {
                             description: 'Saldo P2 (Migração)'
                         });
                     }
+
+                    // Zero out legacy fields in the database
+                    await goalService.update(goal.id, {
+                        current_value: 0,
+                        current_savings_p1: 0,
+                        current_savings_p2: 0
+                    });
                 }
             }
         }

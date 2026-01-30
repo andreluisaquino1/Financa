@@ -74,7 +74,9 @@ export interface CoupleInfo {
   // Bank Balance & Reserves
   bankBalanceP1?: number;
   bankBalanceP2?: number;
+  /** @deprecated Now mirrored from SavingsGoal where is_emergency = true */
   emergencyReserveP1?: number;
+  /** @deprecated Now mirrored from SavingsGoal where is_emergency = true */
   emergencyReserveP2?: number;
   monthlySavingsP1?: number;
   monthlySavingsP2?: number;

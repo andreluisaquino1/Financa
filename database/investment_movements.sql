@@ -19,35 +19,56 @@ CREATE INDEX IF NOT EXISTS idx_investment_movements_investment_id ON public.inve
 -- Enable RLS
 ALTER TABLE public.investment_movements ENABLE ROW LEVEL SECURITY;
 
--- Add RLS Policies (using helper function if exists, but we'll use raw SQL for clarity)
--- Policy: User can see movements of investments they have access to
-CREATE POLICY "Users can see movements of their household investments"
+-- Add RLS Policies
+-- Policy: Household members can view movements
+DROP POLICY IF EXISTS "Users can see movements of their household investments" ON public.investment_movements;
+CREATE POLICY "Household members can view investment movements"
 ON public.investment_movements
 FOR SELECT
 USING (
-    EXISTS (
-        SELECT 1 FROM public.investments i
-        WHERE i.id = investment_id
+    investment_id IN (
+        SELECT id FROM public.investments WHERE household_id IN (
+            SELECT household_id FROM public.user_profiles WHERE id = auth.uid()
+        )
     )
 );
 
-CREATE POLICY "Users can insert movements for their household investments"
+-- Policy: Household members can insert movements
+DROP POLICY IF EXISTS "Users can insert movements for their household investments" ON public.investment_movements;
+CREATE POLICY "Household members can insert investment movements"
 ON public.investment_movements
 FOR INSERT
 WITH CHECK (
-    EXISTS (
-        SELECT 1 FROM public.investments i
-        WHERE i.id = investment_id
+    investment_id IN (
+        SELECT id FROM public.investments WHERE household_id IN (
+            SELECT household_id FROM public.user_profiles WHERE id = auth.uid()
+        )
     )
 );
 
-CREATE POLICY "Users can update their own movements"
+-- Policy: Household members can update movements
+DROP POLICY IF EXISTS "Users can update their own movements" ON public.investment_movements;
+CREATE POLICY "Household members can update investment movements"
 ON public.investment_movements
 FOR UPDATE
 USING (
-    EXISTS (
-        SELECT 1 FROM public.investments i
-        WHERE i.id = investment_id
+    investment_id IN (
+        SELECT id FROM public.investments WHERE household_id IN (
+            SELECT household_id FROM public.user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+-- Policy: Household members can delete movements
+DROP POLICY IF EXISTS "Household members can delete investment movements" ON public.investment_movements;
+CREATE POLICY "Household members can delete investment movements"
+ON public.investment_movements
+FOR DELETE
+USING (
+    investment_id IN (
+        SELECT id FROM public.investments WHERE household_id IN (
+            SELECT household_id FROM public.user_profiles WHERE id = auth.uid()
+        )
     )
 );
 

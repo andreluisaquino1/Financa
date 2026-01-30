@@ -9,6 +9,8 @@ ALTER TABLE trips ENABLE ROW LEVEL SECURITY;
 ALTER TABLE trip_expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE trip_deposits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE monthly_configs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE investment_movements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE goal_transactions ENABLE ROW LEVEL SECURITY;
 
 -- 1. user_profiles Policy
 DROP POLICY IF EXISTS "Users can view own profile" ON user_profiles;
@@ -286,3 +288,93 @@ DROP POLICY IF EXISTS "Household members can delete monthly_configs" ON monthly_
 CREATE POLICY "Household members can delete monthly_configs" 
 ON monthly_configs FOR DELETE 
 USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));
+
+-- 11. Investment Movements Policy
+DROP POLICY IF EXISTS "Household members can view investment movements" ON investment_movements;
+CREATE POLICY "Household members can view investment movements"
+ON investment_movements FOR SELECT
+USING (
+    investment_id IN (
+        SELECT id FROM investments WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+DROP POLICY IF EXISTS "Household members can insert investment movements" ON investment_movements;
+CREATE POLICY "Household members can insert investment movements"
+ON investment_movements FOR INSERT
+WITH CHECK (
+    investment_id IN (
+        SELECT id FROM investments WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+DROP POLICY IF EXISTS "Household members can update investment movements" ON investment_movements;
+CREATE POLICY "Household members can update investment movements"
+ON investment_movements FOR UPDATE
+USING (
+    investment_id IN (
+        SELECT id FROM investments WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+DROP POLICY IF EXISTS "Household members can delete investment movements" ON investment_movements;
+CREATE POLICY "Household members can delete investment movements"
+ON investment_movements FOR DELETE
+USING (
+    investment_id IN (
+        SELECT id FROM investments WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+-- 12. Goal Transactions Policy
+DROP POLICY IF EXISTS "Household members can view goal transactions" ON goal_transactions;
+CREATE POLICY "Household members can view goal transactions"
+ON goal_transactions FOR SELECT
+USING (
+    goal_id IN (
+        SELECT id FROM savings_goals WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+DROP POLICY IF EXISTS "Household members can insert goal transactions" ON goal_transactions;
+CREATE POLICY "Household members can insert goal transactions"
+ON goal_transactions FOR INSERT
+WITH CHECK (
+    goal_id IN (
+        SELECT id FROM savings_goals WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+DROP POLICY IF EXISTS "Household members can update goal transactions" ON goal_transactions;
+CREATE POLICY "Household members can update goal transactions"
+ON goal_transactions FOR UPDATE
+USING (
+    goal_id IN (
+        SELECT id FROM savings_goals WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
+
+DROP POLICY IF EXISTS "Household members can delete goal transactions" ON goal_transactions;
+CREATE POLICY "Household members can delete goal transactions"
+ON goal_transactions FOR DELETE
+USING (
+    goal_id IN (
+        SELECT id FROM savings_goals WHERE household_id IN (
+            SELECT household_id FROM user_profiles WHERE id = auth.uid()
+        )
+    )
+);
