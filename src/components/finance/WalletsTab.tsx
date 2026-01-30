@@ -13,6 +13,10 @@ interface Props {
     onDeleteExpense: (id: string) => void;
 }
 
+/**
+ * WalletsTab acts as a derived view of the 'expenses' table, filtering by personal types.
+ * It does not require a separate table as it inherits RLS security from the expenses module.
+ */
 const WalletsTab: React.FC<Props> = (props) => {
     const [activePerson, setActivePerson] = useState<'person1' | 'person2'>('person1');
 
