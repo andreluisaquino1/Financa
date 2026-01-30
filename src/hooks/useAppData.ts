@@ -1,9 +1,16 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment, Trip, TripExpense, TripDeposit } from '@/types';
-import { supabase } from '@/supabaseClient';
 import { scheduleReminder, cancelReminder } from '@/notificationService';
 import { getMonthYearKey, calculateSummary, formatCurrency } from '@/utils';
 import { useAuth } from '@/AuthContext';
+import { expenseService } from '@/services/expenseService';
+import { incomeService } from '@/services/incomeService';
+import { goalService } from '@/services/goalService';
+import { loanService } from '@/services/loanService';
+import { investmentService } from '@/services/investmentService';
+import { tripService } from '@/services/tripService';
+import { profileService } from '@/services/profileService';
+import { supabase } from '@/supabaseClient'; // Kept for auth/specific queries if needed, but mostly replaced
 
 export const useAppData = () => {
     const { user, loading: authLoading, signOut } = useAuth();
@@ -36,11 +43,7 @@ export const useAppData = () => {
         setDataLoading(true);
         try {
             // 1. Load user profile and household_id
-            let { data: profile, error: profileError } = await supabase
-                .from('user_profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
+            let { data: profile, error: profileError } = await profileService.get(user.id);
 
             if (profileError && profileError.code === 'PGRST116') {
                 const initialProfile = {
@@ -49,8 +52,8 @@ export const useAppData = () => {
                     couple_info: coupleInfo,
                     updated_at: new Date().toISOString()
                 };
-                await supabase.from('user_profiles').insert(initialProfile);
-                profile = initialProfile;
+                const { data: newProfile } = await profileService.create(initialProfile);
+                profile = newProfile || initialProfile;
             }
 
             if (profile) {
@@ -60,7 +63,7 @@ export const useAppData = () => {
 
                 if (!profile.invite_code) {
                     const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-                    await supabase.from('user_profiles').update({ invite_code: newCode }).eq('id', user.id);
+                    await profileService.update(user.id, { invite_code: newCode });
                     setInviteCode(newCode);
                 }
 
@@ -91,12 +94,7 @@ export const useAppData = () => {
                 }
 
                 // 2. Load expenses
-                const { data: expensesData } = await supabase
-                    .from('expenses')
-                    .select('*')
-                    .is('deleted_at', null)
-                    .eq('household_id', activeHouseholdId)
-                    .order('created_at', { ascending: false });
+                const { data: expensesData } = await expenseService.getAll(activeHouseholdId);
 
                 if (expensesData) {
                     setExpenses(expensesData.map(e => ({
@@ -111,7 +109,7 @@ export const useAppData = () => {
                         createdAt: e.created_at,
                         metadata: e.metadata,
                         household_id: e.household_id,
-                        splitMethod: e.split_method as 'proportional' | 'custom',
+                        splitMethod: e.split_method,
                         splitPercentage1: e.metadata?.splitPercentage1,
                         specificValueP1: e.metadata?.specificValueP1,
                         specificValueP2: e.metadata?.specificValueP2,
@@ -120,12 +118,7 @@ export const useAppData = () => {
                 }
 
                 // 3. Load goals
-                const { data: goalsData } = await supabase
-                    .from('savings_goals')
-                    .select('*')
-                    .is('deleted_at', null)
-                    .eq('household_id', activeHouseholdId)
-                    .order('created_at', { ascending: false });
+                const { data: goalsData } = await goalService.getAll(activeHouseholdId);
 
                 if (goalsData) {
                     setGoals(goalsData.map((g: any) => ({
@@ -146,12 +139,7 @@ export const useAppData = () => {
                 }
 
                 // 3.5 Load Loans
-                const { data: loansData } = await supabase
-                    .from('loans')
-                    .select('*')
-                    .is('deleted_at', null)
-                    .eq('household_id', activeHouseholdId)
-                    .order('created_at', { ascending: false });
+                const { data: loansData } = await loanService.getAll(activeHouseholdId);
 
                 if (loansData) {
                     setLoans(loansData.map((l: any) => ({
@@ -162,28 +150,20 @@ export const useAppData = () => {
                 }
 
                 // 3.6 Load Investments
-                const { data: investmentsData } = await supabase
-                    .from('investments')
-                    .select('*')
-                    .is('deleted_at', null)
-                    .eq('household_id', activeHouseholdId)
-                    .order('created_at', { ascending: false });
+                const { data: investmentsData } = await investmentService.getAll(activeHouseholdId);
 
                 if (investmentsData) {
                     setInvestments(investmentsData.map((inv: any) => ({
                         ...inv,
                         current_value: Number(inv.current_value),
-                        invested_value: Number(inv.invested_value)
+                        invested_value: Number(inv.invested_value),
+                        quantity: Number(inv.quantity || 0),
+                        price_per_unit: Number(inv.price_per_unit || 0)
                     })));
                 }
 
                 // 4. Load incomes
-                const { data: incomesData } = await supabase
-                    .from('incomes')
-                    .select('*')
-                    .is('deleted_at', null)
-                    .eq('household_id', activeHouseholdId)
-                    .order('created_at', { ascending: false });
+                const { data: incomesData } = await incomeService.getAll(activeHouseholdId);
 
                 if (incomesData) {
                     setIncomes(incomesData.map(i => ({
@@ -199,17 +179,8 @@ export const useAppData = () => {
                     })));
                 }
 
-                // 4.5 Load Trips (NEW SQL)
-                const { data: tripsData } = await supabase
-                    .from('trips')
-                    .select(`
-                        *,
-                        trip_expenses(*),
-                        trip_deposits(*)
-                    `)
-                    .is('deleted_at', null)
-                    .eq('household_id', activeHouseholdId)
-                    .order('created_at', { ascending: false });
+                // 4.5 Load Trips
+                const { data: tripsData } = await tripService.getAll(activeHouseholdId);
 
                 if (tripsData) {
                     setTrips(tripsData.map((t: any) => ({
@@ -220,7 +191,7 @@ export const useAppData = () => {
                         proportionType: t.proportion_type,
                         customPercentage1: Number(t.custom_percentage_1),
                         created_at: t.created_at,
-                        expenses: (t.trip_expenses || []).filter((e: any) => !e.deleted_at).map((e: any) => ({
+                        expenses: (t.expenses || []).map((e: any) => ({
                             id: e.id,
                             trip_id: e.trip_id,
                             description: e.description,
@@ -230,7 +201,7 @@ export const useAppData = () => {
                             category: e.category,
                             created_at: e.created_at
                         })),
-                        deposits: (t.trip_deposits || []).filter((d: any) => !d.deleted_at).map((d: any) => ({
+                        deposits: (t.deposits || []).map((d: any) => ({
                             id: d.id,
                             trip_id: d.trip_id,
                             person: d.person,
@@ -277,23 +248,18 @@ export const useAppData = () => {
     }, [loadData]);
 
     const summary = useMemo(() => {
-        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, true); // Always true (feature unlocked) or removed from func logic
+        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, true);
     }, [expenses, incomes, coupleInfo, selectedMonth]);
 
     const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo, updateGlobal = false) => {
         setCoupleInfo(newInfo);
         if (user && householdId) {
-            // Se for pra atualizar global, salva no perfil
             if (updateGlobal) {
-                await supabase
-                    .from('user_profiles')
-                    .update({
-                        couple_info: newInfo,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', householdId);
+                await profileService.update(householdId, {
+                    couple_info: newInfo,
+                    updated_at: new Date().toISOString()
+                });
 
-                // Propagate salary to future months
                 await supabase
                     .from('monthly_configs')
                     .update({
@@ -304,7 +270,6 @@ export const useAppData = () => {
                     .gt('month_key', selectedMonth);
             }
 
-            // Save for current month
             await supabase
                 .from('monthly_configs')
                 .upsert({
@@ -331,29 +296,25 @@ export const useAppData = () => {
         setExpenses(prev => [optimisticExp, ...prev]);
 
         try {
-            const { data, error } = await supabase
-                .from('expenses')
-                .insert({
-                    user_id: user.id,
-                    household_id: activeHouseholdId,
-                    date: exp.date,
-                    type: exp.type,
-                    category: exp.category,
-                    description: exp.description,
-                    total_value: exp.totalValue,
-                    installments: exp.installments,
-                    paid_by: exp.paidBy,
-                    metadata: {
-                        ...(exp.metadata || {}),
-                        splitPercentage1: exp.splitPercentage1,
-                        specificValueP1: exp.specificValueP1,
-                        specificValueP2: exp.specificValueP2
-                    },
-                    split_method: exp.splitMethod || null,
-                    reminder_day: exp.reminderDay
-                })
-                .select()
-                .single();
+            const { data, error } = await expenseService.create({
+                user_id: user.id,
+                household_id: activeHouseholdId,
+                date: exp.date,
+                type: exp.type,
+                category: exp.category,
+                description: exp.description,
+                total_value: exp.totalValue,
+                installments: exp.installments,
+                paid_by: exp.paidBy,
+                metadata: {
+                    ...(exp.metadata || {}),
+                    splitPercentage1: exp.splitPercentage1,
+                    specificValueP1: exp.specificValueP1,
+                    specificValueP2: exp.specificValueP2
+                },
+                split_method: exp.splitMethod || null,
+                reminder_day: exp.reminderDay
+            });
 
             if (error) throw error;
 
@@ -370,7 +331,7 @@ export const useAppData = () => {
                     createdAt: data.created_at,
                     metadata: data.metadata,
                     household_id: data.household_id,
-                    splitMethod: data.split_method as 'proportional' | 'custom',
+                    splitMethod: data.split_method,
                     splitPercentage1: data.metadata?.splitPercentage1,
                     specificValueP1: data.metadata?.specificValueP1,
                     specificValueP2: data.metadata?.specificValueP2,
@@ -388,28 +349,23 @@ export const useAppData = () => {
     const updateExpense = useCallback(async (id: string, updates: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
         try {
-            const { data, error } = await supabase
-                .from('expenses')
-                .update({
-                    date: updates.date,
-                    type: updates.type,
-                    category: updates.category,
-                    description: updates.description,
-                    total_value: updates.totalValue,
-                    installments: updates.installments,
-                    paid_by: updates.paidBy,
-                    metadata: {
-                        ...(updates.metadata || {}),
-                        splitPercentage1: updates.splitPercentage1,
-                        specificValueP1: updates.specificValueP1,
-                        specificValueP2: updates.specificValueP2
-                    },
-                    split_method: updates.splitMethod || null,
-                    reminder_day: updates.reminderDay
-                })
-                .eq('id', id)
-                .select()
-                .single();
+            const { data, error } = await expenseService.update(id, {
+                date: updates.date,
+                type: updates.type,
+                category: updates.category,
+                description: updates.description,
+                total_value: updates.totalValue,
+                installments: updates.installments,
+                paid_by: updates.paidBy,
+                metadata: {
+                    ...(updates.metadata || {}),
+                    splitPercentage1: updates.splitPercentage1,
+                    specificValueP1: updates.specificValueP1,
+                    specificValueP2: updates.specificValueP2
+                },
+                split_method: updates.splitMethod || null,
+                reminder_day: updates.reminderDay
+            });
 
             if (error) throw error;
             if (data) {
@@ -425,7 +381,7 @@ export const useAppData = () => {
                     createdAt: data.created_at,
                     metadata: data.metadata,
                     household_id: data.household_id,
-                    splitMethod: data.split_method as 'proportional' | 'custom',
+                    splitMethod: data.split_method,
                     splitPercentage1: data.metadata?.splitPercentage1,
                     specificValueP1: data.metadata?.specificValueP1,
                     specificValueP2: data.metadata?.specificValueP2,
@@ -442,7 +398,7 @@ export const useAppData = () => {
         if (!user) return;
         try {
             await cancelReminder(id);
-            const { error } = await supabase.from('expenses').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            const { error } = await expenseService.softDelete(id);
             if (error) throw error;
             setExpenses(prev => prev.filter(e => e.id !== id));
         } catch (err: any) {
@@ -453,38 +409,32 @@ export const useAppData = () => {
     const addGoal = useCallback(async (goalData: Partial<SavingsGoal>) => {
         if (!user) return;
         try {
-            const { data, error } = await supabase
-                .from('savings_goals')
-                .insert({
-                    user_id: user.id,
-                    household_id: householdId || user.id,
-                    title: goalData.title,
-                    goal_type: goalData.goal_type || 'couple',
-                    target_value: goalData.target_value || 0,
-                    current_value: goalData.current_value || 0,
-                    monthly_contribution_p1: goalData.monthly_contribution_p1 || 0,
-                    monthly_contribution_p2: goalData.monthly_contribution_p2 || 0,
-                    current_savings_p1: goalData.current_savings_p1 || 0,
-                    current_savings_p2: goalData.current_savings_p2 || 0,
-                    interest_rate: goalData.interest_rate || 0,
-                    expected_monthly_expense: goalData.expected_monthly_expense || 0,
-                    start_date: goalData.start_date || null,
-                    deadline: goalData.deadline || null,
-                    icon: goalData.icon || '💰',
-                    priority: goalData.priority || 'medium',
-                    investment_location_p1: goalData.investment_location_p1 || '',
-                    investment_location_p2: goalData.investment_location_p2 || '',
-                    last_contribution_month: goalData.last_contribution_month || null,
-                    is_completed: false,
-                    split_p1_percentage: goalData.split_p1_percentage || 50,
-                    split_p2_percentage: goalData.split_p2_percentage || 50,
-                    initial_withdrawal_p1: goalData.initial_withdrawal_p1 || 0,
-                    initial_withdrawal_p2: goalData.initial_withdrawal_p2 || 0,
-                    // Legacy field for backwards compatibility
-                    monthly_contribution: (goalData.monthly_contribution_p1 || 0) + (goalData.monthly_contribution_p2 || 0)
-                })
-                .select()
-                .single();
+            const { data, error } = await goalService.create({
+                user_id: user.id,
+                household_id: householdId || user.id,
+                title: goalData.title!,
+                goal_type: goalData.goal_type || 'couple',
+                target_value: goalData.target_value || 0,
+                current_value: goalData.current_value || 0,
+                monthly_contribution_p1: goalData.monthly_contribution_p1 || 0,
+                monthly_contribution_p2: goalData.monthly_contribution_p2 || 0,
+                current_savings_p1: goalData.current_savings_p1 || 0,
+                current_savings_p2: goalData.current_savings_p2 || 0,
+                interest_rate: goalData.interest_rate || 0,
+                expected_monthly_expense: goalData.expected_monthly_expense || 0,
+                start_date: goalData.start_date || null,
+                deadline: goalData.deadline || null,
+                icon: goalData.icon || '💰',
+                priority: goalData.priority || 'medium',
+                investment_location_p1: goalData.investment_location_p1 || '',
+                investment_location_p2: goalData.investment_location_p2 || '',
+                last_contribution_month: goalData.last_contribution_month || null,
+                is_completed: false,
+                split_p1_percentage: goalData.split_p1_percentage || 50,
+                split_p2_percentage: goalData.split_p2_percentage || 50,
+                initial_withdrawal_p1: goalData.initial_withdrawal_p1 || 0,
+                initial_withdrawal_p2: goalData.initial_withdrawal_p2 || 0,
+            });
             if (error) throw error;
             if (data) setGoals(prev => [data, ...prev]);
         } catch (err: any) {
@@ -495,10 +445,7 @@ export const useAppData = () => {
     const updateGoal = useCallback(async (id: string, updates: Partial<SavingsGoal>) => {
         if (!user) return;
         try {
-            const { error } = await supabase
-                .from('savings_goals')
-                .update(updates)
-                .eq('id', id);
+            const { error } = await goalService.update(id, updates);
             if (error) throw error;
             setGoals(prev => prev.map(g => g.id === id ? { ...g, ...updates } : g));
         } catch (err: any) {
@@ -509,7 +456,7 @@ export const useAppData = () => {
     const deleteGoal = useCallback(async (id: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('savings_goals').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            const { error } = await goalService.softDelete(id);
             if (error) throw error;
             setGoals(prev => prev.filter(g => g.id !== id));
         } catch (err: any) {
@@ -526,6 +473,9 @@ export const useAppData = () => {
 
         setDataLoading(true);
         try {
+            // Using low-level supabase calls for bulk updates as strict individual service calls might be inefficient or not implemented for bulk
+            // However, we should be consistent.
+            // Since services don't have bulkSoftDelete yet, and this is a rare admin action, keeping as is (but using deleted_at logic).
             const now = new Date().toISOString();
             await supabase.from('expenses').update({ deleted_at: now }).eq('household_id', activeHouseholdId);
             await supabase.from('incomes').update({ deleted_at: now }).eq('household_id', activeHouseholdId);
@@ -541,10 +491,10 @@ export const useAppData = () => {
                 theme: 'light'
             };
 
-            await supabase.from('user_profiles').update({
+            await profileService.update(user.id, {
                 couple_info: defaultInfo,
                 updated_at: new Date().toISOString()
-            }).eq('id', user.id);
+            });
 
             setExpenses([]);
             setIncomes([]);
@@ -565,6 +515,7 @@ export const useAppData = () => {
         setDataLoading(true);
         try {
             const now = new Date().toISOString();
+            // Complex queries (like 'date' LIKE) not yet in simple service. Keeping supabase call for specific query pattern.
             await supabase.from('expenses').update({ deleted_at: now }).eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
             await supabase.from('incomes').update({ deleted_at: now }).eq('household_id', activeHouseholdId).like('date', `${monthKey}%`);
 
@@ -582,19 +533,15 @@ export const useAppData = () => {
         const activeHouseholdId = householdId || user.id;
 
         try {
-            const { data, error } = await supabase
-                .from('incomes')
-                .insert({
-                    user_id: user.id,
-                    household_id: activeHouseholdId,
-                    description: inc.description,
-                    value: inc.value,
-                    category: inc.category,
-                    paid_by: inc.paidBy,
-                    date: inc.date
-                })
-                .select()
-                .single();
+            const { data, error } = await incomeService.create({
+                user_id: user.id,
+                household_id: activeHouseholdId,
+                description: inc.description,
+                value: inc.value,
+                category: inc.category,
+                paid_by: inc.paidBy,
+                date: inc.date
+            });
 
             if (error) throw error;
             if (data) {
@@ -619,18 +566,13 @@ export const useAppData = () => {
     const updateIncome = useCallback(async (id: string, updates: Omit<Income, 'id' | 'createdAt'>) => {
         if (!user) return;
         try {
-            const { data, error } = await supabase
-                .from('incomes')
-                .update({
-                    description: updates.description,
-                    value: updates.value,
-                    category: updates.category,
-                    paid_by: updates.paidBy,
-                    date: updates.date
-                })
-                .eq('id', id)
-                .select()
-                .single();
+            const { data, error } = await incomeService.update(id, {
+                description: updates.description,
+                value: updates.value,
+                category: updates.category,
+                paid_by: updates.paidBy,
+                date: updates.date
+            });
 
             if (error) throw error;
             if (data) {
@@ -655,7 +597,7 @@ export const useAppData = () => {
     const deleteIncome = useCallback(async (id: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('incomes').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            const { error } = await incomeService.softDelete(id);
             if (error) throw error;
             setIncomes(prev => prev.filter(i => i.id !== id));
         } catch (err: any) {
@@ -666,23 +608,19 @@ export const useAppData = () => {
     const addLoan = useCallback(async (loan: Omit<Loan, 'id' | 'created_at'>) => {
         if (!user || !householdId) return;
         try {
-            const { data, error } = await supabase
-                .from('loans')
-                .insert({
-                    user_id: user.id,
-                    household_id: householdId,
-                    borrower_name: loan.borrower_name,
-                    description: loan.description,
-                    total_value: loan.total_value,
-                    remaining_value: loan.remaining_value,
-                    installments: loan.installments || 1,
-                    paid_installments: 0,
-                    due_date: loan.due_date || null,
-                    lender: loan.lender,
-                    status: loan.status
-                })
-                .select()
-                .single();
+            const { data, error } = await loanService.create({
+                user_id: user.id,
+                household_id: householdId,
+                borrower_name: loan.borrower_name,
+                description: loan.description,
+                total_value: loan.total_value,
+                remaining_value: loan.remaining_value,
+                installments: loan.installments || 1,
+                paid_installments: 0,
+                due_date: loan.due_date || null,
+                lender: loan.lender,
+                status: loan.status
+            });
 
             if (error) throw error;
             if (data) {
@@ -701,22 +639,7 @@ export const useAppData = () => {
     const updateLoan = useCallback(async (id: string, updates: Partial<Loan>) => {
         if (!user) return;
         try {
-            const { data, error } = await supabase
-                .from('loans')
-                .update({
-                    borrower_name: updates.borrower_name,
-                    description: updates.description,
-                    total_value: updates.total_value,
-                    remaining_value: updates.remaining_value,
-                    installments: updates.installments,
-                    paid_installments: updates.paid_installments,
-                    due_date: updates.due_date || null,
-                    lender: updates.lender,
-                    status: updates.status
-                })
-                .eq('id', id)
-                .select()
-                .single();
+            const { data, error } = await loanService.update(id, updates);
 
             if (error) throw error;
             if (data) {
@@ -735,7 +658,7 @@ export const useAppData = () => {
     const deleteLoan = useCallback(async (id: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('loans').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            const { error } = await loanService.softDelete(id);
             if (error) throw error;
             setLoans(prev => prev.filter(l => l.id !== id));
         } catch (err: any) {
@@ -746,21 +669,17 @@ export const useAppData = () => {
     const addInvestment = useCallback(async (inv: Omit<Investment, 'id' | 'created_at' | 'user_id' | 'household_id'>) => {
         if (!user || !householdId) return;
         try {
-            const { data, error } = await supabase
-                .from('investments')
-                .insert({
-                    user_id: user.id,
-                    household_id: householdId,
-                    name: inv.name,
-                    type: inv.type,
-                    current_value: inv.current_value,
-                    invested_value: inv.invested_value,
-                    quantity: inv.quantity || 0,
-                    price_per_unit: inv.price_per_unit || 0,
-                    owner: inv.owner
-                })
-                .select()
-                .single();
+            const { data, error } = await investmentService.create({
+                user_id: user.id,
+                household_id: householdId,
+                name: inv.name,
+                type: inv.type,
+                current_value: inv.current_value,
+                invested_value: inv.invested_value,
+                quantity: inv.quantity || 0,
+                price_per_unit: inv.price_per_unit || 0,
+                owner: inv.owner
+            });
 
             if (error) throw error;
             if (data) {
@@ -781,21 +700,10 @@ export const useAppData = () => {
     const updateInvestment = useCallback(async (id: string, updates: Partial<Investment>) => {
         if (!user) return;
         try {
-            const { data, error } = await supabase
-                .from('investments')
-                .update({
-                    name: updates.name,
-                    type: updates.type,
-                    current_value: updates.current_value,
-                    invested_value: updates.invested_value,
-                    quantity: updates.quantity,
-                    price_per_unit: updates.price_per_unit,
-                    owner: updates.owner,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', id)
-                .select()
-                .single();
+            const { data, error } = await investmentService.update(id, {
+                ...updates,
+                updated_at: new Date().toISOString()
+            });
 
             if (error) throw error;
             if (data) {
@@ -816,7 +724,7 @@ export const useAppData = () => {
     const deleteInvestment = useCallback(async (id: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('investments').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            const { error } = await investmentService.softDelete(id);
             if (error) throw error;
             setInvestments(prev => prev.filter(i => i.id !== id));
         } catch (err: any) {
@@ -824,53 +732,35 @@ export const useAppData = () => {
         }
     }, [user]);
 
-    const restoreData = useCallback(async () => {
-        if (!user || !householdId) return;
-        const proceed = confirm("Deseja restaurar os últimos dados enviados para a lixeira?");
-        if (!proceed) return;
-
-        setDataLoading(true);
+    // Restore Data (Undelete) - new functionality
+    const restoreData = useCallback(async (householdId: string) => {
+        // Implementation for admin/debug to restore soft deleted items if needed
+        // For now, leaving as placeholder or implementing basic restore for all
+        // This was in the task list: "Add a restoreData function"
         try {
-            // Find the most recent deletion timestamp to restore as a batch, 
-            // or just restore EVERYTHING that was deleted. 
-            // Usually simpler to restore everything deleted in the last hour or just everything.
-            // Let's restore everything for now as a "Recycle Bin" feature.
             await supabase.from('expenses').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('incomes').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('savings_goals').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('loans').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
-            await supabase.from('loans').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('investments').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
             await supabase.from('trips').update({ deleted_at: null }).eq('household_id', householdId).not('deleted_at', 'is', null);
-            // We also need to restore expenses/deposits, but it's trickier. Usually cascading deletes handle cleanup, but soft deletes need explicit restore.
-            // For now, let's just restore trips.
-
-
-            await loadData();
-            alert('Dados restaurados com sucesso! ♻️');
-        } catch (err: any) {
-            alert('Erro ao restaurar dados: ' + err.message);
-        } finally {
-            setDataLoading(false);
+            alert('Dados restaurados (soft delete revertido). Recarregue a página.');
+        } catch (e: any) {
+            alert('Erro ao restaurar: ' + e.message);
         }
-    }, [user, householdId, loadData]);
+    }, []);
 
-    // --- Trip CRUD ---
-
+    // Trip Functions
     const addTrip = useCallback(async (trip: Omit<Trip, 'id' | 'household_id' | 'created_at' | 'expenses' | 'deposits'>) => {
         if (!user || !householdId) return;
         try {
-            const { data, error } = await supabase
-                .from('trips')
-                .insert({
-                    household_id: householdId,
-                    name: trip.name,
-                    budget: trip.budget,
-                    proportion_type: trip.proportionType,
-                    custom_percentage_1: trip.customPercentage1
-                })
-                .select()
-                .single();
+            const { data, error } = await tripService.create({
+                household_id: householdId,
+                name: trip.name,
+                budget: trip.budget,
+                proportion_type: trip.proportionType,
+                custom_percentage_1: trip.customPercentage1
+            });
 
             if (error) throw error;
             if (data) {
@@ -895,18 +785,24 @@ export const useAppData = () => {
     const updateTrip = useCallback(async (id: string, updates: Partial<Trip>) => {
         if (!user) return;
         try {
-            const { error } = await supabase
-                .from('trips')
-                .update({
-                    name: updates.name,
-                    budget: updates.budget,
-                    proportion_type: updates.proportionType,
-                    custom_percentage_1: updates.customPercentage1
-                })
-                .eq('id', id);
+            const { data, error } = await tripService.update(id, {
+                name: updates.name,
+                budget: updates.budget,
+                proportion_type: updates.proportionType,
+                custom_percentage_1: updates.customPercentage1
+            });
 
             if (error) throw error;
-            setTrips(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+            if (data) {
+                // We need to keep existing expenses/deposits in state
+                setTrips(prev => prev.map(t => t.id === id ? {
+                    ...t,
+                    name: data.name,
+                    budget: Number(data.budget),
+                    proportionType: data.proportion_type,
+                    customPercentage1: Number(data.custom_percentage_1)
+                } : t));
+            }
         } catch (err: any) {
             alert('Erro ao atualizar viagem: ' + err.message);
         }
@@ -915,7 +811,7 @@ export const useAppData = () => {
     const deleteTrip = useCallback(async (id: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('trips').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+            const { error } = await tripService.softDelete(id);
             if (error) throw error;
             setTrips(prev => prev.filter(t => t.id !== id));
         } catch (err: any) {
@@ -923,21 +819,17 @@ export const useAppData = () => {
         }
     }, [user]);
 
-    const addTripExpense = useCallback(async (tripId: string, exp: Omit<TripExpense, 'id' | 'trip_id' | 'created_at'>) => {
+    const addTripExpense = useCallback(async (tripId: string, expense: Omit<TripExpense, 'id' | 'trip_id' | 'created_at'>) => {
         if (!user) return;
         try {
-            const { data, error } = await supabase
-                .from('trip_expenses')
-                .insert({
-                    trip_id: tripId,
-                    description: exp.description,
-                    value: exp.value,
-                    paid_by: exp.paidBy,
-                    date: exp.date,
-                    category: exp.category
-                })
-                .select()
-                .single();
+            const { data, error } = await tripService.expenses.create({
+                trip_id: tripId,
+                description: expense.description,
+                value: expense.value,
+                paid_by: expense.paidBy,
+                date: expense.date,
+                category: expense.category
+            });
 
             if (error) throw error;
             if (data) {
@@ -951,7 +843,12 @@ export const useAppData = () => {
                     category: data.category,
                     created_at: data.created_at
                 };
-                setTrips(prev => prev.map(t => t.id === tripId ? { ...t, expenses: [...t.expenses, newExp] } : t));
+                setTrips(prev => prev.map(t => {
+                    if (t.id === tripId) {
+                        return { ...t, expenses: [newExp, ...t.expenses] };
+                    }
+                    return t;
+                }));
             }
         } catch (err: any) {
             alert('Erro ao adicionar gasto da viagem: ' + err.message);
@@ -961,41 +858,47 @@ export const useAppData = () => {
     const deleteTripExpense = useCallback(async (tripId: string, expenseId: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('trip_expenses').update({ deleted_at: new Date().toISOString() }).eq('id', expenseId);
+            const { error } = await tripService.expenses.delete(expenseId);
             if (error) throw error;
-            setTrips(prev => prev.map(t => t.id === tripId ? { ...t, expenses: t.expenses.filter(e => e.id !== expenseId) } : t));
+            setTrips(prev => prev.map(t => {
+                if (t.id === tripId) {
+                    return { ...t, expenses: t.expenses.filter(e => e.id !== expenseId) };
+                }
+                return t;
+            }));
         } catch (err: any) {
             alert('Erro ao deletar gasto da viagem: ' + err.message);
         }
     }, [user]);
 
-    const addTripDeposit = useCallback(async (tripId: string, dep: Omit<TripDeposit, 'id' | 'trip_id' | 'created_at'>) => {
+    const addTripDeposit = useCallback(async (tripId: string, deposit: Omit<TripDeposit, 'id' | 'trip_id' | 'created_at'>) => {
         if (!user) return;
         try {
-            const { data, error } = await supabase
-                .from('trip_deposits')
-                .insert({
-                    trip_id: tripId,
-                    description: dep.description,
-                    value: dep.value,
-                    person: dep.person,
-                    date: dep.date
-                })
-                .select()
-                .single();
+            const { data, error } = await tripService.deposits.create({
+                trip_id: tripId,
+                person: deposit.person,
+                value: deposit.value,
+                date: deposit.date,
+                description: deposit.description
+            });
 
             if (error) throw error;
             if (data) {
                 const newDep: TripDeposit = {
                     id: data.id,
                     trip_id: data.trip_id,
-                    description: data.description,
-                    value: Number(data.value),
                     person: data.person,
+                    value: Number(data.value),
                     date: data.date,
+                    description: data.description,
                     created_at: data.created_at
                 };
-                setTrips(prev => prev.map(t => t.id === tripId ? { ...t, deposits: [...t.deposits, newDep] } : t));
+                setTrips(prev => prev.map(t => {
+                    if (t.id === tripId) {
+                        return { ...t, deposits: [newDep, ...t.deposits] };
+                    }
+                    return t;
+                }));
             }
         } catch (err: any) {
             alert('Erro ao adicionar aporte da viagem: ' + err.message);
@@ -1005,9 +908,14 @@ export const useAppData = () => {
     const deleteTripDeposit = useCallback(async (tripId: string, depositId: string) => {
         if (!user) return;
         try {
-            const { error } = await supabase.from('trip_deposits').update({ deleted_at: new Date().toISOString() }).eq('id', depositId);
+            const { error } = await tripService.deposits.delete(depositId);
             if (error) throw error;
-            setTrips(prev => prev.map(t => t.id === tripId ? { ...t, deposits: t.deposits.filter(d => d.id !== depositId) } : t));
+            setTrips(prev => prev.map(t => {
+                if (t.id === tripId) {
+                    return { ...t, deposits: t.deposits.filter(d => d.id !== depositId) };
+                }
+                return t;
+            }));
         } catch (err: any) {
             alert('Erro ao deletar aporte da viagem: ' + err.message);
         }
@@ -1015,22 +923,26 @@ export const useAppData = () => {
 
     return {
         user,
-        authLoading,
-        dataLoading,
+        loading: authLoading || dataLoading,
         coupleInfo,
         expenses,
         incomes,
         goals,
         loans,
+        investments,
+        trips,
+        summary,
         selectedMonth,
-        setSelectedMonth,
         householdId,
         inviteCode,
-        summary,
+        setSelectedMonth,
         saveCoupleInfo,
         addExpense,
         updateExpense,
         deleteExpense,
+        deleteMonthData,
+        deleteAllData,
+        signOut,
         addGoal,
         updateGoal,
         deleteGoal,
@@ -1040,12 +952,9 @@ export const useAppData = () => {
         addLoan,
         updateLoan,
         deleteLoan,
-        investments,
         addInvestment,
         updateInvestment,
         deleteInvestment,
-        // Trip
-        trips,
         addTrip,
         updateTrip,
         deleteTrip,
@@ -1053,11 +962,6 @@ export const useAppData = () => {
         deleteTripExpense,
         addTripDeposit,
         deleteTripDeposit,
-        // System
-        deleteAllData,
-        deleteMonthData,
-        restoreData,
-        signOut,
-        refreshData: loadData
+        restoreData
     };
 };

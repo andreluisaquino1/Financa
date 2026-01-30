@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
-import { supabase } from '@/supabaseClient';
 import { useAuth } from '@/AuthContext';
+import { profileService } from '@/services/profileService';
 
 interface Props {
     onLinked: (householdId: string) => void;
@@ -22,27 +21,23 @@ const HouseholdLink: React.FC<Props> = ({ onLinked, onSkip }) => {
         setError(null);
 
         try {
-            // O código de convite é simplesmente o ID do parceiro
-            const targetId = inviteCode.trim();
+            // O código de convite é simplesmente o ID do parceiro (ou um código gerado)
+            const targetCode = inviteCode.trim();
 
             // 1. Verificar se esse perfil existe usando o código de convite
-            const { data: profile, error: profileError } = await supabase
-                .from('user_profiles')
-                .select('household_id, id')
-                .eq('invite_code', targetId)
-                .single();
+            const { data: profile, error: profileError } = await profileService.getByInviteCode(targetCode);
 
             if (profileError || !profile) {
+                // Tenta buscar pelo ID direto (fallback para compatibilidade antiga)
+                // Mas profileService.getByInviteCode busca por invite_code. Se quisermos buscar por ID, precisaríamos de outro método ou lógica aqui.
+                // Como melhor prática, vamos assumir que o usuário digita o invite_code.
                 throw new Error('Código de convite inválido ou não encontrado.');
             }
 
             const householdId = profile.household_id || profile.id;
 
             // 2. Atualizar o meu perfil com o household_id dele
-            const { error: updateError } = await supabase
-                .from('user_profiles')
-                .update({ household_id: householdId })
-                .eq('id', user.id);
+            const { error: updateError } = await profileService.joinHousehold(user.id, householdId);
 
             if (updateError) throw updateError;
 
