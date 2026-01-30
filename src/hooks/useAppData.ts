@@ -213,7 +213,7 @@ export const useAppData = () => {
     }, [loadData]);
 
     const summary = useMemo(() => {
-        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, true, goals, goalTransactions);
+        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, goals, goalTransactions);
     }, [expenses, incomes, coupleInfo, selectedMonth, goals, goalTransactions]);
 
     const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo, updateGlobal = false) => {

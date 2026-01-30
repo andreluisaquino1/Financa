@@ -54,7 +54,6 @@ export const calculateSummary = (
     incomes: Income[],
     coupleInfo: CoupleInfo,
     monthKey: string,
-    isPremium: boolean = false,
     goals: SavingsGoal[] = [],
     goalTransactions: GoalTransaction[] = []
 ): MonthlySummary => {
@@ -112,10 +111,7 @@ export const calculateSummary = (
     let salaryRatio1 = combinedSalaries > 0 ? p1Salary / combinedSalaries : 0.5;
     let salaryRatio2 = combinedSalaries > 0 ? 1 - salaryRatio1 : 0.5;
 
-    if (isPremium) {
-        salaryRatio1 = combinedTotalIncome > 0 ? totalIncome1 / combinedTotalIncome : 0.5;
-        salaryRatio2 = combinedTotalIncome > 0 ? 1 - salaryRatio1 : 0.5;
-    }
+
 
     let totalFixed = 0;
     let totalCommon = 0;
