@@ -133,7 +133,7 @@ describe('Financial Domain Logic', () => {
                 { goal_id: 'g1', type: 'deposit', value: 200, person: 'person2', date: '2024-01-01', description: 'Migração P2' },
             ];
 
-            const result = calculateSummary([], [], getMockCoupleInfo(), '2024-01', false, goals, goalTransactions);
+            const result = calculateSummary([], [], getMockCoupleInfo(), '2024-01', goals, goalTransactions);
 
             // Total Income P1=5000, P2=5000 (from getMockCoupleInfo)
             // No expenses -> Responsibility 0

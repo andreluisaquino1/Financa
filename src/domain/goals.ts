@@ -33,11 +33,33 @@ export const calculateGoalStats = (goal: SavingsGoal, transactions: GoalTransact
     const p2Balance = calculateIndividualGoalBalance(transactions, 'person2');
     const progress = getGoalProgress(goal, totalBalance);
 
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    const p1LastDeposit = transactions
+        .filter(t => t.person === 'person1' && t.type === 'deposit')
+        .filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        })
+        .reduce((sum, t) => sum + Number(t.value), 0);
+
+    const p2LastDeposit = transactions
+        .filter(t => t.person === 'person2' && t.type === 'deposit')
+        .filter(t => {
+            const d = new Date(t.date);
+            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+        })
+        .reduce((sum, t) => sum + Number(t.value), 0);
+
     return {
         totalBalance,
         p1Balance,
         p2Balance,
         progress,
-        isCompleted: progress >= 100
+        isCompleted: progress >= 100,
+        p1LastDeposit,
+        p2LastDeposit
     };
 };

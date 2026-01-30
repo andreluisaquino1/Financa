@@ -14,6 +14,7 @@ interface Props {
   goals: SavingsGoal[];
   onNavigateToIncomes: () => void;
   summary: MonthlySummary;
+  markAsSettled: (monthKey: string) => Promise<void>;
 }
 
 const Dashboard: React.FC<Props> = ({
@@ -22,7 +23,8 @@ const Dashboard: React.FC<Props> = ({
   monthKey,
   goals,
   onNavigateToIncomes,
-  summary
+  summary,
+  markAsSettled
 }) => {
   const [showBreakdown, setShowBreakdown] = React.useState(false);
 
@@ -51,14 +53,14 @@ const Dashboard: React.FC<Props> = ({
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-8">
 
       {/* Hero: Acerto Financeiro */}
-      <div className="bg-slate-900 dark:bg-slate-900/40 rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden border border-slate-800 dark:border-white/5 group">
+      <div className="bg-slate-900 dark:bg-slate-900/40 rounded-[2rem] p-6 md:p-10 shadow-2xl relative overflow-hidden border border-slate-800 dark:border-white/5 group">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-p1/10 rounded-full -mr-64 -mt-64 blur-[120px] group-hover:bg-p1/20 transition-all duration-1000"></div>
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-p2/10 rounded-full -ml-40 -mb-40 blur-[100px] group-hover:bg-p2/20 transition-all duration-1000"></div>
 
         <div className="relative z-10">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center text-4xl shadow-2xl ring-1 ring-white/20">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 md:gap-8">
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center text-3xl md:text-4xl shadow-2xl ring-1 ring-white/20">
                 🤝
               </div>
               <div>
@@ -69,7 +71,7 @@ const Dashboard: React.FC<Props> = ({
                   </span>
                   <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Status de Fechamento</p>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Equilíbrio do Mês</h2>
+                <h2 className="text-xl md:text-4xl font-black text-white tracking-tight">Equilíbrio do Mês</h2>
               </div>
             </div>
 
@@ -80,13 +82,17 @@ const Dashboard: React.FC<Props> = ({
                     <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{summary.whoTransfers === 'person1' ? p1Name : p2Name} Transfere</span>
                     <span className="text-2xl font-black text-white tabular-nums tracking-tighter">{formatCurrency(summary.transferAmount)}</span>
                   </div>
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black shadow-lg ${summary.whoTransfers === 'person1' ? 'bg-p1' : 'bg-p2'}`}>
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7-7 7" /></svg>
-                  </div>
+                  <button
+                    onClick={() => markAsSettled(monthKey)}
+                    title="Marcar como Pago/Resolvido"
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black shadow-lg transition-transform active:scale-95 ${summary.whoTransfers === 'person1' ? 'bg-p1 hover:bg-p1/80' : 'bg-p2 hover:bg-p2/80'}`}
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                  </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-4 bg-emerald-500/10 border border-emerald-500/20 px-8 py-4 rounded-[2rem] text-emerald-400 font-black text-sm uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/5">
-                  <div className="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center text-xl shadow-lg ring-4 ring-emerald-500/20">✓</div>
+                <div className="flex items-center gap-4 bg-emerald-500/10 border border-emerald-500/20 px-6 py-3 md:px-8 md:py-4 rounded-[2rem] text-emerald-400 font-black text-xs md:text-sm uppercase tracking-[0.2em] shadow-xl shadow-emerald-500/5">
+                  <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center text-lg md:text-xl shadow-lg ring-4 ring-emerald-500/20">✓</div>
                   Contas Equilibradas
                 </div>
               )}
@@ -107,6 +113,20 @@ const Dashboard: React.FC<Props> = ({
                 </button>
               </div>
             </div>
+            {/* Critical Alerts - Always Visible */}
+            {(summary.unspecifiedPaidByCount > 0) && (
+              <div className="mt-8 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center gap-4 animate-pulse">
+                <span className="text-2xl">⚠️</span>
+                <div>
+                  <h3 className="font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest text-xs mb-1">Atenção Necessária</h3>
+                  <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                    Você tem {summary.unspecifiedPaidByCount} gastos sem "Quem Pagou" definido. Isso distorce seu acerto mensal.
+                    <button onClick={onNavigateToIncomes} className="underline ml-2">Corrigir agora</button>
+                  </p>
+                </div>
+              </div>
+            )}
+
           </div>
 
           {showBreakdown && (

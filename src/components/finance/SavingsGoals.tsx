@@ -1223,7 +1223,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                                 onUpdateGoal(goal.id, { is_completed: true });
                                             }
                                         }}
-                                        className="text-slate-300 hover:text-emerald-500 transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        className="text-slate-300 hover:text-emerald-500 transition-all p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-90"
                                         title="Concluir meta"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1232,7 +1232,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     </button>
                                     <button
                                         onClick={() => loadGoalForEdit(goal)}
-                                        className="text-slate-300 hover:text-amber-500 transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        className="text-slate-300 hover:text-amber-500 transition-all p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-90"
                                         title="Editar meta"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1245,7 +1245,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                                 onDeleteGoal(goal.id);
                                             }
                                         }}
-                                        className="text-slate-300 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700"
+                                        className="text-slate-300 hover:text-red-500 transition-all p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-90"
                                         title="Excluir meta"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1301,6 +1301,11 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         <div className="text-right">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Plano Mensal</p>
                                             <p className="text-sm font-black text-brand">{formatCurrency(originalContribution)}</p>
+                                            {(stats.p1LastDeposit + stats.p2LastDeposit) > 0 && (
+                                                <p className="text-[9px] font-bold text-emerald-500 mt-1">
+                                                    Já depositado: {formatCurrency(stats.p1LastDeposit + stats.p2LastDeposit)}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
 

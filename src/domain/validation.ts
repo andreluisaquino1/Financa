@@ -13,6 +13,8 @@ export const expenseSchema = z.object({
     splitPercentage1: z.number().min(0).max(100).optional(),
     specificValueP1: z.number().min(0).optional(),
     specificValueP2: z.number().min(0).optional(),
+    reimbursementStatus: z.enum(['open', 'settled']).optional(),
+    settledAt: z.string().optional(),
 });
 
 export const incomeSchema = z.object({

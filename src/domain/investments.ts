@@ -30,8 +30,8 @@ export function calculateInvestmentStats(investment: Investment, movements: Inve
     const activeMovements = movements.filter(m => !m.deleted_at);
 
     activeMovements.forEach(m => {
-        const val = Number(m.value) || 0;
-        const qty = Number(m.quantity) || 0;
+        const val = Number(m.value) ?? 0;
+        const qty = Number(m.quantity) ?? 0;
 
         switch (m.type) {
             case 'buy':

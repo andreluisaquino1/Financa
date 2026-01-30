@@ -9,8 +9,8 @@ const mapInvestment = (inv: InvestmentDB): Investment => ({
     ...inv,
     current_value: Number(inv.current_value),
     invested_value: Number(inv.invested_value),
-    quantity: Number(inv.quantity || 0),
-    price_per_unit: Number(inv.price_per_unit || 0)
+    quantity: Number(inv.quantity ?? 0),
+    price_per_unit: Number(inv.price_per_unit ?? 0)
 });
 
 export const investmentService = {

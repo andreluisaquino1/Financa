@@ -66,7 +66,8 @@ const AppContent: React.FC = () => {
     // Mods for Goal Transactions
     goalTransactions,
     addGoalTransaction,
-    deleteGoalTransaction
+    deleteGoalTransaction,
+    markAsSettled
   } = useAppData();
 
   // Aplicar Tema e Cores
@@ -88,6 +89,17 @@ const AppContent: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentTab, setCurrentTab] = useState<'summary' | 'incomes' | 'expenses' | 'loans' | 'reimbursement' | 'wallets' | 'goals' | 'trip' | 'investments'>('summary');
   const [showHouseholdLink, setShowHouseholdLink] = useState(false);
+
+  // Simple Mode
+  const [isSimpleMode, setIsSimpleMode] = useState(() => {
+    const saved = localStorage.getItem('simpleMode');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const handleToggleSimpleMode = (value: boolean) => {
+    setIsSimpleMode(value);
+    localStorage.setItem('simpleMode', JSON.stringify(value));
+  };
 
   const handleTabChange = (tab: typeof currentTab) => {
     setCurrentTab(tab);
@@ -269,10 +281,14 @@ const AppContent: React.FC = () => {
               <NavItem active={currentTab === 'expenses'} onClick={() => handleTabChange('expenses')} label="Gastos" />
               <NavItem active={currentTab === 'reimbursement'} onClick={() => handleTabChange('reimbursement')} label="Reembolsos" />
               <NavItem active={currentTab === 'goals'} onClick={() => handleTabChange('goals')} label="Metas" />
-              <NavItem active={currentTab === 'investments'} onClick={() => handleTabChange('investments')} label="Investimentos" />
-              <NavItem active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} label="Viagem" />
-              <NavItem active={currentTab === 'loans'} onClick={() => handleTabChange('loans')} label="Empréstimos" />
-              <NavItem active={currentTab === 'wallets'} onClick={() => handleTabChange('wallets')} label="Carteiras" />
+              {!isSimpleMode && (
+                <>
+                  <NavItem active={currentTab === 'investments'} onClick={() => handleTabChange('investments')} label="Investimentos" />
+                  <NavItem active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} label="Viagem" />
+                  <NavItem active={currentTab === 'loans'} onClick={() => handleTabChange('loans')} label="Empréstimos" />
+                  <NavItem active={currentTab === 'wallets'} onClick={() => handleTabChange('wallets')} label="Carteiras" />
+                </>
+              )}
 
             </div>
           </nav>
@@ -286,10 +302,14 @@ const AppContent: React.FC = () => {
           <MobileTab active={currentTab === 'expenses'} onClick={() => handleTabChange('expenses')} icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" label="Gastos" />
           <MobileTab active={currentTab === 'reimbursement'} onClick={() => handleTabChange('reimbursement')} icon="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" label="Reemb" />
           <MobileTab active={currentTab === 'goals'} onClick={() => handleTabChange('goals')} icon="M15 12a3 3 0 11-6 0 3 3 0 016 0z M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Metas" />
-          <MobileTab active={currentTab === 'investments'} onClick={() => handleTabChange('investments')} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" label="Invest" />
-          <MobileTab active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} icon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Viagem" />
-          <MobileTab active={currentTab === 'loans'} onClick={() => handleTabChange('loans')} icon="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" label="Emprést" />
-          <MobileTab active={currentTab === 'wallets'} onClick={() => handleTabChange('wallets')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label="Carteiras" />
+          {!isSimpleMode && (
+            <>
+              <MobileTab active={currentTab === 'investments'} onClick={() => handleTabChange('investments')} icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" label="Invest" />
+              <MobileTab active={currentTab === 'trip'} onClick={() => handleTabChange('trip')} icon="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" label="Viagem" />
+              <MobileTab active={currentTab === 'loans'} onClick={() => handleTabChange('loans')} icon="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" label="Emprést" />
+              <MobileTab active={currentTab === 'wallets'} onClick={() => handleTabChange('wallets')} icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" label="Carteiras" />
+            </>
+          )}
         </div>
       </nav>
 
@@ -304,6 +324,7 @@ const AppContent: React.FC = () => {
                 goals={goals}
                 onNavigateToIncomes={() => setCurrentTab('incomes')}
                 summary={summary}
+                markAsSettled={markAsSettled}
               />
             )}
             {currentTab === 'incomes' && (
@@ -396,6 +417,8 @@ const AppContent: React.FC = () => {
         onSignOut={handleSignOut}
         onNavigateToIncomes={() => setCurrentTab('incomes')}
         onShowHouseholdLink={() => setShowHouseholdLink(true)}
+        isSimpleMode={isSimpleMode}
+        onToggleSimpleMode={handleToggleSimpleMode}
 
         onRestoreData={restoreData}
         householdId={householdId}
@@ -431,7 +454,7 @@ const AppContent: React.FC = () => {
 const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }> = ({ active, onClick, label }) => (
   <button
     onClick={onClick}
-    className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 ${active
+    className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex items-center gap-2 active:scale-95 ${active
       ? 'bg-white dark:bg-brand text-brand dark:text-white shadow-sm ring-1 ring-slate-200/50 dark:ring-white/10'
       : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800'
       }`}
@@ -441,7 +464,7 @@ const NavItem: React.FC<{ active: boolean, onClick: () => void, label: string }>
 );
 
 const MobileTab: React.FC<{ active: boolean, onClick: () => void, icon: string, label: string }> = ({ active, onClick, icon, label }) => (
-  <button onClick={onClick} className={`flex flex-col items-center justify-center px-1.5 py-1 transition-all rounded-xl ${active ? 'bg-brand/5' : ''} min-w-[64px] relative`}>
+  <button onClick={onClick} className={`flex flex-col items-center justify-center px-1.5 py-1 transition-all rounded-xl active:scale-95 ${active ? 'bg-brand/5' : ''} min-w-[64px] relative`}>
     <div className={`p-1.5 rounded-xl transition-all ${active ? 'text-brand scale-110' : 'text-slate-400 dark:text-slate-600'}`}>
       <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={active ? 2.5 : 2} d={icon} /></svg>
     </div>

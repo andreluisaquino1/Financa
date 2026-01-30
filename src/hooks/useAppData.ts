@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { UserAccount, Expense, ExpenseType, CoupleInfo, SavingsGoal, MonthlySummary, Income, Loan, Investment, InvestmentMovement, Trip, TripExpense, TripDeposit, GoalTransaction, UserProfileDB } from '@/types';
 import { scheduleReminder, cancelReminder } from '@/notificationService';
 import { getMonthYearKey, formatCurrency } from '@/domain/formatters';
-import { calculateSummary } from '@/domain/financial';
+import { calculateSummary, isExpenseInMonth } from '@/domain/financial';
 import { validateExpense, validateIncome, validateGoal } from '@/domain/validation';
 import { useAuth } from '@/AuthContext';
 import { expenseService } from '@/services/expenseService';
@@ -93,12 +93,12 @@ export const useAppData = () => {
                         person1RecurringIncomes: info.person1RecurringIncomes || [],
                         person2RecurringIncomes: info.person2RecurringIncomes || [],
                         trips: info.trips || [],
-                        bankBalanceP1: info.bankBalanceP1 || 0,
-                        bankBalanceP2: info.bankBalanceP2 || 0,
-                        emergencyReserveP1: info.emergencyReserveP1 || 0,
-                        emergencyReserveP2: info.emergencyReserveP2 || 0,
-                        monthlySavingsP1: info.monthlySavingsP1 || 0,
-                        monthlySavingsP2: info.monthlySavingsP2 || 0
+                        bankBalanceP1: info.bankBalanceP1 ?? 0,
+                        bankBalanceP2: info.bankBalanceP2 ?? 0,
+                        emergencyReserveP1: info.emergencyReserveP1 ?? 0,
+                        emergencyReserveP2: info.emergencyReserveP2 ?? 0,
+                        monthlySavingsP1: info.monthlySavingsP1 ?? 0,
+                        monthlySavingsP2: info.monthlySavingsP2 ?? 0
                     }));
                 }
 
@@ -196,8 +196,8 @@ export const useAppData = () => {
                     const info = profile.couple_info as any;
                     setCoupleInfo(prev => ({
                         ...prev,
-                        salary1: Number(info.salary1) || 5000,
-                        salary2: Number(info.salary2) || 5000
+                        salary1: Number(info.salary1 ?? 5000),
+                        salary2: Number(info.salary2 ?? 5000)
                     }));
                 }
             }
@@ -444,7 +444,7 @@ export const useAppData = () => {
             await loanService.softDeleteAll(activeHouseholdId);
             await investmentService.softDeleteAll(activeHouseholdId);
             await tripService.softDeleteAll(activeHouseholdId);
-            await monthlyConfigService.deleteByHousehold(activeHouseholdId);
+            await monthlyConfigService.softDeleteByHousehold(activeHouseholdId);
 
             const defaultInfo: CoupleInfo = {
                 person1Name: 'André',
@@ -489,6 +489,52 @@ export const useAppData = () => {
             setDataLoading(false);
         }
     }, [user, householdId]);
+
+    const markAsSettled = useCallback(async (monthKey: string) => {
+        if (!user) return;
+        const activeHouseholdId = householdId || user.id;
+
+        // 1. Identify expenses to settle (Reimbursements in the current view/logic)
+        // Ideally, we settle everything that contributed to the 'transferAmount' of this month
+        // or potentially all open reimbursements up to this month.
+        // For simplicity and safety, let's settle expenses displayed in the current month.
+
+        const expensesToSettle = expenses.filter(exp =>
+            (exp.type === 'REIMBURSEMENT' || exp.type === 'REIMBURSEMENT_FIXED') &&
+            exp.reimbursementStatus !== 'settled' &&
+            isExpenseInMonth(exp, monthKey)
+        );
+
+        if (expensesToSettle.length === 0) {
+            alert('Não há itens de reembolso pendentes para este mês.');
+            return;
+        }
+
+        if (!confirm(`Deseja marcar ${expensesToSettle.length} itens como resolvidos/pagos? Isso zerará o valor de transferência.`)) {
+            return;
+        }
+
+        try {
+            await Promise.all(expensesToSettle.map(exp =>
+                expenseService.update(exp.id, {
+                    reimbursementStatus: 'settled',
+                    settledAt: new Date().toISOString()
+                })
+            ));
+
+            // Update local state
+            setExpenses(prev => prev.map(e => {
+                if (expensesToSettle.find(target => target.id === e.id)) {
+                    return { ...e, reimbursementStatus: 'settled', settledAt: new Date().toISOString() } as Expense;
+                }
+                return e;
+            }));
+
+            alert('Acerto realizado com sucesso! 🎉');
+        } catch (err: any) {
+            alert('Erro ao realizar acerto: ' + err.message);
+        }
+    }, [user, householdId, expenses]);
 
     const addIncome = useCallback(async (inc: Omit<Income, 'id' | 'createdAt'>) => {
         if (!user) return;
@@ -921,6 +967,7 @@ export const useAppData = () => {
         investmentMovements,
         addInvestmentMovement,
         deleteInvestmentMovement,
-        restoreData
+        restoreData,
+        markAsSettled
     };
 };

@@ -57,6 +57,18 @@ export const goalService = {
             } as any as PostgrestError);
         }
 
+
+        // Enforce single Emergency Reserve per household
+        if (goal.is_emergency) {
+            const { data: existingGoals } = await this.getAll(goal.household_id);
+            if (existingGoals?.some(g => g.is_emergency)) {
+                return handleServiceResponse(null, {
+                    message: 'Já existe uma Reserva de Emergência ativa para este perfil.',
+                    code: 'CONFLICT'
+                } as any as PostgrestError);
+            }
+        }
+
         const { data, error } = await supabase
             .from('savings_goals')
             .insert(goal)

@@ -72,7 +72,9 @@ export interface CoupleInfo {
   trips?: Trip[];
 
   // Bank Balance & Reserves
+  /** @deprecated Use SavingsGoals (Transactions) instead of manual balance */
   bankBalanceP1?: number;
+  /** @deprecated Use SavingsGoals (Transactions) instead of manual balance */
   bankBalanceP2?: number;
   /** @deprecated Now mirrored from SavingsGoal where is_emergency = true */
   emergencyReserveP1?: number;
@@ -105,6 +107,11 @@ export interface Expense {
   splitPercentage1?: number; // Only used if splitMethod is 'custom'
   specificValueP1?: number; // Part of the expense that is 100% P1's responsibility
   specificValueP2?: number; // Part of the expense that is 100% P2's responsibility
+
+  // Reimbursement specific
+  reimbursementStatus?: 'open' | 'settled';
+  settledAt?: string;
+
   metadata?: {
     overrides?: Record<string, number>;
   };
@@ -248,9 +255,13 @@ export interface Investment {
   owner: 'person1' | 'person2' | 'couple';
 
   // Legacy fields (to be derived later)
+  /** @deprecated Use InvestmentMovement instead */
   current_value: number;
+  /** @deprecated Use InvestmentMovement instead */
   invested_value: number;
+  /** @deprecated Use InvestmentMovement instead */
   quantity?: number;
+  /** @deprecated Use InvestmentMovement instead */
   price_per_unit?: number;
 
   created_at: string;

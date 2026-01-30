@@ -62,6 +62,22 @@ export const goalTransactionService = {
             } as any as PostgrestError);
         }
 
+        // Prevent negative balance on withdraw
+        if (transaction.type === 'withdraw') {
+            const { data: goal } = await supabase
+                .from('savings_goals')
+                .select('current_value')
+                .eq('id', transaction.goal_id)
+                .single();
+
+            if (goal && (goal.current_value < transaction.value)) {
+                return handleServiceResponse(null, {
+                    message: `Saldo insuficiente. Disponível: R$ ${goal.current_value}`,
+                    code: 'INSUFFICIENT_FUNDS'
+                } as any as PostgrestError);
+            }
+        }
+
         const { data, error } = await supabase
             .from('goal_transactions')
             .insert(transaction)

@@ -134,8 +134,11 @@ export const calculateSummary = (
 
         const monthlyValue = getMonthlyExpenseValue(exp, monthKey);
 
-        const cat = exp.category || 'Outros';
-        categoryTotals[cat] = roundMoney((categoryTotals[cat] || 0) + monthlyValue);
+        // Category Totals: Exclude reimbursements to avoid polluting spending charts
+        if (exp.type !== ExpenseType.REIMBURSEMENT && exp.type !== ExpenseType.REIMBURSEMENT_FIXED) {
+            const cat = exp.category || 'Outros';
+            categoryTotals[cat] = roundMoney((categoryTotals[cat] ?? 0) + monthlyValue);
+        }
 
         // Fase 1: Tratar EQUAL como categoria própria
         switch (exp.type) {
@@ -154,8 +157,8 @@ export const calculateSummary = (
             case ExpenseType.FIXED:
             case ExpenseType.COMMON:
             case ExpenseType.EQUAL:
-                const spec1Total = exp.specificValueP1 || 0;
-                const spec2Total = exp.specificValueP2 || 0;
+                const spec1Total = exp.specificValueP1 ?? 0;
+                const spec2Total = exp.specificValueP2 ?? 0;
 
                 const specRatio1 = exp.totalValue > 0 ? spec1Total / exp.totalValue : 0;
                 const specRatio2 = exp.totalValue > 0 ? spec2Total / exp.totalValue : 0;
@@ -186,11 +189,14 @@ export const calculateSummary = (
 
             case ExpenseType.REIMBURSEMENT:
             case ExpenseType.REIMBURSEMENT_FIXED:
-                totalReimbursement = roundMoney(totalReimbursement + monthlyValue);
-                if (exp.paidBy === 'person1') {
-                    p2Target = roundMoney(p2Target + monthlyValue);
-                } else if (exp.paidBy === 'person2') {
-                    p1Target = roundMoney(p1Target + monthlyValue);
+                // Only count towards settlement if NOT settled
+                if (exp.reimbursementStatus !== 'settled') {
+                    totalReimbursement = roundMoney(totalReimbursement + monthlyValue);
+                    if (exp.paidBy === 'person1') {
+                        p2Target = roundMoney(p2Target + monthlyValue);
+                    } else if (exp.paidBy === 'person2') {
+                        p1Target = roundMoney(p1Target + monthlyValue);
+                    }
                 }
                 break;
 

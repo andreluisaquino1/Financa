@@ -3,6 +3,7 @@ import { goalTransactionService } from './goalTransactionService';
 import { investmentService } from './investmentService';
 import { investmentMovementService } from './investmentMovementService';
 import { profileService } from './profileService';
+import { getLocalDateISOString } from '@/domain/formatters';
 import { SavingsGoal, CoupleInfo, UserProfileDB, Investment } from '@/types';
 
 export const migrationService = {
@@ -24,7 +25,7 @@ export const migrationService = {
                             type: 'deposit',
                             value: goal.current_value,
                             person: 'person1', // Default to person1 for legacy data
-                            date: new Date().toISOString().split('T')[0],
+                            date: getLocalDateISOString(),
                             description: 'Saldo Inicial (Migração)'
                         });
                     }
@@ -36,7 +37,7 @@ export const migrationService = {
                             type: 'deposit',
                             value: goal.current_savings_p1,
                             person: 'person1',
-                            date: new Date().toISOString().split('T')[0],
+                            date: getLocalDateISOString(),
                             description: 'Saldo P1 (Migração)'
                         });
                     }
@@ -47,7 +48,7 @@ export const migrationService = {
                             type: 'deposit',
                             value: goal.current_savings_p2,
                             person: 'person2',
-                            date: new Date().toISOString().split('T')[0],
+                            date: getLocalDateISOString(),
                             description: 'Saldo P2 (Migração)'
                         });
                     }
@@ -63,8 +64,8 @@ export const migrationService = {
         }
 
         // 2. Migrate Emergency Reserve from CoupleInfo
-        const emergencyP1 = coupleInfo.emergencyReserveP1 || 0;
-        const emergencyP2 = coupleInfo.emergencyReserveP2 || 0;
+        const emergencyP1 = coupleInfo.emergencyReserveP1 ?? 0;
+        const emergencyP2 = coupleInfo.emergencyReserveP2 ?? 0;
 
         if (emergencyP1 > 0 || emergencyP2 > 0) {
             // Check if emergency goal already exists
@@ -98,7 +99,7 @@ export const migrationService = {
                             type: 'deposit',
                             value: emergencyP1,
                             person: 'person1',
-                            date: new Date().toISOString().split('T')[0],
+                            date: getLocalDateISOString(),
                             description: 'Legacy Hub Migration - P1'
                         });
                     }
@@ -108,7 +109,7 @@ export const migrationService = {
                             type: 'deposit',
                             value: emergencyP2,
                             person: 'person2',
-                            date: new Date().toISOString().split('T')[0],
+                            date: getLocalDateISOString(),
                             description: 'Legacy Hub Migration - P2'
                         });
                     }
@@ -131,8 +132,8 @@ export const migrationService = {
             const { data: existingMovements } = await investmentMovementService.getByInvestment(inv.id);
             if (!existingMovements || existingMovements.length === 0) {
                 // Determine initial movements based on legacy fields
-                const invested = Number(inv.invested_value) || 0;
-                const current = Number(inv.current_value) || 0;
+                const invested = Number(inv.invested_value ?? 0);
+                const current = Number(inv.current_value ?? 0);
                 const person = (inv.owner === 'person2') ? 'person2' : 'person1';
 
                 if (invested > 0) {

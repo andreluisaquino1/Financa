@@ -33,7 +33,7 @@ export const scheduleReminder = async (expense: Expense) => {
                 }
             ]
         });
-        console.log(`Reminder scheduled for day ${expense.reminderDay}`);
+
     } catch (e) {
         console.error('Error scheduling notification:', e);
     }

@@ -28,6 +28,8 @@ interface Props {
   userId?: string;
   inviteCode?: string | null;
   selectedMonth?: string;
+  isSimpleMode?: boolean;
+  onToggleSimpleMode?: (value: boolean) => void;
 }
 
 const DEFAULT_FREE_CATEGORIES: Category[] = [
@@ -55,7 +57,9 @@ const SidebarMenu: React.FC<Props> = ({
   householdId,
   userId,
   inviteCode,
-  selectedMonth
+  selectedMonth,
+  isSimpleMode = false,
+  onToggleSimpleMode
 }) => {
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
@@ -357,6 +361,27 @@ const SidebarMenu: React.FC<Props> = ({
                 </div>
               </div>
             )}
+          </section>
+
+
+          {/* Interface / Simple Mode */}
+          <section className="space-y-4">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
+              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
+              Interface
+            </h3>
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 flex items-center justify-between">
+              <div>
+                <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200">Modo Simplificado</h4>
+                <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">Ocultar Investimentos, Viagens e<br />Empréstimos para mais foco.</p>
+              </div>
+              <button
+                onClick={() => onToggleSimpleMode?.(!isSimpleMode)}
+                className={`w-12 h-7 rounded-full transition-colors relative flex items-center ${isSimpleMode ? 'bg-brand' : 'bg-slate-200 dark:bg-slate-700'}`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ml-1 ${isSimpleMode ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
           </section>
 
           {/* 5. Sincronização */}
