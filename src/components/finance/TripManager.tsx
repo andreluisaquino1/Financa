@@ -65,6 +65,7 @@ export const TripManager: React.FC<Props> = ({
                 coupleInfo={coupleInfo}
                 onBack={() => setActiveTripId(null)}
                 onUpdate={(updates) => onUpdateTrip(activeTripId, updates)}
+                onDelete={() => handleDeleteTrip(activeTripId)}
                 onAddExpense={(exp) => onAddExpense(activeTripId, exp)}
                 onDeleteExpense={(expId) => onDeleteExpense(activeTripId, expId)}
                 onAddDeposit={(dep) => onAddDeposit(activeTripId, dep)}
@@ -182,7 +183,8 @@ export const TripManager: React.FC<Props> = ({
                             </div>
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleDeleteTrip(trip.id); }}
-                                className="w-10 h-10 flex items-center justify-center bg-transparent group-hover:bg-red-50 dark:group-hover:bg-red-500/10 text-slate-200 dark:text-slate-700 group-hover:text-red-500 rounded-2xl transition-all"
+                                className="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-900 group-hover:bg-red-50 dark:group-hover:bg-red-500/10 text-slate-400 dark:text-slate-500 group-hover:text-red-500 rounded-2xl transition-all shadow-sm group-hover:shadow-md"
+                                title="Excluir Viagem"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
@@ -230,11 +232,12 @@ const TripDetail: React.FC<{
     coupleInfo: CoupleInfo,
     onBack: () => void,
     onUpdate: (updates: Partial<Trip>) => void,
+    onDelete: () => void,
     onAddExpense: (exp: any) => void,
     onDeleteExpense: (id: string) => void,
     onAddDeposit: (dep: any) => void,
     onDeleteDeposit: (id: string) => void
-}> = ({ trip, coupleInfo, onBack, onUpdate, onAddExpense, onDeleteExpense, onAddDeposit, onDeleteDeposit }) => {
+}> = ({ trip, coupleInfo, onBack, onUpdate, onDelete, onAddExpense, onDeleteExpense, onAddDeposit, onDeleteDeposit }) => {
     const [view, setView] = useState<'expenses' | 'deposits'>('expenses');
     // State for Adding (Editing logic removed for simplicity in this migration step, can re-add later if needed but simple add/delete is safer for first pass)
     // Actually, let's keep basic add
@@ -335,19 +338,29 @@ const TripDetail: React.FC<{
                     </div>
                 </div>
 
-                <div className="flex items-center gap-6 w-full lg:w-auto z-10">
+                <div className="flex items-center gap-3 w-full lg:w-auto z-10">
                     <div className="flex flex-col items-end pr-4 border-r border-slate-100 dark:border-white/5">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Gasto</span>
                         <span className="text-2xl font-black text-p1 tabular-nums tracking-tighter">{formatCurrency(totalExpenses)}</span>
                     </div>
 
-                    <button
-                        onClick={() => setIsAdding(!isAdding)}
-                        className={`flex-1 lg:flex-none ${isAdding ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-10 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                        {isAdding ? 'Cancelar' : (view === 'expenses' ? 'Novo Gasto' : 'Novo Aporte')}
-                    </button>
+                    <div className="flex gap-2 flex-1 lg:flex-none">
+                        <button
+                            onClick={() => setIsAdding(!isAdding)}
+                            className={`flex-1 lg:flex-none ${isAdding ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-900 dark:bg-p1 text-white shadow-p1/30 shadow-2xl'} hover:brightness-110 px-8 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-3 uppercase tracking-widest`}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                            {isAdding ? 'Cancelar' : (view === 'expenses' ? 'Gasto' : 'Aporte')}
+                        </button>
+
+                        <button
+                            onClick={onDelete}
+                            className="p-5 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-2xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-all active:scale-95"
+                            title="Excluir Viagem"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Efeito visual */}
