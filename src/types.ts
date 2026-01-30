@@ -98,6 +98,7 @@ export interface Expense {
   paidBy: 'person1' | 'person2';
   createdAt: string;
   household_id?: string;
+  user_id?: string;
   splitMethod?: 'proportional' | 'custom';
   splitPercentage1?: number; // Only used if splitMethod is 'custom'
   specificValueP1?: number; // Part of the expense that is 100% P1's responsibility

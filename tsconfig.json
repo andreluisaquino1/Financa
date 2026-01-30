@@ -23,10 +23,11 @@
         "./src/*"
       ]
     },
-    "include": [
-      "src"
-    ],
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": [
+    "src",
+    "test-calculations.ts"
+  ]
 }

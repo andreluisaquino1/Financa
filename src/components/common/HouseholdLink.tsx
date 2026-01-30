@@ -13,7 +13,11 @@ const HouseholdLink: React.FC<Props> = ({ onLinked, onSkip }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleLink = async (e: React.FormEvent) => {
+    // Confirmation logic
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [pendingHouseholdId, setPendingHouseholdId] = useState<string | null>(null);
+
+    const handleInitialLink = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
 
@@ -21,31 +25,54 @@ const HouseholdLink: React.FC<Props> = ({ onLinked, onSkip }) => {
         setError(null);
 
         try {
-            // O código de convite é simplesmente o ID do parceiro (ou um código gerado)
             const targetCode = inviteCode.trim();
-
-            // 1. Verificar se esse perfil existe usando o código de convite
             const { data: profile, error: profileError } = await profileService.getByInviteCode(targetCode);
 
             if (profileError || !profile) {
-                // Tenta buscar pelo ID direto (fallback para compatibilidade antiga)
-                // Mas profileService.getByInviteCode busca por invite_code. Se quisermos buscar por ID, precisaríamos de outro método ou lógica aqui.
-                // Como melhor prática, vamos assumir que o usuário digita o invite_code.
                 throw new Error('Código de convite inválido ou não encontrado.');
             }
 
             const householdId = profile.household_id || profile.id;
 
-            // 2. Atualizar o meu perfil com o household_id dele
-            const { error: updateError } = await profileService.joinHousehold(user.id, householdId);
+            if (householdId === user.id) {
+                throw new Error('Você está tentando se conectar ao seu próprio painel.');
+            }
 
-            if (updateError) throw updateError;
+            setPendingHouseholdId(householdId);
 
-            onLinked(householdId);
+            // Check if current user has data to merge
+            const hasData = await profileService.checkHasData(user.id);
+
+            if (hasData) {
+                setShowConfirmation(true);
+            } else {
+                await executeJoin(householdId, false);
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const executeJoin = async (targetId: string, merge: boolean) => {
+        setLoading(true);
+        try {
+            if (merge && user) {
+                const { error: migrateError } = await profileService.migrateHouseholdData(user.id, targetId);
+                if (migrateError) throw migrateError;
+            }
+
+            if (user) {
+                const { error: updateError } = await profileService.joinHousehold(user.id, targetId);
+                if (updateError) throw updateError;
+                onLinked(targetId);
+            }
+        } catch (err: any) {
+            setError('Erro ao processar conexão: ' + err.message);
+        } finally {
+            setLoading(false);
+            setShowConfirmation(false);
         }
     };
 
@@ -70,26 +97,74 @@ const HouseholdLink: React.FC<Props> = ({ onLinked, onSkip }) => {
                     </div>
                 )}
 
-                <form onSubmit={handleLink} className="space-y-6">
-                    <div className="space-y-1">
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Código de Convite</label>
-                        <input
-                            type="text"
-                            value={inviteCode}
-                            onChange={(e) => setInviteCode(e.target.value)}
-                            className="w-full bg-white text-black border-2 border-gray-100 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-600 outline-none transition-all duration-300 font-mono text-sm"
-                            placeholder="Cole o código do seu parceiro"
-                        />
-                    </div>
+                {!showConfirmation ? (
+                    <form onSubmit={handleInitialLink} className="space-y-6">
+                        <div className="space-y-1">
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest px-1">Código de Convite</label>
+                            <input
+                                type="text"
+                                value={inviteCode}
+                                onChange={(e) => setInviteCode(e.target.value)}
+                                className="w-full bg-white text-black border-2 border-gray-100 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-blue-100 focus:bg-white focus:border-blue-600 outline-none transition-all duration-300 font-mono text-sm"
+                                placeholder="Cole o código do seu parceiro"
+                            />
+                        </div>
 
-                    <button
-                        type="submit"
-                        disabled={loading || !inviteCode.trim()}
-                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-black py-4 rounded-2xl transition shadow-xl shadow-blue-100 active:scale-[0.98]"
-                    >
-                        {loading ? 'Conectando...' : 'Entrar no painel compartilhado'}
-                    </button>
-                </form>
+                        <button
+                            type="submit"
+                            disabled={loading || !inviteCode.trim()}
+                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-black py-4 rounded-2xl transition shadow-xl shadow-blue-100 active:scale-[0.98]"
+                        >
+                            {loading ? 'Verificando...' : 'Entrar no painel compartilhado'}
+                        </button>
+                    </form>
+                ) : (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                        <div className="bg-amber-50 border border-amber-200 p-6 rounded-3xl">
+                            <div className="flex items-center gap-3 mb-3 text-amber-700">
+                                <span className="text-2xl">⚠️</span>
+                                <h4 className="font-black text-sm uppercase tracking-tight">Dados Existentes Detectados</h4>
+                            </div>
+                            <p className="text-amber-800 text-xs font-medium leading-relaxed">
+                                Você já possui registros cadastrados no seu painel. Como deseja prosseguir com a conexão?
+                            </p>
+                        </div>
+
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => executeJoin(pendingHouseholdId!, true)}
+                                disabled={loading}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white p-5 rounded-2xl text-left border-2 border-transparent transition-all group"
+                            >
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="font-black text-sm uppercase tracking-tight">🚀 Unir Meus Dados</span>
+                                    <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                                </div>
+                                <p className="text-[10px] opacity-80 font-bold">Leva todas as suas despesas e rendas para o novo painel compartilhado.</p>
+                            </button>
+
+                            <button
+                                onClick={() => executeJoin(pendingHouseholdId!, false)}
+                                disabled={loading}
+                                className="w-full bg-white border-2 border-gray-100 hover:border-gray-300 p-5 rounded-2xl text-left transition-all group"
+                            >
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="font-black text-sm uppercase tracking-tight text-gray-700">🙈 Ocultar Dados Atuais</span>
+                                    <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+                                </div>
+                                <p className="text-[10px] text-gray-400 font-bold">Os dados atuais ficarão ocultos e você começará do zero no novo painel.</p>
+                            </button>
+
+                            <button
+                                onClick={() => setShowConfirmation(false)}
+                                disabled={loading}
+                                className="w-full py-3 text-xs font-black text-gray-400 uppercase tracking-widest hover:text-gray-600 transition-colors"
+                            >
+                                Cancelar Conexão
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="mt-8 pt-8 border-t border-gray-100 text-center">
                     <button

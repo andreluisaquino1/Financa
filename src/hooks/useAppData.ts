@@ -215,19 +215,9 @@ export const useAppData = () => {
 
         try {
             const { data, error } = await expenseService.create({
-                date: exp.date,
-                type: exp.type,
-                category: exp.category,
-                description: exp.description,
-                totalValue: exp.totalValue,
-                installments: exp.installments,
-                paidBy: exp.paidBy,
-                metadata: exp.metadata,
-                splitPercentage1: exp.splitPercentage1,
-                specificValueP1: exp.specificValueP1,
-                specificValueP2: exp.specificValueP2,
-                splitMethod: exp.splitMethod || undefined,
-                reminderDay: exp.reminderDay
+                ...exp,
+                household_id: activeHouseholdId,
+                user_id: user.id
             });
 
             if (error) throw error;
@@ -611,10 +601,10 @@ export const useAppData = () => {
     }, [user]);
 
     // Restore Data (Undelete) - new functionality
-    const restoreData = useCallback(async (householdId: string) => {
-        // Implementation for admin/debug to restore soft deleted items if needed
-        // For now, leaving as placeholder or implementing basic restore for all
-        // This was in the task list: "Add a restoreData function"
+    const restoreData = useCallback(async () => {
+        if (!user || !householdId) return;
+
+        setDataLoading(true);
         try {
             await expenseService.restoreAll(householdId);
             await incomeService.restoreAll(householdId);
@@ -622,11 +612,15 @@ export const useAppData = () => {
             await loanService.restoreAll(householdId);
             await investmentService.restoreAll(householdId);
             await tripService.restoreAll(householdId);
-            alert('Dados restaurados (soft delete revertido). Recarregue a página.');
+
+            await loadData();
+            alert('Dados restaurados com sucesso! ♻️');
         } catch (e: any) {
             alert('Erro ao restaurar: ' + e.message);
+        } finally {
+            setDataLoading(false);
         }
-    }, []);
+    }, [user, householdId, loadData]);
 
     // Trip Functions
     const addTrip = useCallback(async (trip: Omit<Trip, 'id' | 'household_id' | 'created_at' | 'expenses' | 'deposits'>) => {
@@ -791,7 +785,8 @@ export const useAppData = () => {
 
     return {
         user,
-        loading: authLoading || dataLoading,
+        authLoading,
+        dataLoading,
         coupleInfo,
         expenses,
         incomes,

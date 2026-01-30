@@ -18,6 +18,7 @@ const mapExpense = (e: ExpenseDB): Expense => ({
     splitPercentage1: e.metadata?.splitPercentage1,
     specificValueP1: e.metadata?.specificValueP1,
     specificValueP2: e.metadata?.specificValueP2,
+    user_id: e.user_id,
     reminderDay: e.reminder_day ? Number(e.reminder_day) : undefined
 });
 
@@ -38,16 +39,7 @@ export const expenseService = {
         // Map frontend model back to DB model for insertion
         const dbExpense = {
             household_id: expense.household_id,
-            user_id: expense.metadata?.user_id, // assuming user_id might be passed or handled by RLS/Trigger, likely needs explicit passing if not in omitted type. 
-            // In the hook rework we pass raw object actually. Let's look at hook usage.
-            // Hook passes: household_id, user_id, date, type...
-            // So we need to accept what Supabase expects.
-            // The argument type `Omit<Expense...>` is slightly misleading if we pass snake_case properties as we did in the hook previously.
-            // But now we want to pass clean props.
-
-            // Let's rely on the previous logic where we passed a mix.
-            // To be clean, we should construct the object here.
-
+            user_id: expense.user_id,
             date: expense.date,
             type: expense.type,
             category: expense.category,
