@@ -11,18 +11,17 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react()],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      // 'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY), // Removed
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, '.'),
+        '@': path.resolve(__dirname, './src'),
       }
     },
     test: {
       globals: true,
       environment: 'jsdom',
-      setupFiles: './setupTests.ts',
+      setupFiles: './src/setupTests.ts',
     }
   };
 });
