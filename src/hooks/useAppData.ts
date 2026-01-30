@@ -168,8 +168,8 @@ export const useAppData = () => {
     }, [loadData]);
 
     const summary = useMemo(() => {
-        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, true);
-    }, [expenses, incomes, coupleInfo, selectedMonth]);
+        return calculateSummary(expenses, incomes, coupleInfo, selectedMonth, true, goals);
+    }, [expenses, incomes, coupleInfo, selectedMonth, goals]);
 
     const saveCoupleInfo = useCallback(async (newInfo: CoupleInfo, updateGlobal = false) => {
         setCoupleInfo(newInfo);

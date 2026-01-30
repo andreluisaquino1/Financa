@@ -139,6 +139,11 @@ export interface MonthlySummary {
   transferAmount: number;
   whoTransfers: 'person1' | 'person2' | 'none';
   categoryTotals: Record<string, number>;
+  totalGoalSavings: number;
+  person1GoalContribution: number;
+  person2GoalContribution: number;
+  person1Remaining: number;
+  person2Remaining: number;
 }
 
 export interface SavingsGoal {
@@ -293,3 +298,10 @@ export interface SavingsGoalDB {
 export interface LoanDB extends Loan { } // Structure matches except strict typing, but Loan in types.ts is already snake_case mostly using strict types now
 export interface InvestmentDB extends Investment { } // Structure matches
 export interface TripDB extends Trip { } // Structure matches
+export interface UserProfileDB {
+  id: string;
+  household_id: string | null;
+  invite_code: string | null;
+  couple_info: any; // Ideally this matches CoupleInfo
+  updated_at: string;
+}

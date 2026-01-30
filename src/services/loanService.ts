@@ -1,6 +1,9 @@
 import { supabase } from '@/supabaseClient';
 import { Loan, LoanDB } from '@/types';
 import { handleServiceResponse, ServiceResponse } from './supabaseService';
+import { softDeletePayload, restorePayload } from './dbHelpers';
+import { validateLoan, loanSchema } from '@/domain/validation';
+import { PostgrestError } from '@supabase/supabase-js';
 
 const mapLoan = (l: LoanDB): Loan => ({
     ...l,
@@ -22,6 +25,14 @@ export const loanService = {
     },
 
     async create(loan: Omit<Loan, 'id' | 'created_at'>): Promise<ServiceResponse<Loan>> {
+        const validation = validateLoan(loan);
+        if (!validation.success) {
+            return handleServiceResponse(null, {
+                message: validation.error.issues[0].message,
+                code: 'VALIDATION_ERROR'
+            } as any as PostgrestError);
+        }
+
         const { data, error } = await supabase
             .from('loans')
             .insert(loan)
@@ -33,9 +44,30 @@ export const loanService = {
     },
 
     async update(id: string, updates: Partial<Loan>): Promise<ServiceResponse<Loan>> {
+        if (Object.keys(updates).length > 0) {
+            const validation = loanSchema.partial().safeParse(updates);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: validation.error.issues[0].message,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+        }
+
+        const dbUpdates: any = {};
+        if (updates.description !== undefined) dbUpdates.description = updates.description;
+        if (updates.borrower_name !== undefined) dbUpdates.borrower_name = updates.borrower_name;
+        if (updates.total_value !== undefined) dbUpdates.total_value = updates.total_value;
+        if (updates.remaining_value !== undefined) dbUpdates.remaining_value = updates.remaining_value;
+        if (updates.installments !== undefined) dbUpdates.installments = updates.installments;
+        if (updates.paid_installments !== undefined) dbUpdates.paid_installments = updates.paid_installments;
+        if (updates.due_date !== undefined) dbUpdates.due_date = updates.due_date;
+        if (updates.lender !== undefined) dbUpdates.lender = updates.lender;
+        if (updates.status !== undefined) dbUpdates.status = updates.status;
+
         const { data, error } = await supabase
             .from('loans')
-            .update(updates)
+            .update(dbUpdates)
             .eq('id', id)
             .select()
             .single();
@@ -47,7 +79,7 @@ export const loanService = {
     async softDelete(id: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('loans')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('id', id);
 
         return handleServiceResponse(null, error);
@@ -56,7 +88,7 @@ export const loanService = {
     async softDeleteAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('loans')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('household_id', householdId);
 
         return handleServiceResponse(null, error);
@@ -65,7 +97,7 @@ export const loanService = {
     async restoreAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('loans')
-            .update({ deleted_at: null })
+            .update(restorePayload())
             .eq('household_id', householdId)
             .not('deleted_at', 'is', null);
 

@@ -205,3 +205,84 @@ DROP POLICY IF EXISTS "Household members can update monthly_configs" ON monthly_
 CREATE POLICY "Household members can update monthly_configs" 
 ON monthly_configs FOR UPDATE 
 USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));
+
+-- ============================================================
+-- DELETE POLICIES
+-- ============================================================
+-- Note: We implement soft delete via UPDATE (setting deleted_at).
+-- These hard DELETE policies exist as a security fallback in case
+-- the app needs to permanently purge data (e.g., GDPR requests).
+-- All DELETE policies follow the same household_id pattern.
+-- ============================================================
+
+-- user_profiles: Block DELETE to prevent cascade/ghost issues
+DROP POLICY IF EXISTS "Users cannot delete profiles" ON user_profiles;
+CREATE POLICY "Users cannot delete profiles" 
+ON user_profiles FOR DELETE 
+USING (false); -- Always deny - profiles should never be hard deleted
+
+-- Expenses DELETE
+DROP POLICY IF EXISTS "Household members can delete expenses" ON expenses;
+CREATE POLICY "Household members can delete expenses" 
+ON expenses FOR DELETE 
+USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));
+
+-- Incomes DELETE
+DROP POLICY IF EXISTS "Household members can delete incomes" ON incomes;
+CREATE POLICY "Household members can delete incomes" 
+ON incomes FOR DELETE 
+USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));
+
+-- Savings Goals DELETE
+DROP POLICY IF EXISTS "Household members can delete goals" ON savings_goals;
+CREATE POLICY "Household members can delete goals" 
+ON savings_goals FOR DELETE 
+USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));
+
+-- Loans DELETE
+DROP POLICY IF EXISTS "Household members can delete loans" ON loans;
+CREATE POLICY "Household members can delete loans" 
+ON loans FOR DELETE 
+USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));
+
+-- Investments DELETE
+DROP POLICY IF EXISTS "Household members can delete investments" ON investments;
+CREATE POLICY "Household members can delete investments" 
+ON investments FOR DELETE 
+USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));
+
+-- Trips DELETE
+DROP POLICY IF EXISTS "Household members can delete trips" ON trips;
+CREATE POLICY "Household members can delete trips" 
+ON trips FOR DELETE 
+USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));
+
+-- Trip Expenses DELETE
+DROP POLICY IF EXISTS "Household members can delete trip_expenses" ON trip_expenses;
+CREATE POLICY "Household members can delete trip_expenses" 
+ON trip_expenses FOR DELETE 
+USING (
+  trip_id IN (
+    SELECT id FROM trips WHERE household_id IN (
+      SELECT household_id FROM user_profiles WHERE id = auth.uid()
+    )
+  )
+);
+
+-- Trip Deposits DELETE
+DROP POLICY IF EXISTS "Household members can delete trip_deposits" ON trip_deposits;
+CREATE POLICY "Household members can delete trip_deposits" 
+ON trip_deposits FOR DELETE 
+USING (
+  trip_id IN (
+    SELECT id FROM trips WHERE household_id IN (
+      SELECT household_id FROM user_profiles WHERE id = auth.uid()
+    )
+  )
+);
+
+-- Monthly Configs DELETE
+DROP POLICY IF EXISTS "Household members can delete monthly_configs" ON monthly_configs;
+CREATE POLICY "Household members can delete monthly_configs" 
+ON monthly_configs FOR DELETE 
+USING (household_id IN (SELECT household_id FROM user_profiles WHERE id = auth.uid()));

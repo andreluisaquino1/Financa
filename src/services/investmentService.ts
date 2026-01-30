@@ -1,6 +1,9 @@
 import { supabase } from '@/supabaseClient';
 import { Investment, InvestmentDB } from '@/types';
 import { handleServiceResponse, ServiceResponse } from './supabaseService';
+import { softDeletePayload, restorePayload } from './dbHelpers';
+import { validateInvestment, investmentSchema } from '@/domain/validation';
+import { PostgrestError } from '@supabase/supabase-js';
 
 const mapInvestment = (inv: InvestmentDB): Investment => ({
     ...inv,
@@ -24,6 +27,14 @@ export const investmentService = {
     },
 
     async create(investment: Omit<Investment, 'id' | 'created_at'>): Promise<ServiceResponse<Investment>> {
+        const validation = validateInvestment(investment);
+        if (!validation.success) {
+            return handleServiceResponse(null, {
+                message: validation.error.issues[0].message,
+                code: 'VALIDATION_ERROR'
+            } as any as PostgrestError);
+        }
+
         const { data, error } = await supabase
             .from('investments')
             .insert(investment)
@@ -35,9 +46,28 @@ export const investmentService = {
     },
 
     async update(id: string, updates: Partial<Investment>): Promise<ServiceResponse<Investment>> {
+        if (Object.keys(updates).length > 0) {
+            const validation = investmentSchema.partial().safeParse(updates);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: validation.error.issues[0].message,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+        }
+
+        const dbUpdates: any = {};
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.type !== undefined) dbUpdates.type = updates.type;
+        if (updates.current_value !== undefined) dbUpdates.current_value = updates.current_value;
+        if (updates.invested_value !== undefined) dbUpdates.invested_value = updates.invested_value;
+        if (updates.quantity !== undefined) dbUpdates.quantity = updates.quantity;
+        if (updates.price_per_unit !== undefined) dbUpdates.price_per_unit = updates.price_per_unit;
+        if (updates.owner !== undefined) dbUpdates.owner = updates.owner;
+
         const { data, error } = await supabase
             .from('investments')
-            .update(updates)
+            .update(dbUpdates)
             .eq('id', id)
             .select()
             .single();
@@ -49,7 +79,7 @@ export const investmentService = {
     async softDelete(id: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('investments')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('id', id);
 
         return handleServiceResponse(null, error);
@@ -58,7 +88,7 @@ export const investmentService = {
     async softDeleteAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('investments')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('household_id', householdId);
 
         return handleServiceResponse(null, error);
@@ -67,7 +97,7 @@ export const investmentService = {
     async restoreAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('investments')
-            .update({ deleted_at: null })
+            .update(restorePayload())
             .eq('household_id', householdId)
             .not('deleted_at', 'is', null);
 

@@ -113,5 +113,34 @@ describe('Financial Domain Logic', () => {
             expect(result.person1Responsibility).toBe(600);
             expect(result.person2Responsibility).toBe(400);
         });
+
+        it('should include goal contributions and calculate remaining values', () => {
+            const goals: any[] = [
+                {
+                    id: 'g1',
+                    monthly_contribution_p1: 500,
+                    monthly_contribution_p2: 300,
+                    is_completed: false,
+                    current_value: 1000,
+                    current_savings_p1: 100,
+                    current_savings_p2: 200
+                }
+            ];
+
+            const result = calculateSummary([], [], getMockCoupleInfo(), '2024-01', false, goals);
+
+            // Total Income P1=5000, P2=5000 (from getMockCoupleInfo)
+            // No expenses -> Responsibility 0
+            // Contributions: P1=500, P2=300
+            // Remaining: P1 = 5000 - 0 - 0 - 500 = 4500
+            // Remaining: P2 = 5000 - 0 - 0 - 300 = 4700
+            // Total Savings: 1000 + 100 + 200 = 1300
+
+            expect(result.person1GoalContribution).toBe(500);
+            expect(result.person2GoalContribution).toBe(300);
+            expect(result.person1Remaining).toBe(4500);
+            expect(result.person2Remaining).toBe(4700);
+            expect(result.totalGoalSavings).toBe(1300);
+        });
     });
 });

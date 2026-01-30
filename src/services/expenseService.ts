@@ -1,6 +1,9 @@
 import { supabase } from '@/supabaseClient';
 import { Expense, ExpenseDB, ExpenseType } from '@/types';
 import { handleServiceResponse, ServiceResponse } from './supabaseService';
+import { softDeletePayload, restorePayload } from './dbHelpers';
+import { validateExpense, expenseSchema } from '@/domain/validation';
+import { PostgrestError } from '@supabase/supabase-js';
 
 const mapExpense = (e: ExpenseDB): Expense => ({
     id: e.id,
@@ -36,7 +39,15 @@ export const expenseService = {
     },
 
     async create(expense: Omit<Expense, 'id' | 'createdAt'>): Promise<ServiceResponse<Expense>> {
-        // Map frontend model back to DB model for insertion
+        // Zod Validation
+        const validation = validateExpense(expense);
+        if (!validation.success) {
+            return handleServiceResponse(null, {
+                message: validation.error.issues[0].message,
+                code: 'VALIDATION_ERROR'
+            } as any as PostgrestError);
+        }
+
         const dbExpense = {
             household_id: expense.household_id,
             user_id: expense.user_id,
@@ -68,25 +79,36 @@ export const expenseService = {
     },
 
     async update(id: string, updates: Partial<Expense>): Promise<ServiceResponse<Expense>> {
-        const dbUpdates: any = {};
-        if (updates.date) dbUpdates.date = updates.date;
-        if (updates.type) dbUpdates.type = updates.type;
-        if (updates.category) dbUpdates.category = updates.category;
-        if (updates.description) dbUpdates.description = updates.description;
-        if (updates.totalValue) dbUpdates.total_value = updates.totalValue;
-        if (updates.installments) dbUpdates.installments = updates.installments;
-        if (updates.paidBy) dbUpdates.paid_by = updates.paidBy;
-        if (updates.metadata) dbUpdates.metadata = updates.metadata;
-        if (updates.splitMethod) dbUpdates.split_method = updates.splitMethod;
-        if (updates.reminderDay) dbUpdates.reminder_day = updates.reminderDay;
+        // Partial Zod Validation
+        if (Object.keys(updates).length > 0) {
+            const validation = expenseSchema.partial().safeParse(updates);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: validation.error.issues[0].message,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+        }
 
-        // Handle metadata merging if needed, but for now direct assignment
-        if (updates.splitPercentage1 || updates.specificValueP1 || updates.specificValueP2) {
+        const dbUpdates: any = {};
+        if (updates.date !== undefined) dbUpdates.date = updates.date;
+        if (updates.type !== undefined) dbUpdates.type = updates.type;
+        if (updates.category !== undefined) dbUpdates.category = updates.category;
+        if (updates.description !== undefined) dbUpdates.description = updates.description;
+        if (updates.totalValue !== undefined) dbUpdates.total_value = updates.totalValue;
+        if (updates.installments !== undefined) dbUpdates.installments = updates.installments;
+        if (updates.paidBy !== undefined) dbUpdates.paid_by = updates.paidBy;
+        if (updates.metadata !== undefined) dbUpdates.metadata = updates.metadata;
+        if (updates.splitMethod !== undefined) dbUpdates.split_method = updates.splitMethod;
+        if (updates.reminderDay !== undefined) dbUpdates.reminder_day = updates.reminderDay;
+
+        // Handle metadata merging for split-related fields
+        if (updates.splitPercentage1 !== undefined || updates.specificValueP1 !== undefined || updates.specificValueP2 !== undefined) {
             dbUpdates.metadata = {
-                ...(updates.metadata || {}),
-                splitPercentage1: updates.splitPercentage1,
-                specificValueP1: updates.specificValueP1,
-                specificValueP2: updates.specificValueP2
+                ...(dbUpdates.metadata || updates.metadata || {}),
+                ...(updates.splitPercentage1 !== undefined && { splitPercentage1: updates.splitPercentage1 }),
+                ...(updates.specificValueP1 !== undefined && { specificValueP1: updates.specificValueP1 }),
+                ...(updates.specificValueP2 !== undefined && { specificValueP2: updates.specificValueP2 })
             };
         }
 
@@ -104,7 +126,7 @@ export const expenseService = {
     async softDelete(id: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('expenses')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('id', id);
 
         return handleServiceResponse(null, error);
@@ -113,7 +135,7 @@ export const expenseService = {
     async softDeleteAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('expenses')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('household_id', householdId);
 
         return handleServiceResponse(null, error);
@@ -122,7 +144,7 @@ export const expenseService = {
     async softDeleteByMonth(householdId: string, monthKey: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('expenses')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('household_id', householdId)
             .like('date', `${monthKey}%`);
 
@@ -132,7 +154,7 @@ export const expenseService = {
     async restoreAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('expenses')
-            .update({ deleted_at: null })
+            .update(restorePayload())
             .eq('household_id', householdId)
             .not('deleted_at', 'is', null);
 

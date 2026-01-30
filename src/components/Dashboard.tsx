@@ -30,21 +30,12 @@ const Dashboard: React.FC<Props> = ({
   const p1Ratio = totalIncome > 0 ? (summary.person1TotalIncome / totalIncome) * 100 : 50;
   const p2Ratio = totalIncome > 0 ? (summary.person2TotalIncome / totalIncome) * 100 : 50;
 
-  // Goals calculations
-  const totalGoalSavings = useMemo(() => {
-    return goals.reduce((sum, g) => sum + (g.current_savings_p1 || 0) + (g.current_savings_p2 || 0) + (g.current_value || 0), 0);
-  }, [goals]);
+  const p1GoalContribution = summary.person1GoalContribution;
+  const p2GoalContribution = summary.person2GoalContribution;
+  const totalGoalSavings = summary.totalGoalSavings;
 
-  const p1GoalContribution = useMemo(() => {
-    return goals.filter(g => !g.is_completed).reduce((sum, g) => sum + (g.monthly_contribution_p1 || 0), 0);
-  }, [goals]);
-
-  const p2GoalContribution = useMemo(() => {
-    return goals.filter(g => !g.is_completed).reduce((sum, g) => sum + (g.monthly_contribution_p2 || 0), 0);
-  }, [goals]);
-
-  const p1Left = summary.person1TotalIncome - summary.person1Responsibility - summary.person1PersonalTotal - p1GoalContribution;
-  const p2Left = summary.person2TotalIncome - summary.person2Responsibility - summary.person2PersonalTotal - p2GoalContribution;
+  const p1Left = summary.person1Remaining;
+  const p2Left = summary.person2Remaining;
 
   const p1Name = coupleInfo.person1Name.split(' ')[0];
   const p2Name = coupleInfo.person2Name.split(' ')[0];

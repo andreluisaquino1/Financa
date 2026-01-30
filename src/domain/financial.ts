@@ -1,4 +1,4 @@
-import { Expense, ExpenseType, CoupleInfo, MonthlySummary, Income } from '@/types';
+import { Expense, ExpenseType, CoupleInfo, MonthlySummary, Income, SavingsGoal } from '@/types';
 import { parseSafeDate } from './formatters';
 
 const roundMoney = (num: number): number => {
@@ -53,21 +53,19 @@ export const calculateSummary = (
     incomes: Income[],
     coupleInfo: CoupleInfo,
     monthKey: string,
-    isPremium: boolean = false
+    isPremium: boolean = false,
+    goals: SavingsGoal[] = []
 ): MonthlySummary => {
     // Somar as rendas do mês por categoria e pessoa
     const monthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
 
     // Lógica de Múltiplas Rendas Recorrentes
-    // 1. Identificar rendas reais deste mês
     const p1RealSalaries = monthIncomes.filter(i => i.paidBy === 'person1' && i.category === 'Salário');
     const p2RealSalaries = monthIncomes.filter(i => i.paidBy === 'person2' && i.category === 'Salário');
 
-    // 2. Identificar rendas recorrentes ativas (aquelas que NÃO têm uma entrada real correspondente pela descrição)
     const p1Recurring = coupleInfo.person1RecurringIncomes || [];
     const p2Recurring = coupleInfo.person2RecurringIncomes || [];
 
-    // Migração legada: Se não houver recurring array, usar os campos antigos se > 0
     if (p1Recurring.length === 0 && coupleInfo.salary1 > 0) {
         p1Recurring.push({ id: 'legacy-p1', description: coupleInfo.salary1Description || 'Salário Base', value: coupleInfo.salary1 });
     }
@@ -83,7 +81,6 @@ export const calculateSummary = (
         !p2RealSalaries.some(real => real.description === rec.description)
     );
 
-    // 3. Somar Tudo
     const p1RealTotal = p1RealSalaries.reduce((sum, i) => roundMoney(sum + i.value), 0);
     const p1VirtualTotal = p1ActiveRecurring.reduce((sum, i) => roundMoney(sum + i.value), 0);
     const p1Salary = roundMoney(p1RealTotal + p1VirtualTotal);
@@ -103,7 +100,6 @@ export const calculateSummary = (
     const combinedTotalIncome = roundMoney(totalIncome1 + totalIncome2);
     const combinedSalaries = roundMoney(p1Salary + p2Salary);
 
-    // Proporção baseada no salário (usada como uma das opções individuais)
     let salaryRatio1 = combinedSalaries > 0 ? p1Salary / combinedSalaries : 0.5;
     let salaryRatio2 = combinedSalaries > 0 ? 1 - salaryRatio1 : 0.5;
 
@@ -124,7 +120,6 @@ export const calculateSummary = (
     let p2Target = 0;
     let p2Spent = 0;
 
-    const [targetYear, targetMonth] = monthKey.split('-').map(Number);
     const categoryTotals: Record<string, number> = {};
 
     expenses.forEach((exp) => {
@@ -138,15 +133,13 @@ export const calculateSummary = (
         switch (exp.type) {
             case ExpenseType.FIXED:
             case ExpenseType.COMMON:
-            case ExpenseType.EQUAL: // EQUAL is now handled by splitMethod='custom' with 50%
+            case ExpenseType.EQUAL:
                 if (exp.type === ExpenseType.FIXED) totalFixed = roundMoney(totalFixed + monthlyValue);
                 else totalCommon = roundMoney(totalCommon + monthlyValue);
 
-                // Lógica de Divisão Individual com Partes Específicas
                 const spec1Total = exp.specificValueP1 || 0;
                 const spec2Total = exp.specificValueP2 || 0;
 
-                // Calcular proporção do valor específico em relação ao total
                 const specRatio1 = exp.totalValue > 0 ? spec1Total / exp.totalValue : 0;
                 const specRatio2 = exp.totalValue > 0 ? spec2Total / exp.totalValue : 0;
 
@@ -154,11 +147,9 @@ export const calculateSummary = (
                 const monthlySpec2 = roundMoney(monthlyValue * specRatio2);
                 const sharedValue = roundMoney(monthlyValue - monthlySpec1 - monthlySpec2);
 
-                // Adiciona partes específicas diretamente à responsabilidade
                 p1Target = roundMoney(p1Target + monthlySpec1);
                 p2Target = roundMoney(p2Target + monthlySpec2);
 
-                // Divide o restante (sharedValue)
                 if (exp.splitMethod === 'custom') {
                     const perc1 = (exp.splitPercentage1 !== undefined) ? exp.splitPercentage1 : 50;
                     const r1 = perc1 / 100;
@@ -172,7 +163,6 @@ export const calculateSummary = (
                         totalEqual = roundMoney(totalEqual + monthlyValue);
                     }
                 } else {
-                    // Default: Proporcional ao Salário
                     const share1 = roundMoney(sharedValue * salaryRatio1);
                     const share2 = roundMoney(sharedValue - share1);
 
@@ -220,6 +210,21 @@ export const calculateSummary = (
         whoTransfers = 'person2';
     }
 
+    // Savings Goals Calculations
+    const totalGoalSavings = goals.reduce((sum, g) =>
+        roundMoney(sum + (g.current_savings_p1 || 0) + (g.current_savings_p2 || 0) + (g.current_value || 0)), 0);
+
+    const person1GoalContribution = goals
+        .filter(g => !g.is_completed)
+        .reduce((sum, g) => roundMoney(sum + (g.monthly_contribution_p1 || 0)), 0);
+
+    const person2GoalContribution = goals
+        .filter(g => !g.is_completed)
+        .reduce((sum, g) => roundMoney(sum + (g.monthly_contribution_p2 || 0)), 0);
+
+    const person1Remaining = roundMoney(totalIncome1 - p1Target - person1PersonalTotal - person1GoalContribution);
+    const person2Remaining = roundMoney(totalIncome2 - p2Target - person2PersonalTotal - person2GoalContribution);
+
     return {
         totalFixed,
         totalCommon,
@@ -235,6 +240,11 @@ export const calculateSummary = (
         person2TotalIncome: totalIncome2,
         transferAmount,
         whoTransfers,
-        categoryTotals
+        categoryTotals,
+        totalGoalSavings,
+        person1GoalContribution,
+        person2GoalContribution,
+        person1Remaining,
+        person2Remaining
     };
 };

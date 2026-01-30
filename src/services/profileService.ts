@@ -1,29 +1,31 @@
 import { supabase } from '@/supabaseClient';
-import { CoupleInfo, UserAccount } from '@/types';
+import { CoupleInfo, UserProfileDB } from '@/types';
 import { handleServiceResponse, ServiceResponse } from './supabaseService';
+import { validateProfile, profileSchema } from '@/domain/validation';
+import { PostgrestError } from '@supabase/supabase-js';
 
 export const profileService = {
-    async get(userId: string): Promise<ServiceResponse<any>> {
+    async get(userId: string): Promise<ServiceResponse<UserProfileDB>> {
         const { data, error } = await supabase
             .from('user_profiles')
             .select('*')
             .eq('id', userId)
             .single();
 
-        return handleServiceResponse(data, error);
+        return handleServiceResponse(data as unknown as UserProfileDB, error);
     },
 
-    async create(profile: any): Promise<ServiceResponse<any>> {
+    async create(profile: Partial<UserProfileDB>): Promise<ServiceResponse<UserProfileDB>> {
         const { data, error } = await supabase
             .from('user_profiles')
             .insert(profile)
             .select()
             .single();
 
-        return handleServiceResponse(data, error);
+        return handleServiceResponse(data as unknown as UserProfileDB, error);
     },
 
-    async update(userId: string, updates: any): Promise<ServiceResponse<any>> {
+    async update(userId: string, updates: Partial<UserProfileDB>): Promise<ServiceResponse<UserProfileDB>> {
         const { data, error } = await supabase
             .from('user_profiles')
             .update(updates)
@@ -31,7 +33,7 @@ export const profileService = {
             .select()
             .single();
 
-        return handleServiceResponse(data, error);
+        return handleServiceResponse(data as unknown as UserProfileDB, error);
     },
 
     async joinHousehold(userId: string, householdId: string): Promise<ServiceResponse<null>> {
@@ -42,13 +44,13 @@ export const profileService = {
         return handleServiceResponse(null, error);
     },
 
-    async getByInviteCode(code: string): Promise<ServiceResponse<any>> {
+    async getByInviteCode(code: string): Promise<ServiceResponse<{ household_id: string; id: string }>> {
         const { data, error } = await supabase
             .from('user_profiles')
             .select('household_id, id')
             .eq('invite_code', code)
             .single();
-        return handleServiceResponse(data, error);
+        return handleServiceResponse(data as { household_id: string; id: string }, error);
     },
 
     async checkHasData(householdId: string): Promise<boolean> {

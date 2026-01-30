@@ -1,6 +1,9 @@
 import { supabase } from '@/supabaseClient';
 import { Income, IncomeDB } from '@/types';
 import { handleServiceResponse, ServiceResponse } from './supabaseService';
+import { softDeletePayload, restorePayload } from './dbHelpers';
+import { validateIncome, incomeSchema } from '@/domain/validation';
+import { PostgrestError } from '@supabase/supabase-js';
 
 const mapIncome = (i: IncomeDB): Income => ({
     id: i.id,
@@ -28,6 +31,14 @@ export const incomeService = {
     },
 
     async create(income: Omit<Income, 'id' | 'createdAt'>): Promise<ServiceResponse<Income>> {
+        const validation = validateIncome(income);
+        if (!validation.success) {
+            return handleServiceResponse(null, {
+                message: validation.error.issues[0].message,
+                code: 'VALIDATION_ERROR'
+            } as any as PostgrestError);
+        }
+
         const dbIncome = {
             household_id: income.household_id,
             user_id: income.user_id,
@@ -49,12 +60,22 @@ export const incomeService = {
     },
 
     async update(id: string, updates: Partial<Income>): Promise<ServiceResponse<Income>> {
+        if (Object.keys(updates).length > 0) {
+            const validation = incomeSchema.partial().safeParse(updates);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: validation.error.issues[0].message,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+        }
+
         const dbUpdates: any = {};
-        if (updates.description) dbUpdates.description = updates.description;
-        if (updates.value) dbUpdates.value = updates.value;
-        if (updates.category) dbUpdates.category = updates.category;
-        if (updates.paidBy) dbUpdates.paid_by = updates.paidBy;
-        if (updates.date) dbUpdates.date = updates.date;
+        if (updates.description !== undefined) dbUpdates.description = updates.description;
+        if (updates.value !== undefined) dbUpdates.value = updates.value;
+        if (updates.category !== undefined) dbUpdates.category = updates.category;
+        if (updates.paidBy !== undefined) dbUpdates.paid_by = updates.paidBy;
+        if (updates.date !== undefined) dbUpdates.date = updates.date;
 
         const { data, error } = await supabase
             .from('incomes')
@@ -70,7 +91,7 @@ export const incomeService = {
     async softDelete(id: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('incomes')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('id', id);
 
         return handleServiceResponse(null, error);
@@ -79,7 +100,7 @@ export const incomeService = {
     async softDeleteAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('incomes')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('household_id', householdId);
 
         return handleServiceResponse(null, error);
@@ -88,7 +109,7 @@ export const incomeService = {
     async softDeleteByMonth(householdId: string, monthKey: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('incomes')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('household_id', householdId)
             .like('date', `${monthKey}%`);
 
@@ -98,7 +119,7 @@ export const incomeService = {
     async restoreAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('incomes')
-            .update({ deleted_at: null })
+            .update(restorePayload())
             .eq('household_id', householdId)
             .not('deleted_at', 'is', null);
 

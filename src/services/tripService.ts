@@ -1,6 +1,9 @@
 import { supabase } from '@/supabaseClient';
 import { Trip, TripDB, TripExpense, TripDeposit } from '@/types';
 import { handleServiceResponse, ServiceResponse } from './supabaseService';
+import { softDeletePayload, restorePayload } from './dbHelpers';
+import { validateTrip, validateTripExpense, validateTripDeposit, tripSchema } from '@/domain/validation';
+import { PostgrestError } from '@supabase/supabase-js';
 
 const mapTrip = (t: TripDB): Trip => ({
     id: t.id,
@@ -51,6 +54,14 @@ export const tripService = {
     },
 
     async create(trip: Omit<Trip, 'id' | 'created_at' | 'expenses' | 'deposits'>): Promise<ServiceResponse<Trip>> {
+        const validation = validateTrip(trip);
+        if (!validation.success) {
+            return handleServiceResponse(null, {
+                message: validation.error.issues[0].message,
+                code: 'VALIDATION_ERROR'
+            } as any as PostgrestError);
+        }
+
         const dbTrip = {
             household_id: trip.household_id,
             name: trip.name,
@@ -70,11 +81,21 @@ export const tripService = {
     },
 
     async update(id: string, updates: Partial<Trip>): Promise<ServiceResponse<Trip>> {
+        if (Object.keys(updates).length > 0) {
+            const validation = tripSchema.partial().safeParse(updates);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: validation.error.issues[0].message,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+        }
+
         const dbUpdates: any = {};
-        if (updates.name) dbUpdates.name = updates.name;
-        if (updates.budget) dbUpdates.budget = updates.budget;
-        if (updates.proportionType) dbUpdates.proportion_type = updates.proportionType;
-        if (updates.customPercentage1) dbUpdates.custom_percentage_1 = updates.customPercentage1;
+        if (updates.name !== undefined) dbUpdates.name = updates.name;
+        if (updates.budget !== undefined) dbUpdates.budget = updates.budget;
+        if (updates.proportionType !== undefined) dbUpdates.proportion_type = updates.proportionType;
+        if (updates.customPercentage1 !== undefined) dbUpdates.custom_percentage_1 = updates.customPercentage1;
 
         const { data, error } = await supabase
             .from('trips')
@@ -90,7 +111,7 @@ export const tripService = {
     async softDelete(id: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('trips')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('id', id);
 
         return handleServiceResponse(null, error);
@@ -99,7 +120,7 @@ export const tripService = {
     async softDeleteAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('trips')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('household_id', householdId);
 
         return handleServiceResponse(null, error);
@@ -108,7 +129,7 @@ export const tripService = {
     async restoreAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('trips')
-            .update({ deleted_at: null })
+            .update(restorePayload())
             .eq('household_id', householdId)
             .not('deleted_at', 'is', null);
 
@@ -117,6 +138,14 @@ export const tripService = {
 
     expenses: {
         async create(expense: Omit<TripExpense, 'id' | 'created_at'>): Promise<ServiceResponse<TripExpense>> {
+            const validation = validateTripExpense(expense);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: validation.error.issues[0].message,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+
             const dbExpense = {
                 trip_id: expense.trip_id,
                 description: expense.description,
@@ -147,7 +176,7 @@ export const tripService = {
         async delete(id: string): Promise<ServiceResponse<null>> {
             const { error } = await supabase
                 .from('trip_expenses')
-                .update({ deleted_at: new Date().toISOString() })
+                .update(softDeletePayload())
                 .eq('id', id);
             return handleServiceResponse(null, error);
         }
@@ -155,6 +184,14 @@ export const tripService = {
 
     deposits: {
         async create(deposit: Omit<TripDeposit, 'id' | 'created_at'>): Promise<ServiceResponse<TripDeposit>> {
+            const validation = validateTripDeposit(deposit);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: validation.error.issues[0].message,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+
             const dbDeposit = {
                 trip_id: deposit.trip_id,
                 person: deposit.person,
@@ -182,7 +219,7 @@ export const tripService = {
         async delete(id: string): Promise<ServiceResponse<null>> {
             const { error } = await supabase
                 .from('trip_deposits')
-                .update({ deleted_at: new Date().toISOString() })
+                .update(softDeletePayload())
                 .eq('id', id);
             return handleServiceResponse(null, error);
         }

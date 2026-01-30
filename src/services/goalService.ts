@@ -1,6 +1,9 @@
 import { supabase } from '@/supabaseClient';
 import { SavingsGoal, SavingsGoalDB } from '@/types';
 import { handleServiceResponse, ServiceResponse } from './supabaseService';
+import { softDeletePayload, restorePayload } from './dbHelpers';
+import { validateGoal, goalSchema } from '@/domain/validation';
+import { PostgrestError } from '@supabase/supabase-js';
 
 const mapGoal = (g: SavingsGoalDB): SavingsGoal => ({
     id: g.id,
@@ -45,12 +48,13 @@ export const goalService = {
     },
 
     async create(goal: Omit<SavingsGoal, 'id' | 'created_at'> & { household_id: string }): Promise<ServiceResponse<SavingsGoal>> {
-        // Goal inputs from hook are already mostly matching DB shape except for strict types.
-        // We will just pass it, assuming caller logic is ok. But strictly we should map if keys differed.
-        // The previous code passed 'goal' directly.
-        // However, let's look at Types. SavingsGoal has 'target_value' (snake_case) already ? 
-        // Yes, looking at types.ts, SavingsGoal ALREADY has snake_case property names for most things!
-        // So mapping might be redundant for keys, but crucial for ensuring numbers are returned as numbers, not strings from DB.
+        const validation = validateGoal(goal);
+        if (!validation.success) {
+            return handleServiceResponse(null, {
+                message: validation.error.issues[0].message,
+                code: 'VALIDATION_ERROR'
+            } as any as PostgrestError);
+        }
 
         const { data, error } = await supabase
             .from('savings_goals')
@@ -63,9 +67,43 @@ export const goalService = {
     },
 
     async update(id: string, updates: Partial<SavingsGoalDB>): Promise<ServiceResponse<SavingsGoal>> {
+        if (Object.keys(updates).length > 0) {
+            const validation = goalSchema.partial().safeParse(updates);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: validation.error.issues[0].message,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+        }
+
+        const dbUpdates: any = {};
+        if (updates.title !== undefined) dbUpdates.title = updates.title;
+        if (updates.target_value !== undefined) dbUpdates.target_value = updates.target_value;
+        if (updates.current_value !== undefined) dbUpdates.current_value = updates.current_value;
+        if (updates.goal_type !== undefined) dbUpdates.goal_type = updates.goal_type;
+        if (updates.monthly_contribution_p1 !== undefined) dbUpdates.monthly_contribution_p1 = updates.monthly_contribution_p1;
+        if (updates.monthly_contribution_p2 !== undefined) dbUpdates.monthly_contribution_p2 = updates.monthly_contribution_p2;
+        if (updates.current_savings_p1 !== undefined) dbUpdates.current_savings_p1 = updates.current_savings_p1;
+        if (updates.current_savings_p2 !== undefined) dbUpdates.current_savings_p2 = updates.current_savings_p2;
+        if (updates.interest_rate !== undefined) dbUpdates.interest_rate = updates.interest_rate;
+        if (updates.expected_monthly_expense !== undefined) dbUpdates.expected_monthly_expense = updates.expected_monthly_expense;
+        if (updates.start_date !== undefined) dbUpdates.start_date = updates.start_date;
+        if (updates.deadline !== undefined) dbUpdates.deadline = updates.deadline;
+        if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
+        if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+        if (updates.investment_location_p1 !== undefined) dbUpdates.investment_location_p1 = updates.investment_location_p1;
+        if (updates.investment_location_p2 !== undefined) dbUpdates.investment_location_p2 = updates.investment_location_p2;
+        if (updates.last_contribution_month !== undefined) dbUpdates.last_contribution_month = updates.last_contribution_month;
+        if (updates.is_completed !== undefined) dbUpdates.is_completed = updates.is_completed;
+        if (updates.split_p1_percentage !== undefined) dbUpdates.split_p1_percentage = updates.split_p1_percentage;
+        if (updates.split_p2_percentage !== undefined) dbUpdates.split_p2_percentage = updates.split_p2_percentage;
+        if (updates.initial_withdrawal_p1 !== undefined) dbUpdates.initial_withdrawal_p1 = updates.initial_withdrawal_p1;
+        if (updates.initial_withdrawal_p2 !== undefined) dbUpdates.initial_withdrawal_p2 = updates.initial_withdrawal_p2;
+
         const { data, error } = await supabase
             .from('savings_goals')
-            .update(updates)
+            .update(dbUpdates)
             .eq('id', id)
             .select()
             .single();
@@ -77,7 +115,7 @@ export const goalService = {
     async softDelete(id: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('savings_goals')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('id', id);
 
         return handleServiceResponse(null, error);
@@ -86,7 +124,7 @@ export const goalService = {
     async softDeleteAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('savings_goals')
-            .update({ deleted_at: new Date().toISOString() })
+            .update(softDeletePayload())
             .eq('household_id', householdId);
 
         return handleServiceResponse(null, error);
@@ -95,7 +133,7 @@ export const goalService = {
     async restoreAll(householdId: string): Promise<ServiceResponse<null>> {
         const { error } = await supabase
             .from('savings_goals')
-            .update({ deleted_at: null })
+            .update(restorePayload())
             .eq('household_id', householdId)
             .not('deleted_at', 'is', null);
 
