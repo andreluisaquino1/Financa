@@ -65,8 +65,9 @@ export const calculateSummary = (
     const p1RealSalaries = monthIncomes.filter(i => i.paidBy === 'person1' && i.category === 'Salário');
     const p2RealSalaries = monthIncomes.filter(i => i.paidBy === 'person2' && i.category === 'Salário');
 
-    const p1Recurring = coupleInfo.person1RecurringIncomes || [];
-    const p2Recurring = coupleInfo.person2RecurringIncomes || [];
+    // Fase 1: Evitar mutação de estado/props criando cópias
+    const p1Recurring = [...(coupleInfo.person1RecurringIncomes || [])];
+    const p2Recurring = [...(coupleInfo.person2RecurringIncomes || [])];
 
     if (p1Recurring.length === 0 && coupleInfo.salary1 > 0) {
         p1Recurring.push({ id: 'legacy-p1', description: coupleInfo.salary1Description || 'Salário Base', value: coupleInfo.salary1 });
@@ -75,12 +76,15 @@ export const calculateSummary = (
         p2Recurring.push({ id: 'legacy-p2', description: coupleInfo.salary2Description || 'Salário Base', value: coupleInfo.salary2 });
     }
 
+    // Fase 3: Normalizar comparação (trim/lowercase)
+    const normalize = (s: string) => s.trim().toLowerCase();
+
     const p1ActiveRecurring = p1Recurring.filter(rec =>
-        !p1RealSalaries.some(real => real.description === rec.description)
+        !p1RealSalaries.some(real => normalize(real.description) === normalize(rec.description))
     );
 
     const p2ActiveRecurring = p2Recurring.filter(rec =>
-        !p2RealSalaries.some(real => real.description === rec.description)
+        !p2RealSalaries.some(real => normalize(real.description) === normalize(rec.description))
     );
 
     const p1RealTotal = p1RealSalaries.reduce((sum, i) => roundMoney(sum + i.value), 0);
@@ -91,13 +95,16 @@ export const calculateSummary = (
     const p2VirtualTotal = p2ActiveRecurring.reduce((sum, i) => roundMoney(sum + i.value), 0);
     const p2Salary = roundMoney(p2RealTotal + p2VirtualTotal);
 
-    const totalIncome1 = roundMoney(p1Salary + monthIncomes
+    const p1OtherIncome = monthIncomes
         .filter(i => i.paidBy === 'person1' && i.category !== 'Salário')
-        .reduce((sum, i) => roundMoney(sum + i.value), 0));
+        .reduce((sum, i) => roundMoney(sum + i.value), 0);
 
-    const totalIncome2 = roundMoney(p2Salary + monthIncomes
+    const p2OtherIncome = monthIncomes
         .filter(i => i.paidBy === 'person2' && i.category !== 'Salário')
-        .reduce((sum, i) => roundMoney(sum + i.value), 0));
+        .reduce((sum, i) => roundMoney(sum + i.value), 0);
+
+    const totalIncome1 = roundMoney(p1Salary + p1OtherIncome);
+    const totalIncome2 = roundMoney(p2Salary + p2OtherIncome);
 
     const combinedTotalIncome = roundMoney(totalIncome1 + totalIncome2);
     const combinedSalaries = roundMoney(p1Salary + p2Salary);
@@ -122,6 +129,8 @@ export const calculateSummary = (
     let p2Target = 0;
     let p2Spent = 0;
 
+    let unspecifiedPaidByCount = 0;
+
     const categoryTotals: Record<string, number> = {};
 
     expenses.forEach((exp) => {
@@ -132,13 +141,23 @@ export const calculateSummary = (
         const cat = exp.category || 'Outros';
         categoryTotals[cat] = roundMoney((categoryTotals[cat] || 0) + monthlyValue);
 
+        // Fase 1: Tratar EQUAL como categoria própria
+        switch (exp.type) {
+            case ExpenseType.FIXED:
+                totalFixed = roundMoney(totalFixed + monthlyValue);
+                break;
+            case ExpenseType.COMMON:
+                totalCommon = roundMoney(totalCommon + monthlyValue);
+                break;
+            case ExpenseType.EQUAL:
+                totalEqual = roundMoney(totalEqual + monthlyValue);
+                break;
+        }
+
         switch (exp.type) {
             case ExpenseType.FIXED:
             case ExpenseType.COMMON:
             case ExpenseType.EQUAL:
-                if (exp.type === ExpenseType.FIXED) totalFixed = roundMoney(totalFixed + monthlyValue);
-                else totalCommon = roundMoney(totalCommon + monthlyValue);
-
                 const spec1Total = exp.specificValueP1 || 0;
                 const spec2Total = exp.specificValueP2 || 0;
 
@@ -160,10 +179,6 @@ export const calculateSummary = (
 
                     p1Target = roundMoney(p1Target + share1);
                     p2Target = roundMoney(p2Target + share2);
-
-                    if (perc1 === 50 && spec1Total === 0 && spec2Total === 0) {
-                        totalEqual = roundMoney(totalEqual + monthlyValue);
-                    }
                 } else {
                     const share1 = roundMoney(sharedValue * salaryRatio1);
                     const share2 = roundMoney(sharedValue - share1);
@@ -178,7 +193,7 @@ export const calculateSummary = (
                 totalReimbursement = roundMoney(totalReimbursement + monthlyValue);
                 if (exp.paidBy === 'person1') {
                     p2Target = roundMoney(p2Target + monthlyValue);
-                } else {
+                } else if (exp.paidBy === 'person2') {
                     p1Target = roundMoney(p1Target + monthlyValue);
                 }
                 break;
@@ -193,8 +208,14 @@ export const calculateSummary = (
         }
 
         if (exp.type !== ExpenseType.PERSONAL_P1 && exp.type !== ExpenseType.PERSONAL_P2) {
-            if (exp.paidBy === 'person1') p1Spent = roundMoney(p1Spent + monthlyValue);
-            else p2Spent = roundMoney(p2Spent + monthlyValue);
+            // Fase 1: Validar paidBy explicitamente
+            if (exp.paidBy === 'person1') {
+                p1Spent = roundMoney(p1Spent + monthlyValue);
+            } else if (exp.paidBy === 'person2') {
+                p2Spent = roundMoney(p2Spent + monthlyValue);
+            } else {
+                unspecifiedPaidByCount++;
+            }
         }
     });
 
@@ -204,11 +225,12 @@ export const calculateSummary = (
     let transferAmount = 0;
     let whoTransfers: 'person1' | 'person2' | 'none' = 'none';
 
-    if (balance1 > 0.01) {
-        transferAmount = balance1;
+    // Fase 4: Limiar consistente
+    if (balance1 > 0.009) {
+        transferAmount = Math.abs(balance1);
         whoTransfers = 'person1';
-    } else if (balance2 > 0.01) {
-        transferAmount = balance2;
+    } else if (balance2 > 0.009) {
+        transferAmount = Math.abs(balance2);
         whoTransfers = 'person2';
     }
 
@@ -223,6 +245,7 @@ export const calculateSummary = (
 
     const totalGoalSavings = goalData.reduce((sum, item) => roundMoney(sum + item.stats.totalBalance), 0);
 
+    // Fase 2: Metas Planejadas vs Realizadas
     const person1GoalContribution = goalData
         .filter(item => !item.stats.isCompleted)
         .reduce((sum, item) => roundMoney(sum + (item.goal.monthly_contribution_p1 || 0)), 0);
@@ -231,6 +254,15 @@ export const calculateSummary = (
         .filter(item => !item.stats.isCompleted)
         .reduce((sum, item) => roundMoney(sum + (item.goal.monthly_contribution_p2 || 0)), 0);
 
+    const person1GoalsRealized = goalTransactions
+        .filter(t => t.person === 'person1' && t.type === 'deposit' && t.date.startsWith(monthKey))
+        .reduce((sum, t) => roundMoney(sum + t.value), 0);
+
+    const person2GoalsRealized = goalTransactions
+        .filter(t => t.person === 'person2' && t.type === 'deposit' && t.date.startsWith(monthKey))
+        .reduce((sum, t) => roundMoney(sum + t.value), 0);
+
+    // Use "Planejado" for remaining calculation by default (as per user preference for measuring "Sobrou após planejamento")
     const person1Remaining = roundMoney(totalIncome1 - p1Target - person1PersonalTotal - person1GoalContribution);
     const person2Remaining = roundMoney(totalIncome2 - p2Target - person2PersonalTotal - person2GoalContribution);
 
@@ -253,6 +285,19 @@ export const calculateSummary = (
         totalGoalSavings,
         person1GoalContribution,
         person2GoalContribution,
+        person1GoalsRealized,
+        person2GoalsRealized,
+        p1IncomeBreakdown: {
+            salaryReal: p1RealTotal,
+            salaryRecurring: p1VirtualTotal,
+            other: p1OtherIncome
+        },
+        p2IncomeBreakdown: {
+            salaryReal: p2RealTotal,
+            salaryRecurring: p2VirtualTotal,
+            other: p2OtherIncome
+        },
+        unspecifiedPaidByCount,
         person1Remaining,
         person2Remaining
     };

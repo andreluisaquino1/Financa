@@ -144,6 +144,19 @@ export interface MonthlySummary {
   totalGoalSavings: number;
   person1GoalContribution: number;
   person2GoalContribution: number;
+  person1GoalsRealized: number; // Sum of actual transactions in month
+  person2GoalsRealized: number; // Sum of actual transactions in month
+  p1IncomeBreakdown: {
+    salaryReal: number;
+    salaryRecurring: number;
+    other: number;
+  };
+  p2IncomeBreakdown: {
+    salaryReal: number;
+    salaryRecurring: number;
+    other: number;
+  };
+  unspecifiedPaidByCount: number;
   person1Remaining: number;
   person2Remaining: number;
 }

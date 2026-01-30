@@ -157,21 +157,29 @@ const Dashboard: React.FC<Props> = ({
             <div className="w-12 h-12 bg-blue-50 dark:bg-brand/10 text-brand rounded-2xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform shadow-inner">✨</div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sobra Livre</p>
           </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">{formatCurrency(p1Left + p2Left)}</p>
+          <p className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">{formatCurrency(summary.person1Remaining + summary.person2Remaining)}</p>
           <p className="mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Após gastos e aportes</p>
         </div>
 
         {/* Card Reserva de Sonhos (Full row on mobile, col on desktop) */}
         <div className="col-span-2 lg:col-span-4 bg-slate-900 dark:bg-slate-900 border border-slate-800 dark:border-white/5 p-8 rounded-[2rem] text-white shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-emerald-500/20 transition-all duration-700"></div>
-          <div className="flex items-center gap-6 relative z-10">
-            <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center text-3xl shadow-inner border border-white/10">🎯</div>
-            <div>
-              <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-1">Total Economizado em Metas</p>
-              <div className="flex items-end gap-3">
-                <p className="text-4xl font-black tracking-tighter tabular-nums">{formatCurrency(totalGoalSavings)}</p>
-                <span className="text-emerald-400 text-xs font-black uppercase mb-1.5 px-3 py-1 bg-emerald-400/10 rounded-full">Protegido</span>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 bg-white/10 rounded-3xl flex items-center justify-center text-3xl shadow-inner border border-white/10">🎯</div>
+              <div>
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-1">Aporte em Metas (Este Mês)</p>
+                <div className="flex items-end gap-3">
+                  <p className="text-4xl font-black tracking-tighter tabular-nums">{formatCurrency(summary.person1GoalsRealized + summary.person2GoalsRealized)}</p>
+                  <span className="text-emerald-400 text-[10px] font-black uppercase mb-1.5 px-3 py-1 bg-emerald-400/10 rounded-full">
+                    {formatCurrency(summary.person1GoalContribution + summary.person2GoalContribution)} Planejado
+                  </span>
+                </div>
               </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Patrimônio em Metas</p>
+              <p className="text-xl font-bold text-emerald-400">{formatCurrency(summary.totalGoalSavings)}</p>
             </div>
           </div>
         </div>
@@ -207,7 +215,10 @@ const Dashboard: React.FC<Props> = ({
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="font-bold text-slate-500">Aportes p/ Metas</span>
-              <span className="font-black text-indigo-500 tabular-nums">-{formatCurrency(p1GoalContribution)}</span>
+              <div className="text-right">
+                <p className="font-black text-indigo-500 tabular-nums">{formatCurrency(summary.person1GoalsRealized)}</p>
+                <p className="text-[9px] text-slate-400">meta: {formatCurrency(summary.person1GoalContribution)}</p>
+              </div>
             </div>
             <div className="flex justify-between items-center pt-6 mt-2 border-t border-slate-50 dark:border-white/5">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sobra Livre Individual</span>
@@ -244,7 +255,10 @@ const Dashboard: React.FC<Props> = ({
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="font-bold text-slate-500">Aportes p/ Metas</span>
-              <span className="font-black text-indigo-500 tabular-nums">-{formatCurrency(p2GoalContribution)}</span>
+              <div className="text-right">
+                <p className="font-black text-indigo-500 tabular-nums">{formatCurrency(summary.person2GoalsRealized)}</p>
+                <p className="text-[9px] text-slate-400">meta: {formatCurrency(summary.person2GoalContribution)}</p>
+              </div>
             </div>
             <div className="flex justify-between items-center pt-6 mt-2 border-t border-slate-50 dark:border-white/5">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sobra Livre Individual</span>
@@ -274,8 +288,8 @@ const Dashboard: React.FC<Props> = ({
       <div className="bg-white dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden">
         <div className="px-6 py-5 flex justify-between items-center border-b border-slate-100 dark:border-white/5">
           <div>
-            <h3 className="font-black text-slate-900 dark:text-slate-100 text-lg">Gastos do Mês</h3>
-            <p className="text-xs text-slate-400">Detalhamento por tipo</p>
+            <h3 className="font-black text-slate-900 dark:text-slate-100 text-lg">Resumo de Gastos</h3>
+            <p className="text-xs text-slate-400">Por tipo de responsabilidade</p>
           </div>
           <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{formatCurrency(totalExpenses)}</p>
         </div>
@@ -289,12 +303,12 @@ const Dashboard: React.FC<Props> = ({
             <p className="text-xl font-black text-slate-800 dark:text-slate-100">{formatCurrency(summary.totalCommon)}</p>
           </div>
           <div className="p-5 text-center">
-            <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Reembolsos</p>
-            <p className="text-xl font-black text-emerald-500">{formatCurrency(summary.totalReimbursement)}</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Iguais (50/50)</p>
+            <p className="text-xl font-black text-slate-800 dark:text-slate-100">{formatCurrency(summary.totalEqual)}</p>
           </div>
           <div className="p-5 text-center">
-            <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Média/Dia</p>
-            <p className="text-xl font-black text-slate-800 dark:text-slate-100">{formatCurrency(totalExpenses / 30)}</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase mb-2">Reembolsos</p>
+            <p className="text-xl font-black text-emerald-500">{formatCurrency(summary.totalReimbursement)}</p>
           </div>
         </div>
       </div>
