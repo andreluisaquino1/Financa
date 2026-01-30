@@ -55,7 +55,7 @@ export const profileService = {
 
     async checkHasData(householdId: string): Promise<boolean> {
         // Check main tables
-        const tables = ['expenses', 'incomes', 'savings_goals', 'loans', 'investments', 'trips'];
+        const tables = ['expenses', 'incomes', 'savings_goals', 'loans', 'investments', 'trips', 'monthly_configs'];
 
         for (const table of tables) {
             const { count, error } = await supabase
@@ -80,7 +80,14 @@ export const profileService = {
                     .update({ household_id: newId })
                     .eq('household_id', oldId);
 
-                if (error) throw error;
+                if (error) {
+                    // If it's a duplicate key error (code 23505) and we are in monthly_configs, 
+                    // we can skip it as the target household already has a config for that month.
+                    if (error.code === '23505' && table === 'monthly_configs') {
+                        continue;
+                    }
+                    throw error;
+                }
             }
             return handleServiceResponse(null, null);
         } catch (error: any) {

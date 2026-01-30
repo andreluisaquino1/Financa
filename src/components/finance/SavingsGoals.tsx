@@ -69,13 +69,17 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
     const monthlySpending = summary.totalFixed + summary.totalCommon + summary.totalEqual;
     const suggestedEmergencyFund = monthlySpending * 6;
 
+    const emergencyGoal = useMemo(() => goals.find(g => g.is_emergency || g.title.toLowerCase().includes('reserva de emergência')), [goals]);
+
+    const emergencyStats = useMemo(() => {
+        if (!emergencyGoal) return { p1: 0, p2: 0, total: 0 };
+        const stats = calculateGoalStats(emergencyGoal, goalTransactions.filter(t => t.goal_id === emergencyGoal.id));
+        return { p1: stats.p1Balance, p2: stats.p2Balance, total: stats.totalBalance };
+    }, [emergencyGoal, goalTransactions]);
+
     const currentTotalReserve = useMemo(() => {
-        const hubReserve = (coupleInfo.emergencyReserveP1 || 0) + (coupleInfo.emergencyReserveP2 || 0);
-        const goalSavings = goals
-            .filter(g => !g.is_completed && (g.title.toLowerCase().includes('emergência') || g.title.toLowerCase().includes('reserva')))
-            .reduce((acc, g) => acc + (g.current_savings_p1 || 0) + (g.current_savings_p2 || 0), 0);
-        return hubReserve + goalSavings;
-    }, [coupleInfo, goals]);
+        return emergencyStats.total;
+    }, [emergencyStats]);
 
     const hasEmergencyGoal = useMemo(() => {
         const goalExists = goals.some(g => !g.is_completed && (g.title.toLowerCase().includes('emergência') || g.title.toLowerCase().includes('reserva')));
@@ -106,8 +110,8 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
         });
 
         const combinedSavings = p1SavingsTotal + p2SavingsTotal;
-        const availableBankP1 = (coupleInfo.bankBalanceP1 || 0) - (coupleInfo.emergencyReserveP1 || 0) - p1SavingsTotal;
-        const availableBankP2 = (coupleInfo.bankBalanceP2 || 0) - (coupleInfo.emergencyReserveP2 || 0) - p2SavingsTotal;
+        const availableBankP1 = (coupleInfo.bankBalanceP1 || 0) - emergencyStats.p1 - p1SavingsTotal;
+        const availableBankP2 = (coupleInfo.bankBalanceP2 || 0) - emergencyStats.p2 - p2SavingsTotal;
 
         return {
             p1MonthlyTotal,
@@ -238,8 +242,9 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
             ...coupleInfo,
             bankBalanceP1: parseBRL(hubBankP1),
             bankBalanceP2: parseBRL(hubBankP2),
-            emergencyReserveP1: parseBRL(hubReserveP1),
-            emergencyReserveP2: parseBRL(hubReserveP2),
+            // Reserva de Emergência is now strictly managed via Goals/Transactions
+            emergencyReserveP1: 0,
+            emergencyReserveP2: 0,
             monthlySavingsP1: parseBRL(hubSavingsP1),
             monthlySavingsP2: parseBRL(hubSavingsP2)
         }, true);
@@ -307,7 +312,8 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
             interest_rate: 10,
             icon: '🛡️',
             priority: 'high',
-            is_completed: false
+            is_completed: false,
+            is_emergency: true
         };
         onAddGoal(goalData);
         alert('Meta de Reserva de Emergência criada com sucesso! 🛡️');
@@ -470,21 +476,14 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                 last_contribution_month: monthKey
             });
 
-            // Update Hub Balance
-            const updatedInfo = { ...coupleInfo };
-
-            if (isEmergency) {
-                // For emergency, we just reclassify the bank balance (increase reserve)
-                updatedInfo.emergencyReserveP1 = (updatedInfo.emergencyReserveP1 || 0) + p1Aporte;
-                updatedInfo.emergencyReserveP2 = (updatedInfo.emergencyReserveP2 || 0) + p2Aporte;
-                // Note: bankBalance stays the same because the money is still in the asset pool
-            } else {
-                // For normal goals, money is assumed to leave the liquid bank pool
+            // Update Hub Balance if it's a normal goal (money leaving the bank)
+            // For emergency goals, the money stays in the bank asset pool but moves from "Free" to "Reserve"
+            if (!isEmergency) {
+                const updatedInfo = { ...coupleInfo };
                 updatedInfo.bankBalanceP1 = (updatedInfo.bankBalanceP1 || 0) - p1Aporte;
                 updatedInfo.bankBalanceP2 = (updatedInfo.bankBalanceP2 || 0) - p2Aporte;
+                onUpdateCoupleInfo(updatedInfo, true);
             }
-
-            onUpdateCoupleInfo(updatedInfo, true);
         }
     };
 
@@ -556,15 +555,15 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Reservas</span>
-                            <span className="text-lg font-black text-emerald-500">{formatCurrency((coupleInfo.emergencyReserveP1 || 0) + (coupleInfo.emergencyReserveP2 || 0))}</span>
+                            <span className="text-lg font-black text-emerald-500">{formatCurrency(emergencyStats.total)}</span>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Investido em Metas</span>
-                            <span className="text-lg font-black text-indigo-500">{formatCurrency(goalSummary.combinedSavings)}</span>
+                            <span className="text-lg font-black text-indigo-500">{formatCurrency(goalSummary.combinedSavings - emergencyStats.total)}</span>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Geral</span>
-                            <span className="text-lg font-black text-slate-900 dark:text-slate-100">{formatCurrency((coupleInfo.bankBalanceP1 || 0) + (coupleInfo.bankBalanceP2 || 0) + (coupleInfo.emergencyReserveP1 || 0) + (coupleInfo.emergencyReserveP2 || 0))}</span>
+                            <span className="text-lg font-black text-slate-900 dark:text-slate-100">{formatCurrency((coupleInfo.bankBalanceP1 || 0) + (coupleInfo.bankBalanceP2 || 0))}</span>
                         </div>
                     </div>
                 )}
@@ -583,13 +582,15 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Total no Banco</p>
                                         <p className="text-sm font-black text-slate-900 dark:text-slate-100">{formatCurrency(coupleInfo.bankBalanceP1 || 0)}</p>
                                     </div>
-                                    <div className="bg-emerald-50 dark:bg-emerald-500/5 p-3 rounded-xl border border-transparent hover:border-emerald-200 transition-all">
-                                        <p className="text-[9px] font-black text-emerald-500 uppercase mb-1">Reserva Emerg.</p>
-                                        <p className="text-sm font-black text-emerald-600">{formatCurrency(coupleInfo.emergencyReserveP1 || 0)}</p>
+                                    <div className="bg-emerald-50 dark:bg-emerald-500/5 p-3 rounded-xl border border-transparent hover:border-emerald-200 transition-all cursor-help" title="Espelhado da Meta Reserva de Emergência">
+                                        <p className="text-[9px] font-black text-emerald-500 uppercase mb-1 flex items-center gap-1">
+                                            Reserva Emerg. <span className="text-[8px] opacity-60">(Meta)</span>
+                                        </p>
+                                        <p className="text-sm font-black text-emerald-600">{formatCurrency(emergencyStats.p1)}</p>
                                     </div>
                                     <div className="bg-indigo-50 dark:bg-indigo-500/5 p-3 rounded-xl border border-transparent hover:border-indigo-200 transition-all">
-                                        <p className="text-[9px] font-black text-indigo-500 uppercase mb-1">Já Alocado Metas</p>
-                                        <p className="text-sm font-black text-indigo-600">{formatCurrency(goalSummary.p1SavingsTotal)}</p>
+                                        <p className="text-[9px] font-black text-indigo-500 uppercase mb-1">Outras Metas</p>
+                                        <p className="text-sm font-black text-indigo-600">{formatCurrency(goalSummary.p1SavingsTotal - emergencyStats.p1)}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-transparent border-dashed">
                                         <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Sobra Mensal</p>
@@ -626,13 +627,15 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                         <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Total no Banco</p>
                                         <p className="text-sm font-black text-slate-900 dark:text-slate-100">{formatCurrency(coupleInfo.bankBalanceP2 || 0)}</p>
                                     </div>
-                                    <div className="bg-emerald-50 dark:bg-emerald-500/5 p-3 rounded-xl border border-transparent hover:border-emerald-200 transition-all">
-                                        <p className="text-[9px] font-black text-emerald-500 uppercase mb-1">Reserva Emerg.</p>
-                                        <p className="text-sm font-black text-emerald-600">{formatCurrency(coupleInfo.emergencyReserveP2 || 0)}</p>
+                                    <div className="bg-emerald-50 dark:bg-emerald-500/5 p-3 rounded-xl border border-transparent hover:border-emerald-200 transition-all cursor-help" title="Espelhado da Meta Reserva de Emergência">
+                                        <p className="text-[9px] font-black text-emerald-500 uppercase mb-1 flex items-center gap-1">
+                                            Reserva Emerg. <span className="text-[8px] opacity-60">(Meta)</span>
+                                        </p>
+                                        <p className="text-sm font-black text-emerald-600">{formatCurrency(emergencyStats.p2)}</p>
                                     </div>
                                     <div className="bg-indigo-50 dark:bg-indigo-500/5 p-3 rounded-xl border border-transparent hover:border-indigo-200 transition-all">
-                                        <p className="text-[9px] font-black text-indigo-500 uppercase mb-1">Já Alocado Metas</p>
-                                        <p className="text-sm font-black text-indigo-600">{formatCurrency(goalSummary.p2SavingsTotal)}</p>
+                                        <p className="text-[9px] font-black text-indigo-500 uppercase mb-1">Outras Metas</p>
+                                        <p className="text-sm font-black text-indigo-600">{formatCurrency(goalSummary.p2SavingsTotal - emergencyStats.p2)}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-transparent border-dashed">
                                         <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Sobra Mensal</p>
@@ -700,12 +703,11 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Parte para Reserva Emerg.</label>
-                                    <input
-                                        type="text" inputMode="decimal"
-                                        value={hubReserveP1} onChange={e => setHubReserveP1(formatAsBRL(e.target.value))}
-                                        className="w-full bg-white dark:bg-slate-800 px-3 py-2 rounded-xl font-bold text-sm outline-none border border-transparent focus:border-p1"
-                                    />
+                                    <label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Reserva Emerg. (Mirrored)</label>
+                                    <div className="w-full bg-slate-100 dark:bg-slate-800/50 px-3 py-2 rounded-xl font-bold text-sm text-slate-400 border border-transparent cursor-not-allowed">
+                                        {formatCurrency(emergencyStats.p1)}
+                                    </div>
+                                    <p className="text-[8px] text-indigo-500 font-bold mt-1 px-1">Edite esta valor na aba de Metas</p>
                                 </div>
                                 <div>
                                     <label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Deseja investir/mês</label>
@@ -732,12 +734,11 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Parte para Reserva Emerg.</label>
-                                    <input
-                                        type="text" inputMode="decimal"
-                                        value={hubReserveP2} onChange={e => setHubReserveP2(formatAsBRL(e.target.value))}
-                                        className="w-full bg-white dark:bg-slate-800 px-3 py-2 rounded-xl font-bold text-sm outline-none border border-transparent focus:border-p2"
-                                    />
+                                    <label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Reserva Emerg. (Mirrored)</label>
+                                    <div className="w-full bg-slate-100 dark:bg-slate-800/50 px-3 py-2 rounded-xl font-bold text-sm text-slate-400 border border-transparent cursor-not-allowed">
+                                        {formatCurrency(emergencyStats.p2)}
+                                    </div>
+                                    <p className="text-[8px] text-indigo-500 font-bold mt-1 px-1">Edite esta valor na aba de Metas</p>
                                 </div>
                                 <div>
                                     <label className="text-[9px] font-bold text-slate-500 uppercase ml-1">Deseja investir/mês</label>

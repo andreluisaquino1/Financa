@@ -150,10 +150,23 @@ export const useAppData = () => {
                     setGoalTransactions(transactionsData);
 
                     // Trigger goals migration if needed
-                    if (goalsData && goalsData.length > 0 && transactionsData.length === 0) {
-                        await migrationService.migrateToTransactions(user.id, activeHouseholdId, coupleInfo);
-                        const { data: migratedData } = await goalTransactionService.getAllByHousehold(activeHouseholdId);
-                        if (migratedData) setGoalTransactions(migratedData);
+                    if (goalsData && goalsData.length > 0) {
+                        const updatedInfo = await migrationService.migrateToTransactions(user.id, activeHouseholdId, profile.couple_info);
+
+                        // If anything changed (like zeroing emergency reserves), update state and cloud
+                        if (JSON.stringify(updatedInfo) !== JSON.stringify(profile.couple_info)) {
+                            setCoupleInfo(prev => ({ ...prev, ...updatedInfo }));
+                            await profileService.update(activeHouseholdId, {
+                                couple_info: updatedInfo,
+                                updated_at: new Date().toISOString()
+                            });
+                        }
+
+                        // Reload transactions if migration happened (or just reload to be safe if transactionsData was empty)
+                        if (transactionsData.length === 0) {
+                            const { data: migratedData } = await goalTransactionService.getAllByHousehold(activeHouseholdId);
+                            if (migratedData) setGoalTransactions(migratedData);
+                        }
                     }
                 }
 

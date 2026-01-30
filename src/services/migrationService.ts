@@ -6,9 +6,10 @@ import { profileService } from './profileService';
 import { SavingsGoal, CoupleInfo, UserProfileDB, Investment } from '@/types';
 
 export const migrationService = {
-    async migrateToTransactions(userId: string, householdId: string, coupleInfo: CoupleInfo) {
+    async migrateToTransactions(userId: string, householdId: string, coupleInfo: CoupleInfo): Promise<CoupleInfo> {
         // 1. Migrate Existing Goals
         const { data: goals } = await goalService.getAll(householdId);
+        let updatedCoupleInfo = { ...coupleInfo };
 
         if (goals) {
             for (const goal of goals) {
@@ -60,7 +61,7 @@ export const migrationService = {
 
         if (emergencyP1 > 0 || emergencyP2 > 0) {
             // Check if emergency goal already exists
-            const emergencyGoal = goals?.find(g => g.is_emergency);
+            let emergencyGoal = goals?.find(g => g.is_emergency);
 
             if (!emergencyGoal) {
                 const { data: newEmergencyGoal } = await goalService.create({
@@ -75,31 +76,44 @@ export const migrationService = {
                     icon: '🛡️',
                     priority: 'high'
                 } as any);
+                emergencyGoal = newEmergencyGoal || undefined;
+            }
 
-                if (newEmergencyGoal) {
+            if (emergencyGoal) {
+                // Check if it already has migration transactions to avoid duplicates
+                const { data: currentTransactions } = await goalTransactionService.getByGoal(emergencyGoal.id);
+                const hasMigration = currentTransactions?.some(t => t.description.includes('Legacy Hub Migration'));
+
+                if (!hasMigration) {
                     if (emergencyP1 > 0) {
                         await goalTransactionService.create({
-                            goal_id: newEmergencyGoal.id,
+                            goal_id: emergencyGoal.id,
                             type: 'deposit',
                             value: emergencyP1,
                             person: 'person1',
                             date: new Date().toISOString().split('T')[0],
-                            description: 'Saldo Inicial Reserva P1'
+                            description: 'Legacy Hub Migration - P1'
                         });
                     }
                     if (emergencyP2 > 0) {
                         await goalTransactionService.create({
-                            goal_id: newEmergencyGoal.id,
+                            goal_id: emergencyGoal.id,
                             type: 'deposit',
                             value: emergencyP2,
                             person: 'person2',
                             date: new Date().toISOString().split('T')[0],
-                            description: 'Saldo Inicial Reserva P2'
+                            description: 'Legacy Hub Migration - P2'
                         });
                     }
                 }
+
+                // Zero out the legacy fields
+                updatedCoupleInfo.emergencyReserveP1 = 0;
+                updatedCoupleInfo.emergencyReserveP2 = 0;
             }
         }
+
+        return updatedCoupleInfo;
     },
 
     async migrateInvestments(householdId: string) {
