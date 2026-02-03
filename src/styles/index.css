@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Utilities that might still be needed or are being migrated */
+:root {
+  --brand-color: #6366f1; /* Indigo 500 */
+  --p1-color: #2563eb;
+  --p2-color: #ec4899;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-slate-900 dark:text-white;
+  }
+}
+
+/* Retaining some specific animations or classes if strictly needed, 
+   but aiming to use standard Tailwind utility classes where possible. */
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Glassmorphism utility */
+.glass {
+  @apply bg-white/80 backdrop-blur-md border border-white/20;
+}
+
+.glass-dark {
+  @apply bg-slate-900/85 backdrop-blur-md border border-white/10;
+}

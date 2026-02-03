@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finanças em Casal - O Ecossistema Financeiro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #2563eb, #ec4899);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(241, 245, 249, 1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 30px 50px -12px rgba(0, 0, 0, 0.08);
+            border-color: rgba(226, 232, 240, 1);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .step-number {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 leading-relaxed">
+
+    <!-- Hero Section -->
+    <section
+        class="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-8 bg-white overflow-hidden relative">
+        <div
+            class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-50 rounded-full blur-[140px] opacity-40 -z-10">
+        </div>
+
+        <div
+            class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full font-black text-[10px] uppercase tracking-widest text-slate-500">
+            🚀 O Ecossistema Financeiro Definitivo para Casais
+        </div>
+        <h1 class="text-6xl md:text-8xl font-black tracking-tighter leading-none">
+            Visão <span class="gradient-text italic">360º</span> do seu<br> patrimônio.
+        </h1>
+        <p class="max-w-3xl text-slate-500 font-bold text-lg md:text-xl">
+            Uma plataforma de alta performance desenhada para sincronizar o dia a dia, planejar o longo prazo e
+            garantir transparência absoluta no fechamento do mês.
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-4 pt-4">
+            <a href="#features"
+                class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-black transition-all hover:scale-105 shadow-xl">Explorar
+                Recursos</a>
+            <a href="#technical"
+                class="px-8 py-4 bg-white border border-slate-200 rounded-2xl font-black text-slate-600 transition-all hover:bg-slate-50">Arquitetura
+                Técnica</a>
+        </div>
+
+        <div class="pt-16 floating flex justify-center">
+            <div class="flex items-center gap-4 bg-white p-6 rounded-[2.5rem] shadow-2xl border border-slate-100">
+                <img src="public/logo.png" class="h-20 w-auto object-contain" alt="Finanças em Casal">
+                <div class="text-left">
+                    <p class="text-2xl font-black tracking-tighter leading-none mb-1">Finanças</p>
+                    <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">em Casal</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ecossistema de Recursos -->
+    <section id="features" class="py-24 bg-slate-50">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">FUNCIONALIDADES</span>
+                <h2 class="text-4xl font-black tracking-tighter mt-2">Um projeto completo de ponta a ponta.</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Planejador -->
+                <div class="p-8 bg-white rounded-[2.5rem] feature-card flex flex-col">
+                    <div
+                        class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        🎯</div>
+                    <h3 class="font-black text-xl mb-3">Planejador de Metas</h3>
+                    <p class="text-sm text-slate-500 font-bold leading-relaxed flex-grow">
+                        Sistema avançado para criar sonhos compartilhados ou individuais. Calcula aportes mensais por
+                        pessoa, projeta timelines de conquista e acompanha o progresso em tempo real.
+                    </p>
+                    <div class="pt-6 border-t border-slate-50 mt-6 grid grid-cols-2 gap-4">
+                        <div class="text-[10px] font-black uppercase text-slate-400">Projeção 6 meses</div>
+                        <div class="text-[10px] font-black uppercase text-slate-400 text-right">Aportes Variáveis</div>
+                    </div>
+                </div>
+
+                <!-- Insights Mensais -->
+                <div class="p-8 bg-white rounded-[2.5rem] feature-card flex flex-col">
+                    <div
+                        class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        📊</div>
+                    <h3 class="font-black text-xl mb-3">Insights de Orçamento</h3>
+                    <p class="text-sm text-slate-500 font-bold leading-relaxed flex-grow">
+                        Análise profunda do impacto de cada gasto no orçamento. Mostra a taxa de comprometimento,
+                        capacidade de aporte em metas e sobra livre individual.
+                    </p>
+                    <div class="pt-6 border-t border-slate-50 mt-6 grid grid-cols-2 gap-4">
+                        <div class="text-[10px] font-black uppercase text-slate-400">Metrificação Real</div>
+                        <div class="text-[10px] font-black uppercase text-slate-400 text-right">Saúde Financeira</div>
+                    </div>
+                </div>
+
+                <!-- Matemática da Paz -->
+                <div class="p-8 bg-white rounded-[2.5rem] feature-card flex flex-col">
+                    <div
+                        class="w-12 h-12 bg-pink-50 text-pink-600 rounded-xl flex items-center justify-center text-2xl mb-6">
+                        🧠</div>
+                    <h3 class="font-black text-xl mb-3">Matemática da Paz</h3>
+                    <p class="text-sm text-slate-500 font-bold leading-relaxed flex-grow">
+                        Fechamento de mês automático e didático. Divide gastos de forma justa (por renda ou manual) e
+                        detalha o fluxo de caixa de cada parceiro sem sombra de dúvida.
+                    </p>
+                    <div class="pt-6 border-t border-slate-50 mt-6 grid grid-cols-2 gap-4">
+                        <div class="text-[10px] font-black uppercase text-slate-400">Checklist Transparente</div>
+                        <div class="text-[10px] font-black uppercase text-slate-400 text-right">Zero Briga</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detalhamento de Fechamento -->
+    <section class="py-24 bg-white">
+        <div class="max-w-5xl mx-auto px-6">
+            <div class="flex flex-col lg:flex-row gap-16 items-center">
+                <div class="flex-1 space-y-8">
+                    <h2 class="text-4xl font-black tracking-tighter leading-tight italic">Transparência em<br>3 Passos.
+                    </h2>
+                    <p class="text-slate-500 font-bold">O fechamento do mês não é um mistério, é uma jornada clara.</p>
+
+                    <div class="space-y-6">
+                        <div class="flex gap-6 items-start">
+                            <div
+                                class="step-number w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-xs shrink-0">
+                                1</div>
+                            <div>
+                                <h4 class="font-black text-lg">Origem dos Gastos</h4>
+                                <p class="text-sm text-slate-400 font-bold">Consolidação de custos fixos, variáveis e
+                                    reembolsos comuns da casa.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-6 items-start">
+                            <div
+                                class="step-number w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-xs shrink-0">
+                                2</div>
+                            <div>
+                                <h4 class="font-black text-lg">Base de Proporção</h4>
+                                <h5 class="text-[10px] font-black uppercase text-blue-600 tracking-widest mt-1">
+                                    Exclusivo!</h5>
+                                <p class="text-sm text-slate-400 font-bold">Cálculo de responsabilidade baseado na renda
+                                    real de cada parceiro para máxima justiça.</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-6 items-start">
+                            <div
+                                class="step-number w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-xs shrink-0">
+                                3</div>
+                            <div>
+                                <h4 class="font-black text-lg">Sobra Individual Limpa</h4>
+                                <p class="text-sm text-slate-400 font-bold">Visão do que sobra no bolso de cada um após
+                                    casa, gastos pessoais e investimentos em sonhos.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 bg-slate-50 p-12 rounded-[3.5rem] border border-slate-100 shadow-inner">
+                    <div class="space-y-4">
+                        <div class="h-4 bg-slate-200 rounded-full w-3/4"></div>
+                        <div class="h-4 bg-slate-200 rounded-full w-1/2"></div>
+                        <div class="pt-8 space-y-3">
+                            <div
+                                class="flex justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                                <span class="font-black text-xs">Aporte Metas</span>
+                                <span class="font-black text-xs text-emerald-600">Calculado ✔</span>
+                            </div>
+                            <div
+                                class="flex justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                                <span class="font-black text-xs">Divisão Justa</span>
+                                <span class="font-black text-xs text-blue-600">Ativado ✔</span>
+                            </div>
+                            <div
+                                class="flex justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                                <span class="font-black text-xs">Sobra Final</span>
+                                <span class="font-black text-xs text-pink-500">Transparente ✔</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seção Técnica -->
+    <section id="technical" class="py-24 bg-slate-900 text-white overflow-hidden relative">
+        <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600 rounded-full blur-[150px] opacity-[0.05]">
+        </div>
+
+        <div class="max-w-6xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-16">
+                <span class="text-[10px] font-black text-blue-400 uppercase tracking-widest">ARQUITETURA &
+                    TECNOLOGIA</span>
+                <h2 class="text-5xl font-black tracking-tighter mt-4 italic">Robustez de Software.</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-8 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm">
+                    <p class="text-3xl mb-4">⚡</p>
+                    <h4 class="font-black text-lg mb-2">Vite + React</h4>
+                    <p class="text-xs text-slate-400 font-bold leading-relaxed">Performance ultrarrápida com
+                        carregamento instantâneo e UX fluida.</p>
+                </div>
+                <div class="p-8 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm">
+                    <p class="text-3xl mb-4">🔒</p>
+                    <h4 class="font-black text-lg mb-2">Supabase Auth</h4>
+                    <p class="text-xs text-slate-400 font-bold leading-relaxed">Segurança de nível bancário com
+                        autenticação e políticas de dados RLS.</p>
+                </div>
+                <div class="p-8 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm">
+                    <p class="text-3xl mb-4">📱</p>
+                    <h4 class="font-black text-lg mb-2">Capacitor Native</h4>
+                    <p class="text-xs text-slate-400 font-bold leading-relaxed">Pronto para rodar nativamente em iOS e
+                        Android com a mesma base de código.</p>
+                </div>
+                <div class="p-8 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm">
+                    <p class="text-3xl mb-4">🔄</p>
+                    <h4 class="font-black text-lg mb-2">Real-time DB</h4>
+                    <p class="text-xs text-slate-400 font-bold leading-relaxed">Sincronização em milissegundos entre os
+                        dispositivos do casal.</p>
+                </div>
+            </div>
+
+            <div
+                class="mt-24 p-12 bg-gradient-to-br from-white/10 to-transparent border border-white/10 rounded-[4rem]">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h3 class="text-3xl font-black italic tracking-tighter mb-6">Diferenciais que Constroem o
+                            Futuro.</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-center gap-4 text-sm font-bold"><span
+                                    class="text-emerald-400">✔</span> Filtro de Transações Avançado</li>
+                            <li class="flex items-center gap-4 text-sm font-bold"><span
+                                    class="text-emerald-400">✔</span> Exportação Profissional para PDF</li>
+                            <li class="flex items-center gap-4 text-sm font-bold"><span
+                                    class="text-emerald-400">✔</span> Lembretes Inteligentes de Pagamento</li>
+                            <li class="flex items-center gap-4 text-sm font-bold"><span
+                                    class="text-emerald-400">✔</span> Gestão de Viagens e Fundos Comuns</li>
+                        </ul>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.4em] mb-4">Status do
+                            Sistema</p>
+                        <div
+                            class="inline-flex items-center gap-3 px-6 py-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full font-black text-[10px]">
+                            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                            SISTEMA TOTALMENTE OPERACIONAL
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-16 bg-white border-t border-slate-100 text-center">
+        <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.6em] mb-4">Finanças em Casal © 2026</p>
+        <div class="flex justify-center gap-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+            <span>Privacidade de Dados</span>
+            <span>Segurança Suprema</span>
+            <span>Inovação Contínua</span>
+        </div>
+    </footer>
+
+</body>
+
+</html>
