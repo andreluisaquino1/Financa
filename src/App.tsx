@@ -241,7 +241,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="h-screen h-[100dvh] w-full bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 overflow-hidden relative">
+    <div className="h-screen h-[100dvh] w-full bg-slate-50 dark:bg-slate-900 flex flex-col font-sans text-slate-900 dark:text-slate-100 overflow-hidden relative pt-[env(safe-area-inset-top)]">
       {/* Header fixo sem sobreposição */}
       <header className="bg-white dark:bg-slate-900 border-b dark:border-white/5 flex-shrink-0 relative">
         <div className="max-w-7xl mx-auto px-4 md:px-6">
