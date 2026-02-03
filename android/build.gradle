@@ -27,16 +27,3 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
-subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            project.android.buildTypes.all { buildType ->
-                def proguardFiles = buildType.proguardFiles
-                if (proguardFiles.contains('proguard-android.txt')) {
-                    buildType.setProguardFiles(proguardFiles.collect { it == 'proguard-android.txt' ? 'proguard-android-optimize.txt' : it })
-                }
-            }
-        }
-    }
-}
