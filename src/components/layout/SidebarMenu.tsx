@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Category, CoupleInfo } from '@/types';
+import { Category, CoupleInfo, QuickShortcut } from '@/types';
+import QuickShortcutsModal from '@/components/modals/QuickShortcutsModal';
 import { parseBRL, formatAsBRL } from '@/utils';
 import { useAuth } from '@/AuthContext';
 
@@ -15,7 +16,8 @@ interface Props {
     cats?: (string | Category)[],
     theme?: 'light' | 'dark',
     p1Color?: string,
-    p2Color?: string
+    p2Color?: string,
+    shortcuts?: QuickShortcut[]
   ) => void;
   userEmail?: string;
   onSignOut?: () => void;
@@ -75,6 +77,8 @@ const SidebarMenu: React.FC<Props> = ({
   const [theme, setTheme] = useState<'light' | 'dark'>(coupleInfo.theme || 'light');
   const [p1Color, setP1Color] = useState(coupleInfo.person1Color || '#2563eb');
   const [p2Color, setP2Color] = useState(coupleInfo.person2Color || '#ec4899');
+  const [shortcuts, setShortcuts] = useState<QuickShortcut[]>(coupleInfo.quickShortcuts || []);
+  const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
   const { updatePassword } = useAuth();
   const [showPassForm, setShowPassForm] = useState(false);
@@ -107,7 +111,7 @@ const SidebarMenu: React.FC<Props> = ({
   };
 
   const handleSave = () => {
-    onUpdateSettings(n1, n2, categories, theme, p1Color, p2Color);
+    onUpdateSettings(n1, n2, categories, theme, p1Color, p2Color, shortcuts);
     onClose();
   };
 
@@ -364,22 +368,34 @@ const SidebarMenu: React.FC<Props> = ({
           </section>
 
 
-          {/* Interface / Simple Mode */}
           <section className="space-y-4">
             <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
               Interface
             </h3>
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 flex items-center justify-between">
-              <div>
-                <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200">Modo Simplificado</h4>
-                <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">Ocultar Investimentos, Viagens e<br />Empréstimos para mais foco.</p>
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200">Modo Simplificado</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">Ocultar Investimentos, Viagens e<br />Empréstimos para mais foco.</p>
+                </div>
+                <button
+                  onClick={() => onToggleSimpleMode?.(!isSimpleMode)}
+                  className={`w-12 h-7 rounded-full transition-colors relative flex items-center ${isSimpleMode ? 'bg-brand' : 'bg-slate-200 dark:bg-slate-700'}`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ml-1 ${isSimpleMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
               </div>
+
               <button
-                onClick={() => onToggleSimpleMode?.(!isSimpleMode)}
-                className={`w-12 h-7 rounded-full transition-colors relative flex items-center ${isSimpleMode ? 'bg-brand' : 'bg-slate-200 dark:bg-slate-700'}`}
+                onClick={() => setShowShortcutsModal(true)}
+                className="w-full p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group text-left"
               >
-                <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ml-1 ${isSimpleMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm group-hover:text-brand transition-colors text-center">⚡</div>
+                <div>
+                  <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tight block">Atalhos de Preenchimento</span>
+                  <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Personalizar botões rápidos</span>
+                </div>
               </button>
             </div>
           </section>
@@ -475,6 +491,17 @@ const SidebarMenu: React.FC<Props> = ({
           </button>
         </div>
       </div >
+
+      {showShortcutsModal && (
+        <QuickShortcutsModal
+          coupleInfo={coupleInfo}
+          onClose={() => setShowShortcutsModal(false)}
+          onSave={async (updatedShortcuts) => {
+            setShortcuts(updatedShortcuts);
+            setShowShortcutsModal(false);
+          }}
+        />
+      )}
     </>
   );
 };

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, Suspense, lazy } from 'react';
-import { Expense, CoupleInfo, ExpenseType } from './types';
+import { Expense, CoupleInfo, ExpenseType, Category, QuickShortcut } from './types';
 import SidebarMenu from '@/components/layout/SidebarMenu';
 import Auth from '@/components/auth/Auth';
 import HouseholdLink from '@/components/common/HouseholdLink';
@@ -118,8 +118,9 @@ const AppContent: React.FC = () => {
 
   const handleUpdateSettings = (
     n1: string, n2: string,
-    cats?: string[], theme?: 'light' | 'dark',
-    p1Color?: string, p2Color?: string
+    cats?: (string | Category)[], theme?: 'light' | 'dark',
+    p1Color?: string, p2Color?: string,
+    shortcuts?: QuickShortcut[]
   ) => {
     saveCoupleInfo({
       ...coupleInfo,
@@ -128,7 +129,8 @@ const AppContent: React.FC = () => {
       categories: cats || coupleInfo.categories,
       theme: theme || coupleInfo.theme,
       person1Color: p1Color || coupleInfo.person1Color,
-      person2Color: p2Color || coupleInfo.person2Color
+      person2Color: p2Color || coupleInfo.person2Color,
+      quickShortcuts: shortcuts || coupleInfo.quickShortcuts
     }, true);
   };
 

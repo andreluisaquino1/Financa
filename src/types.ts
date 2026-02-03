@@ -56,6 +56,15 @@ export interface Trip {
   deleted_at?: string;
 }
 
+export interface QuickShortcut {
+  id: string;
+  description: string;
+  category: string;
+  icon?: string;
+  defaultType?: ExpenseType;
+  defaultValue?: number;
+}
+
 export interface CoupleInfo {
   person1Name: string;
   person2Name: string;
@@ -70,6 +79,7 @@ export interface CoupleInfo {
   person1RecurringIncomes?: RecurringIncome[];
   person2RecurringIncomes?: RecurringIncome[];
   trips?: Trip[];
+  quickShortcuts?: QuickShortcut[];
 
   // Bank Balance & Reserves
   /** @deprecated Use SavingsGoals (Transactions) instead of manual balance */
