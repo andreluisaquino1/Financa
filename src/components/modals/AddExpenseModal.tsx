@@ -220,13 +220,24 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     }, [multiItems]);
 
     const handleShortcutClick = (shortcut: QuickShortcut) => {
+        console.log('🔥 Atalho clicado:', shortcut);
+        console.log('📝 Descrição atual antes:', description);
+        console.log('🔀 Modo multi-item antes:', isMultiMode);
+
+        // Desativar modo multi-item se estiver ativo
+        if (isMultiMode) {
+            setIsMultiMode(false);
+        }
+
         setDescription(shortcut.description);
+        console.log('📝 Descrição sendo definida para:', shortcut.description);
         setCategory(shortcut.category);
         if (shortcut.defaultType) setCurrentType(shortcut.defaultType);
         if (shortcut.defaultValue) {
             handleValueChange(formatAsBRL(Math.round(shortcut.defaultValue * 100).toString()));
         }
     };
+
 
     const shortcuts = useMemo(() => {
         if (coupleInfo.quickShortcuts && coupleInfo.quickShortcuts.length > 0) {
