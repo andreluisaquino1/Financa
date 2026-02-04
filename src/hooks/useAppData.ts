@@ -331,6 +331,7 @@ export const useAppData = () => {
         setSelectedMonth,
         saveCoupleInfo,
         addExpense: expenseHook.addExpense,
+        addMultipleExpenses: expenseHook.addMultipleExpenses,
         updateExpense: expenseHook.updateExpense,
         deleteExpense: expenseHook.deleteExpense,
         deleteMonthData,

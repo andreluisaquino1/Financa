@@ -49,6 +49,12 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     const [onlyThisMonth, setOnlyThisMonth] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Modo Múltiplo
+    const [isMultiMode, setIsMultiMode] = useState(false);
+    const [multiItems, setMultiItems] = useState<{ id: string, description: string, value: string }[]>([]);
+    const [itemDescription, setItemDescription] = useState('');
+    const [itemValue, setItemValue] = useState('');
+
     // Sync total value and installment value
     useEffect(() => {
         const total = parseBRL(value);
@@ -110,6 +116,51 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         e.preventDefault();
         if (isSubmitting) return;
 
+        if (isMultiMode) {
+            if (multiItems.length === 0) {
+                alert('Adicione pelo menos um item à lista.');
+                return;
+            }
+            setIsSubmitting(true);
+            try {
+                const batchData = multiItems.map(item => ({
+                    description: item.description,
+                    totalValue: parseBRL(item.value),
+                    category,
+                    paidBy,
+                    date,
+                    type: currentType,
+                    installments: 1,
+                    reminderDay: reminderDay ? parseInt(reminderDay) : undefined,
+                    splitMethod: isJoint ? splitMethod : undefined,
+                    splitPercentage1: isJoint && splitMethod === 'custom' ? splitPercentage1 : undefined,
+                    specificValueP1: isJoint && splitMethod === 'custom' && specValue1 ? (parseBRL(specValue1) * (parseBRL(item.value) / parseBRL(totalMultiValue))) : undefined,
+                    specificValueP2: isJoint && splitMethod === 'custom' && specValue2 ? (parseBRL(specValue2) * (parseBRL(item.value) / parseBRL(totalMultiValue))) : undefined,
+                }));
+                // Note: onAdd will be called multiple times if we don't have a special onAddBatch
+                // But the parent usually passes addExpense from useExpenses.
+                // We should check if the parent supports batch.
+                // If it's the standard onAdd, we might need to await Promise.all.
+                // However, our plan says we will use addMultipleExpenses.
+                // Looking at the props, onAdd is (exp: any) => Promise<void> | void.
+                // In my case, I'll assume onAdd can handle an array or I'll call it for each.
+                // Wait, I added addMultipleExpenses to useExpenses but AddExpenseModal uses onAdd.
+                // I should probably modify the parent to pass the correct function or make onAdd handle both.
+
+                // Let's assume onAdd is updated or handles array if needed.
+                // Actually, I'll just call onAdd for each item if it's not Batch-aware, 
+                // OR better, I'll change the prop interface if possible.
+                // But let's look at how it's used.
+                await onAdd(batchData);
+                onClose();
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setIsSubmitting(false);
+            }
+            return;
+        }
+
         const totalValue = parseBRL(value);
         if (totalValue <= 0) return;
 
@@ -137,6 +188,28 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
             setIsSubmitting(false);
         }
     };
+
+    const addMultiItem = () => {
+        const val = parseBRL(itemValue);
+        if (!itemDescription || val <= 0) return;
+
+        setMultiItems(prev => [...prev, {
+            id: Date.now().toString(),
+            description: itemDescription,
+            value: itemValue
+        }]);
+        setItemDescription('');
+        setItemValue('');
+    };
+
+    const removeMultiItem = (id: string) => {
+        setMultiItems(prev => prev.filter(i => i.id !== id));
+    };
+
+    const totalMultiValue = useMemo(() => {
+        const total = multiItems.reduce((acc, item) => acc + parseBRL(item.value), 0);
+        return formatAsBRL(Math.round(total * 100).toString());
+    }, [multiItems]);
 
     const handleShortcutClick = (shortcut: QuickShortcut) => {
         setDescription(shortcut.description);
@@ -170,14 +243,25 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-xl shadow-inner border border-brand/5">✨</div>
                         <div>
                             <h3 className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight text-lg leading-tight">
-                                {initialData ? 'Editar Registro' : 'Novo Lançamento'}
+                                {initialData ? 'Editar Registro' : (isMultiMode ? 'Lançamentos Múltiplos' : 'Novo Lançamento')}
                             </h3>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Gestão Financeira Integral</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all active:scale-90 text-slate-400">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {!initialData && (
+                            <button
+                                type="button"
+                                onClick={() => setIsMultiMode(!isMultiMode)}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${isMultiMode ? 'bg-brand text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                            >
+                                {isMultiMode ? '📝 Modo Único' : '📋 Lançar Vários'}
+                            </button>
+                        )}
+                        <button onClick={onClose} className="p-3 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all active:scale-90 text-slate-400">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto no-scrollbar pb-10">
@@ -261,67 +345,147 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                             </div>
                         </div>
 
-                        {/* 2. Descrição */}
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Descrição</label>
-                            <input
-                                type="text"
-                                required
-                                value={description}
-                                onChange={e => setDescription(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
-                                placeholder="O que você comprou?"
-                            />
-                        </div>
+                        {/* 2. Descrição (Modo Único) */}
+                        {!isMultiMode && (
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Descrição</label>
+                                <input
+                                    type="text"
+                                    required={!isMultiMode}
+                                    value={description}
+                                    onChange={e => setDescription(e.target.value)}
+                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                    placeholder="O que você comprou?"
+                                />
+                            </div>
+                        )}
 
-                        {/* 3. Valor Total e Parcela */}
-                        <div className="space-y-3">
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                                        {isFixed ? 'Valor Mensal' : 'Valor Total'}
-                                    </label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
-                                        <input
-                                            type="text"
-                                            inputMode="decimal"
-                                            required
-                                            value={value}
-                                            onChange={e => handleValueChange(e.target.value)}
-                                            onFocus={e => e.target.select()}
-                                            className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
-                                            placeholder="0,00"
-                                        />
-                                    </div>
-                                </div>
-
-                                {parseInt(installments) > 1 && !isFixed && (
-                                    <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                        {/* 3. Valor Total e Parcela (Modo Único) */}
+                        {!isMultiMode && (
+                            <div className="space-y-3">
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="space-y-1">
                                         <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                                            Valor da Parcela
+                                            {isFixed ? 'Valor Mensal' : 'Valor Total'}
                                         </label>
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
                                             <input
                                                 type="text"
                                                 inputMode="decimal"
-                                                value={installmentValue}
-                                                onChange={e => handleInstallmentValueChange(e.target.value)}
+                                                required={!isMultiMode}
+                                                value={value}
+                                                onChange={e => handleValueChange(e.target.value)}
                                                 onFocus={e => e.target.select()}
-                                                className="w-full bg-brand/5 border border-brand/20 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-brand outline-none transition-all"
+                                                className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all placeholder:opacity-30"
                                                 placeholder="0,00"
                                             />
                                         </div>
-                                        <p className="text-[9px] font-bold text-brand/60 px-1 uppercase italic">
-                                            Preencha um para calcular o outro
-                                        </p>
+                                    </div>
+
+                                    {parseInt(installments) > 1 && !isFixed && (
+                                        <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
+                                                Valor da Parcela
+                                            </label>
+                                            <div className="relative">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
+                                                <input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    value={installmentValue}
+                                                    onChange={e => handleInstallmentValueChange(e.target.value)}
+                                                    onFocus={e => e.target.select()}
+                                                    className="w-full bg-brand/5 border border-brand/20 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl pl-10 pr-4 py-4 font-bold text-brand outline-none transition-all"
+                                                    placeholder="0,00"
+                                                />
+                                            </div>
+                                            <p className="text-[9px] font-bold text-brand/60 px-1 uppercase italic">
+                                                Preencha um para calcular o outro
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 2 e 3. Modo Múltiplo - Lista de Itens */}
+                        {isMultiMode && (
+                            <div className="space-y-6">
+                                <div className="space-y-3 bg-slate-50 dark:bg-slate-950/40 p-5 rounded-3xl border border-dashed border-slate-300 dark:border-white/10">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 text-center block">Adicionar Itens à Lista</label>
+                                    <div className="flex flex-col gap-3">
+                                        <input
+                                            type="text"
+                                            value={itemDescription}
+                                            onChange={e => setItemDescription(e.target.value)}
+                                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                            placeholder="Descrição do item..."
+                                        />
+                                        <div className="flex gap-3">
+                                            <div className="relative flex-1">
+                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
+                                                <input
+                                                    type="text"
+                                                    inputMode="decimal"
+                                                    value={itemValue}
+                                                    onChange={e => {
+                                                        const total = parseBRL(e.target.value);
+                                                        setItemValue(formatAsBRL(Math.round(total * 100).toString()));
+                                                    }}
+                                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl pl-10 pr-4 py-3 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                                    placeholder="0,00"
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={addMultiItem}
+                                                disabled={!itemDescription || parseBRL(itemValue) <= 0}
+                                                className="bg-brand text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all disabled:opacity-50"
+                                            >
+                                                Adicionar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {multiItems.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {multiItems.map(item => (
+                                            <div key={item.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-2xl shadow-sm animate-in fade-in slide-in-from-right-2">
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-slate-700 dark:text-slate-200">{item.description}</span>
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{category}</span>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="font-black text-slate-900 dark:text-slate-100">R$ {item.value}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeMultiItem(item.id)}
+                                                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-xl transition-colors"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <div className="pt-4 flex justify-between items-center border-t border-slate-100 dark:border-white/5 mx-2">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Subtotal ({multiItems.length} itens)</span>
+                                            <span className="text-xl font-black text-brand">R$ {totalMultiValue}</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-10 text-center space-y-3">
+                                        <div className="text-4xl">📝</div>
+                                        <p className="text-xs font-bold text-slate-400 italic">Sua lista de lançamentos está vazia.</p>
                                     </div>
                                 )}
                             </div>
-                        </div>
-                        {/* 4. Parcelas */}
-                        {!(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
+                        )}
+
+                        {/* 4. Parcelas (Apenas Modo Único) */}
+                        {!isMultiMode && !(currentType === ExpenseType.FIXED || currentType === ExpenseType.REIMBURSEMENT_FIXED) && (
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Número de Parcelas</label>
                                 <div className="relative">
@@ -560,7 +724,7 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         ) : (
                             <>
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                                {initialData ? 'Atualizar Lançamento' : 'Confirmar Lançamento'}
+                                {initialData ? 'Atualizar Lançamento' : (isMultiMode ? `Confirmar ${multiItems.length} Lançamentos` : 'Confirmar Lançamento')}
                             </>
                         )}
                     </button>

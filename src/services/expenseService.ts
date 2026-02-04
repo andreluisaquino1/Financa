@@ -168,5 +168,46 @@ export const expenseService = {
             .eq('id', id);
 
         return handleServiceResponse(null, error);
+    },
+
+    async createBatch(expenses: Omit<Expense, 'id' | 'createdAt'>[]): Promise<ServiceResponse<Expense[]>> {
+        // Validate all expenses first
+        for (const exp of expenses) {
+            const validation = validateExpense(exp);
+            if (!validation.success) {
+                return handleServiceResponse(null, {
+                    message: `Erro em um dos itens: ${validation.error.issues[0].message}`,
+                    code: 'VALIDATION_ERROR'
+                } as any as PostgrestError);
+            }
+        }
+
+        const dbExpenses = expenses.map(expense => ({
+            household_id: expense.household_id,
+            user_id: expense.user_id,
+            date: expense.date,
+            type: expense.type,
+            category: expense.category,
+            description: expense.description,
+            total_value: expense.totalValue,
+            installments: expense.installments,
+            paid_by: expense.paidBy,
+            metadata: {
+                ...(expense.metadata || {}),
+                splitPercentage1: expense.splitPercentage1,
+                specificValueP1: expense.specificValueP1,
+                specificValueP2: expense.specificValueP2
+            },
+            split_method: expense.splitMethod || null,
+            reminder_day: expense.reminderDay
+        }));
+
+        const { data, error } = await supabase
+            .from('expenses')
+            .insert(dbExpenses)
+            .select();
+
+        const mappedData = data ? (data as unknown as ExpenseDB[]).map(mapExpense) : null;
+        return handleServiceResponse(mappedData, error);
     }
 };

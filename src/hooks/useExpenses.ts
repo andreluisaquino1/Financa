@@ -47,6 +47,50 @@ export const useExpenses = (user: any, householdId: string | null) => {
         }
     }, [user, householdId]);
 
+    const addMultipleExpenses = useCallback(async (expensesData: Omit<Expense, 'id' | 'createdAt'>[]) => {
+        if (!user || expensesData.length === 0) return;
+
+        const activeHouseholdId = householdId || user.id;
+        const now = new Date().toISOString();
+
+        // Prepare optimistic items
+        const optimisticEntries: Expense[] = expensesData.map((exp, index) => ({
+            ...exp,
+            id: `temp-${Date.now()}-${index}`,
+            createdAt: now,
+            household_id: activeHouseholdId,
+            user_id: user.id
+        }));
+
+        setExpenses(prev => [...optimisticEntries, ...prev]);
+
+        try {
+            const { data, error } = await expenseService.createBatch(
+                expensesData.map(exp => ({
+                    ...exp,
+                    household_id: activeHouseholdId,
+                    user_id: user.id
+                }))
+            );
+
+            if (error) throw error;
+
+            if (data) {
+                // Replace optimistic items with real ones from DB
+                const tempIds = optimisticEntries.map(e => e.id);
+                setExpenses(prev => {
+                    const filtered = prev.filter(e => !tempIds.includes(e.id));
+                    return [...data, ...filtered];
+                });
+            }
+        } catch (err: any) {
+            const tempIds = optimisticEntries.map(e => e.id);
+            setExpenses(prev => prev.filter(e => !tempIds.includes(e.id)));
+            alert('Erro ao salvar múltiplos gastos: ' + err.message);
+            throw err;
+        }
+    }, [user, householdId]);
+
     const updateExpense = useCallback(async (id: string, updates: Omit<Expense, 'id' | 'createdAt'>) => {
         if (!user) return;
 
@@ -119,5 +163,5 @@ export const useExpenses = (user: any, householdId: string | null) => {
         }
     }, [user, householdId, expenses]);
 
-    return { expenses, setExpenses, addExpense, updateExpense, deleteExpense, markAsSettled };
+    return { expenses, setExpenses, addExpense, addMultipleExpenses, updateExpense, deleteExpense, markAsSettled };
 };

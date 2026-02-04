@@ -37,6 +37,7 @@ const AppContent: React.FC = () => {
     summary,
     saveCoupleInfo,
     addExpense,
+    addMultipleExpenses,
     updateExpense,
     deleteExpense,
     addGoal,
@@ -438,6 +439,7 @@ const AppContent: React.FC = () => {
           onAdd={async (exp) => {
             try {
               if (editingExpense) await updateExpense(editingExpense.id, exp);
+              else if (Array.isArray(exp)) await addMultipleExpenses(exp);
               else await addExpense(exp);
               setIsGlobalModalOpen(false);
               setEditingExpense(null);
