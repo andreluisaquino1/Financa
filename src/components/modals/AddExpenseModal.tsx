@@ -326,32 +326,34 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                         )}
 
                         {/* 1. Tipo e Data/Lembrete */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Data</label>
-                                <input
-                                    type="date"
-                                    required
-                                    value={date}
-                                    onChange={e => setDate(e.target.value)}
-                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
-                                />
+                        {!isMultiMode && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Data</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={date}
+                                        onChange={e => setDate(e.target.value)}
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 h-4 flex items-center gap-1">
+                                        Lembrete (Dia)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="31"
+                                        value={reminderDay}
+                                        onChange={e => setReminderDay(e.target.value)}
+                                        placeholder="Ex: 05"
+                                        className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
+                                    />
+                                </div>
                             </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 h-4 flex items-center gap-1">
-                                    Lembrete (Dia)
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="31"
-                                    value={reminderDay}
-                                    onChange={e => setReminderDay(e.target.value)}
-                                    placeholder="Ex: 05"
-                                    className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-sm min-h-[52px]"
-                                />
-                            </div>
-                        </div>
+                        )}
 
                         {/* 2. Descrição (Modo Único) */}
                         {!isMultiMode && (
