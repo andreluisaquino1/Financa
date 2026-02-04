@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Loan, CoupleInfo } from '@/types';
 import { formatCurrency, parseBRL, formatAsBRL } from '@/utils';
+import { RECOMMENDED_ICONS } from '@/config/design';
 
 interface Props {
     loans: Loan[];
@@ -21,6 +22,8 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
     const [installments, setInstallments] = useState('1');
     const [dueDate, setDueDate] = useState('');
     const [lender, setLender] = useState<'person1' | 'person2'>('person1');
+    const [icon, setIcon] = useState('🤝');
+    const [showIconPicker, setShowIconPicker] = useState(false);
 
     useEffect(() => {
         if (!isAdding) resetForm();
@@ -33,6 +36,7 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
         setInstallments('1');
         setDueDate('');
         setLender('person1');
+        setIcon('🤝');
         setEditingId(null);
     };
 
@@ -52,7 +56,8 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
             total_value: value,
             installments: parseInt(installments) || 1,
             due_date: dueDate || undefined,
-            lender
+            lender,
+            icon
         };
 
         if (editingId) {
@@ -77,6 +82,7 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
         setInstallments((loan.installments || 1).toString());
         setDueDate(loan.due_date || '');
         setLender(loan.lender);
+        setIcon(loan.icon || '🤝');
         setEditingId(loan.id);
         setIsAdding(true);
     };
@@ -160,11 +166,44 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                 <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsAdding(false)} />
                     <div className="relative bg-white dark:bg-slate-800 w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-white/5">
-                        <div className="mb-8">
-                            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                                {editingId ? 'Editar Empréstimo' : 'Cadastrar Empréstimo'}
-                            </h3>
-                            <p className="text-slate-500 font-bold text-sm">Preencha os dados do valor emprestado</p>
+                        <div className="mb-8 flex items-center gap-4">
+                            <div className="relative">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 block mb-1">Ícone</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowIconPicker(!showIconPicker)}
+                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner border transition-all ${showIconPicker ? 'bg-p1 text-white border-p1' : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300'}`}
+                                >
+                                    {icon}
+                                </button>
+
+                                {showIconPicker && (
+                                    <>
+                                        <div className="fixed inset-0 z-[110]" onClick={() => setShowIconPicker(false)} />
+                                        <div className="absolute left-0 top-full mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-2xl p-4 z-[120] grid grid-cols-5 gap-2 animate-in fade-in zoom-in-95 duration-200">
+                                            {RECOMMENDED_ICONS.map(i => (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setIcon(i);
+                                                        setShowIconPicker(false);
+                                                    }}
+                                                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${icon === i ? 'bg-p1/10 ring-2 ring-p1 scale-110' : 'bg-slate-50 dark:bg-slate-800/50'}`}
+                                                >
+                                                    {i}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                                    {editingId ? 'Editar Empréstimo' : 'Cadastrar Empréstimo'}
+                                </h3>
+                                <p className="text-slate-500 font-bold text-sm">Preencha os dados do valor emprestado</p>
+                            </div>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
@@ -271,8 +310,8 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                             <div key={loan.id} className="bg-white dark:bg-slate-800/60 p-6 rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm space-y-5 hover:shadow-xl transition-all group relative overflow-hidden">
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-black text-xl ${loan.lender === 'person1' ? 'bg-p1 shadow-lg shadow-p1/20' : 'bg-p2 shadow-lg shadow-p2/20'}`}>
-                                            {loan.lender === 'person1' ? p1Name[0] : p2Name[0]}
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl font-black ${loan.lender === 'person1' ? 'bg-p1/10 text-p1' : 'bg-p2/10 text-p2'} border-2 border-current/10 shadow-inner`}>
+                                            {loan.icon || '🤝'}
                                         </div>
                                         <div>
                                             <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base leading-tight mb-1">{loan.borrower_name}</h4>

@@ -99,7 +99,9 @@ export const useAppData = () => {
                         emergencyReserveP1: info.emergencyReserveP1 ?? 0,
                         emergencyReserveP2: info.emergencyReserveP2 ?? 0,
                         monthlySavingsP1: info.monthlySavingsP1 ?? 0,
-                        monthlySavingsP2: info.monthlySavingsP2 ?? 0
+                        monthlySavingsP2: info.monthlySavingsP2 ?? 0,
+                        quickShortcuts: info.quickShortcuts || [],
+                        incomeCategories: info.incomeCategories || []
                     }));
                 }
 

@@ -47,6 +47,7 @@ export interface Trip {
   id: string;
   household_id: string;
   name: string;
+  icon?: string;
   budget?: number;
   proportionType: 'proportional' | 'custom';
   customPercentage1?: number;
@@ -80,6 +81,7 @@ export interface CoupleInfo {
   person2RecurringIncomes?: RecurringIncome[];
   trips?: Trip[];
   quickShortcuts?: QuickShortcut[];
+  incomeCategories?: (string | Category)[];
 
   // Bank Balance & Reserves
   /** @deprecated Use SavingsGoals (Transactions) instead of manual balance */
@@ -246,6 +248,7 @@ export interface Loan {
   paid_installments?: number;
   due_date?: string;
   lender: 'person1' | 'person2';
+  icon?: string;
   status: 'pending' | 'partial' | 'paid';
   created_at: string;
   deleted_at?: string;

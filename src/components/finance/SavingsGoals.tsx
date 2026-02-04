@@ -1,8 +1,8 @@
-
 import React, { useState, useMemo } from 'react';
 import { SavingsGoal, CoupleInfo, MonthlySummary, GoalTransaction } from '@/types';
 import { formatCurrency, formatAsBRL, parseBRL } from '@/utils';
 import { calculateGoalStats } from '@/domain/goals';
+import { RECOMMENDED_ICONS } from '@/config/design';
 
 interface Props {
     goals: SavingsGoal[];
@@ -41,6 +41,7 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
     const [startDate, setStartDate] = useState('');
     const [deadline, setDeadline] = useState('');
     const [icon, setIcon] = useState('💰');
+    const [showIconPicker, setShowIconPicker] = useState(false);
     const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
     const [investmentLocationP1, setInvestmentLocationP1] = useState('');
     const [investmentLocationP2, setInvestmentLocationP2] = useState('');
@@ -126,8 +127,6 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
             combinedMonthly: p1MonthlyTotal + p2MonthlyTotal
         };
     }, [goals, goalTransactions, coupleInfo]);
-
-    const icons = ['💰', '🏠', '🚗', '✈️', '💍', '👶', '🎮', '🏖️', '🎓', '🛡️', '💎', '🏝️', '📱', '💻', '🏋️'];
 
     const resetForm = () => {
         setTitle('');
@@ -795,24 +794,50 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
             {
                 isAdding && (
                     <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800/60 p-6 rounded-2xl border border-slate-100 dark:border-white/5 shadow-lg space-y-6 animate-in zoom-in-95 duration-300">
-                        <div className="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-white/10">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${editingId ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-brand/10'}`}>{icon}</div>
-                            <div className="flex-1">
-                                <h3 className="font-black text-slate-800 dark:text-slate-100 text-lg">
-                                    {editingId ? '✏️ Editando Meta' : 'Nova Meta Financeira'}
-                                </h3>
-                                <p className="text-xs text-slate-400">
-                                    {editingId ? 'Atualize os detalhes da sua meta' : 'Defina os detalhes do seu objetivo'}
-                                </p>
-                            </div>
-                            {editingId && (
-                                <span className="px-3 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase rounded-full">
-                                    Modo Edição
-                                </span>
-                            )}
-                        </div>
+                        <div className="flex items-center gap-4 pb-4 border-b border-slate-100 dark:border-white/10">
+                            <div className="relative">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 block mb-1">Ícone</label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowIconPicker(!showIconPicker)}
+                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner border transition-all ${showIconPicker ? 'bg-brand text-white border-brand' : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300'}`}
+                                >
+                                    {icon}
+                                </button>
 
-                        {/* Goal Type Selector */}
+                                {showIconPicker && (
+                                    <>
+                                        <div className="fixed inset-0 z-[110]" onClick={() => setShowIconPicker(false)} />
+                                        <div className="absolute left-0 top-full mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl p-4 z-[120] grid grid-cols-5 gap-2 animate-in fade-in zoom-in-95 duration-200">
+                                            {RECOMMENDED_ICONS.map(i => (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setIcon(i);
+                                                        setShowIconPicker(false);
+                                                    }}
+                                                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${icon === i ? 'bg-brand/10 ring-2 ring-brand scale-110' : 'bg-slate-50 dark:bg-slate-800/50'}`}
+                                                >
+                                                    {i}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Título da Meta</label>
+                                <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Viagem para Europa, Reserva..." className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-brand focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all" required />
+                            </div>
+                        </div>
+                        {editingId && (
+                            <div className="flex justify-center -mt-4">
+                                <span className="px-3 py-1 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase rounded-full border border-amber-200 dark:border-amber-500/20 shadow-sm animate-pulse">
+                                    ✨ Modo Edição Ativo
+                                </span>
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">De quem é essa meta?</label>
                             <div className="grid grid-cols-3 gap-2">
@@ -1152,23 +1177,6 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                                     onChange={e => setDeadline(e.target.value)}
                                     className="w-full bg-slate-50 dark:bg-slate-900/50 border-2 border-transparent focus:border-brand rounded-xl px-4 py-3 outline-none transition-all font-bold text-slate-500"
                                 />
-                            </div>
-                        </div>
-
-                        {/* Icons */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ícone</label>
-                            <div className="flex flex-wrap gap-2">
-                                {icons.map(i => (
-                                    <button
-                                        key={i}
-                                        type="button"
-                                        onClick={() => setIcon(i)}
-                                        className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg transition-all ${icon === i ? 'bg-brand text-white shadow-lg scale-110' : 'bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                                    >
-                                        {i}
-                                    </button>
-                                ))}
                             </div>
                         </div>
 
@@ -1560,7 +1568,8 @@ const SavingsGoals: React.FC<Props> = ({ goals, goalTransactions, onAddGoal, onU
                             ))}
                         </div>
                     </div>
-                )}
+                )
+            }
         </div>
     );
 };

@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Category, CoupleInfo, QuickShortcut } from '@/types';
 import QuickShortcutsModal from '@/components/modals/QuickShortcutsModal';
 import { parseBRL, formatAsBRL } from '@/utils';
 import { useAuth } from '@/AuthContext';
+import { RECOMMENDED_ICONS } from '@/config/design';
 
 interface Props {
   isOpen: boolean;
@@ -42,7 +42,12 @@ const DEFAULT_FREE_CATEGORIES: Category[] = [
   { name: 'Saúde', icon: '🏥' }
 ];
 
-const RECOMMENDED_ICONS = ['💰', '🏠', '🛒', '🚗', '🎮', '🏥', '🎓', '🛍️', '✈️', '💳', '🏖️', '🏰', '📦', '🍔', '👗', '💊', '🔋'];
+const DEFAULT_INCOME_CATEGORIES: Category[] = [
+  { name: 'Salário', icon: '💼' },
+  { name: 'Investimento', icon: '📈' },
+  { name: 'Bônus', icon: '🎁' },
+  { name: 'Outros', icon: '💰' }
+];
 
 const SidebarMenu: React.FC<Props> = ({
   isOpen,
@@ -75,6 +80,16 @@ const SidebarMenu: React.FC<Props> = ({
   const [selectedIcon, setSelectedIcon] = useState('📦');
   const [showIconPicker, setShowIconPicker] = useState(false);
   const [editingCategoryIndex, setEditingCategoryIndex] = useState<number | null>(null);
+
+  const [incomeCategories, setIncomeCategories] = useState<Category[]>(() => {
+    const initialCats = (coupleInfo.incomeCategories || []).map(c => typeof c === 'string' ? { name: c } : c);
+    if (initialCats.length > 0) return initialCats;
+    return DEFAULT_INCOME_CATEGORIES;
+  });
+  const [newIncomeCategory, setNewIncomeCategory] = useState('');
+  const [selectedIncomeIcon, setSelectedIncomeIcon] = useState('💰');
+  const [showIncomeIconPicker, setShowIncomeIconPicker] = useState(false);
+  const [editingIncomeCategoryIndex, setEditingIncomeCategoryIndex] = useState<number | null>(null);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(coupleInfo.theme || 'light');
   const [p1Color, setP1Color] = useState(coupleInfo.person1Color || '#2563eb');
@@ -113,7 +128,7 @@ const SidebarMenu: React.FC<Props> = ({
   };
 
   const handleSave = () => {
-    onUpdateSettings(n1, n2, categories, theme, p1Color, p2Color, shortcuts);
+    (onUpdateSettings as any)(n1, n2, categories, theme, p1Color, p2Color, shortcuts, incomeCategories);
     onClose();
   };
 
@@ -299,6 +314,167 @@ const SidebarMenu: React.FC<Props> = ({
                                 const newCats = [...categories];
                                 newCats[index].icon = icon;
                                 setCategories(newCats);
+                              }}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-white dark:hover:bg-slate-800 transition-colors ${cat.icon === icon ? 'bg-white dark:bg-slate-800 ring-1 ring-brand' : ''}`}
+                            >
+                              {icon}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+
+          {/* 2.1 Categorias de Receita */}
+          <section className="space-y-4">
+            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
+              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
+              Categorias de Receita
+            </h3>
+            <div className="space-y-3">
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowIncomeIconPicker(!showIncomeIconPicker)}
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border transition-all ${showIncomeIconPicker ? 'bg-brand text-white border-brand' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}
+                    >
+                      {selectedIncomeIcon}
+                    </button>
+
+                    {showIncomeIconPicker && (
+                      <>
+                        <div className="fixed inset-0 z-[110]" onClick={() => setShowIncomeIconPicker(false)} />
+                        <div className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-3 z-[120] grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-200">
+                          <div className="col-span-4 mb-1">
+                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Escolha um Ícone</p>
+                          </div>
+                          {RECOMMENDED_ICONS.map(icon => (
+                            <button
+                              key={icon}
+                              type="button"
+                              onClick={() => {
+                                setSelectedIncomeIcon(icon);
+                                setShowIncomeIconPicker(false);
+                              }}
+                              className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${selectedIncomeIcon === icon ? 'bg-brand/10 ring-2 ring-brand scale-105' : 'bg-slate-50 dark:bg-slate-800/50'}`}
+                            >
+                              {icon}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="text" value={newIncomeCategory} onChange={e => setNewIncomeCategory(e.target.value)}
+                    placeholder="Ex: Aluguel, Extra..."
+                    className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl px-5 text-sm font-bold outline-none dark:text-slate-100"
+                  />
+                  <button
+                    onClick={() => {
+                      if (newIncomeCategory.trim() && !incomeCategories.some(c => c.name === newIncomeCategory.trim())) {
+                        setIncomeCategories([...incomeCategories, { name: newIncomeCategory.trim(), icon: selectedIncomeIcon }]);
+                        setNewIncomeCategory('');
+                        setSelectedIncomeIcon('💰');
+                      }
+                    }}
+                    className="bg-brand text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-brand/20 active:scale-95 transition-all text-xl font-bold"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {incomeCategories.map((cat, index) => {
+                  const isEditing = editingIncomeCategoryIndex === index;
+                  return (
+                    <div key={cat.name} className={`group flex flex-col bg-white dark:bg-slate-800/60 p-2 rounded-2xl border transition-all ${isEditing ? 'border-brand shadow-lg' : 'border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md'}`}>
+                      <div className="flex items-center justify-between px-2 py-1">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setEditingIncomeCategoryIndex(isEditing ? null : index)}
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner transition-colors ${isEditing ? 'bg-brand text-white' : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300'}`}
+                          >
+                            {cat.icon || '💰'}
+                          </button>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={cat.name}
+                              onChange={(e) => {
+                                const newCats = [...incomeCategories];
+                                newCats[index].name = e.target.value;
+                                setIncomeCategories(newCats);
+                              }}
+                              className="bg-slate-100 dark:bg-slate-900 border-none rounded-lg px-2 py-1 text-xs font-bold outline-none dark:text-slate-100 w-32"
+                              autoFocus
+                            />
+                          ) : (
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{cat.name}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {!isEditing ? (
+                            <>
+                              <div className="flex flex-col gap-0.5">
+                                <button
+                                  onClick={() => {
+                                    const newCats = [...incomeCategories];
+                                    if (index > 0) {
+                                      [newCats[index], newCats[index - 1]] = [newCats[index - 1], newCats[index]];
+                                      setIncomeCategories(newCats);
+                                    }
+                                  }}
+                                  disabled={index === 0}
+                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                                >▲</button>
+                                <button
+                                  onClick={() => {
+                                    const newCats = [...incomeCategories];
+                                    if (index < newCats.length - 1) {
+                                      [newCats[index], newCats[index + 1]] = [newCats[index + 1], newCats[index]];
+                                      setIncomeCategories(newCats);
+                                    }
+                                  }}
+                                  disabled={index === incomeCategories.length - 1}
+                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
+                                >▼</button>
+                              </div>
+                              <button onClick={() => setEditingIncomeCategoryIndex(index)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-brand hover:bg-brand/5 rounded-xl font-bold transition-all">📝</button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Remover "${cat.name}"?`)) {
+                                    setIncomeCategories(incomeCategories.filter(c => c.name !== cat.name));
+                                  }
+                                }}
+                                className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all"
+                              >
+                                ×
+                              </button>
+                            </>
+                          ) : (
+                            <button onClick={() => setEditingIncomeCategoryIndex(null)} className="px-3 py-1 bg-brand text-white rounded-lg text-[10px] font-black uppercase">OK</button>
+                          )}
+                        </div>
+                      </div>
+
+                      {isEditing && (
+                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-xl grid grid-cols-6 gap-1 border border-slate-100 dark:border-white/5">
+                          {RECOMMENDED_ICONS.map(icon => (
+                            <button
+                              key={icon}
+                              type="button"
+                              onClick={() => {
+                                const newCats = [...incomeCategories];
+                                newCats[index].icon = icon;
+                                setIncomeCategories(newCats);
                               }}
                               className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-white dark:hover:bg-slate-800 transition-colors ${cat.icon === icon ? 'bg-white dark:bg-slate-800 ring-1 ring-brand' : ''}`}
                             >
@@ -500,6 +676,7 @@ const SidebarMenu: React.FC<Props> = ({
           onClose={() => setShowShortcutsModal(false)}
           onSave={async (updatedShortcuts) => {
             setShortcuts(updatedShortcuts);
+            (onUpdateSettings as any)(n1, n2, categories, theme, p1Color, p2Color, updatedShortcuts, incomeCategories);
             setShowShortcutsModal(false);
           }}
         />

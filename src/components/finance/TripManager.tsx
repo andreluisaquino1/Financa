@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Trip, TripDeposit, TripExpense, CoupleInfo } from '@/types';
 import { formatCurrency, formatAsBRL, parseBRL } from '@/utils';
 import { calculateTripSettlement } from '@/domain/trips';
+import { RECOMMENDED_ICONS } from '@/config/design';
 
 interface Props {
     coupleInfo: CoupleInfo;
@@ -33,6 +33,8 @@ export const TripManager: React.FC<Props> = ({
 
     // Trip Form State
     const [newName, setNewName] = useState('');
+    const [newIcon, setNewIcon] = useState('🎒');
+    const [showIconPicker, setShowIconPicker] = useState(false);
     const [newBudget, setNewBudget] = useState('');
     const [newProportion, setNewProportion] = useState<'proportional' | 'custom'>('proportional');
     const [newCustomP1, setNewCustomP1] = useState(50);
@@ -43,11 +45,13 @@ export const TripManager: React.FC<Props> = ({
         e.preventDefault();
         await onAddTrip({
             name: newName,
+            icon: newIcon,
             budget: parseBRL(newBudget),
             proportionType: newProportion,
             customPercentage1: newProportion === 'custom' ? newCustomP1 : undefined,
         });
         setNewName('');
+        setNewIcon('🎒');
         setNewBudget('');
         setIsAddingTrip(false);
     };
@@ -122,15 +126,47 @@ export const TripManager: React.FC<Props> = ({
                         </div>
 
                         <form onSubmit={handleAddTrip} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1">
+                            <div className="flex gap-4">
+                                <div className="relative">
+                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 block mb-1">Ícone</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowIconPicker(!showIconPicker)}
+                                        className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-inner border transition-all ${showIconPicker ? 'bg-p1 text-white border-p1' : 'bg-slate-50 dark:bg-slate-950/40 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300'}`}
+                                    >
+                                        {newIcon}
+                                    </button>
+
+                                    {showIconPicker && (
+                                        <>
+                                            <div className="fixed inset-0 z-[110]" onClick={() => setShowIconPicker(false)} />
+                                            <div className="absolute left-0 top-full mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl p-4 z-[120] grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-200">
+                                                {RECOMMENDED_ICONS.map(icon => (
+                                                    <button
+                                                        key={icon}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setNewIcon(icon);
+                                                            setShowIconPicker(false);
+                                                        }}
+                                                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${newIcon === icon ? 'bg-p1/10 ring-2 ring-p1 scale-110' : 'bg-slate-50 dark:bg-slate-800/50'}`}
+                                                    >
+                                                        {icon}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                                <div className="flex-1 space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Nome da Viagem</label>
-                                    <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Gramado 2024" className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all" required />
+                                    <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ex: Gramado 2024" className="w-full h-14 bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all" required />
                                 </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Orçamento Estimado</label>
-                                    <input type="text" inputMode="decimal" value={newBudget} onChange={e => setNewBudget(formatAsBRL(e.target.value))} placeholder="R$ 0,00" className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-black text-xl text-blue-500 outline-none transition-all" />
-                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Orçamento Estimado</label>
+                                <input type="text" inputMode="decimal" value={newBudget} onChange={e => setNewBudget(formatAsBRL(e.target.value))} placeholder="R$ 0,00" className="w-full bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-white/10 focus:border-p1 focus:bg-white dark:focus:bg-slate-900 rounded-2xl px-5 py-4 font-black text-xl text-blue-500 outline-none transition-all" />
                             </div>
 
                             <div className="space-y-2">
@@ -178,8 +214,8 @@ export const TripManager: React.FC<Props> = ({
                 {trips.map(trip => (
                     <div key={trip.id} onClick={() => setActiveTripId(trip.id)} className="bg-white dark:bg-slate-800/60 rounded-[2.5rem] p-8 border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden flex flex-col min-h-[240px]">
                         <div className="flex justify-between items-start mb-6">
-                            <div className="w-16 h-16 bg-blue-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-inner border border-blue-100 dark:border-white/5">
-                                ✈️
+                            <div className="w-16 h-16 bg-blue-50 dark:bg-slate-900 rounded-3xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform shadow-inner border border-blue-100 dark:border-white/5 font-bold">
+                                {trip.icon || '✈️'}
                             </div>
                             <button
                                 onClick={(e) => { e.stopPropagation(); handleDeleteTrip(trip.id); }}

@@ -121,7 +121,8 @@ const AppContent: React.FC = () => {
     n1: string, n2: string,
     cats?: (string | Category)[], theme?: 'light' | 'dark',
     p1Color?: string, p2Color?: string,
-    shortcuts?: QuickShortcut[]
+    shortcuts?: QuickShortcut[],
+    incomeCats?: (string | Category)[]
   ) => {
     saveCoupleInfo({
       ...coupleInfo,
@@ -131,7 +132,8 @@ const AppContent: React.FC = () => {
       theme: theme || coupleInfo.theme,
       person1Color: p1Color || coupleInfo.person1Color,
       person2Color: p2Color || coupleInfo.person2Color,
-      quickShortcuts: shortcuts || coupleInfo.quickShortcuts
+      quickShortcuts: shortcuts || coupleInfo.quickShortcuts,
+      incomeCategories: incomeCats || coupleInfo.incomeCategories
     }, true);
   };
 

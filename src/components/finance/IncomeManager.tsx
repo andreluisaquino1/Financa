@@ -14,11 +14,11 @@ interface IncomeManagerProps {
     onUpdateBaseSalary: (person: 'person1' | 'person2', value: number, description?: string) => void;
 }
 
-const CATEGORIES = [
-    { label: 'Salário', icon: '💼' },
-    { label: 'Investimento', icon: '📈' },
-    { label: 'Bônus', icon: '🎁' },
-    { label: 'Outros', icon: '💰' }
+const DEFAULT_INCOME_CATEGORIES = [
+    { name: 'Salário', icon: '💼' },
+    { name: 'Investimento', icon: '📈' },
+    { name: 'Bônus', icon: '🎁' },
+    { name: 'Outros', icon: '💰' }
 ];
 
 export const IncomeManager: React.FC<IncomeManagerProps> = ({
@@ -43,6 +43,12 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
     const [search, setSearch] = useState('');
     const [filterPayer, setFilterPayer] = useState('all');
     const [filterCategory, setFilterCategory] = useState('all');
+
+    const allCategories = React.useMemo(() => {
+        const cats = (coupleInfo.incomeCategories || []).map(c => typeof c === 'string' ? { name: c } : c);
+        if (cats.length > 0) return cats;
+        return DEFAULT_INCOME_CATEGORIES;
+    }, [coupleInfo.incomeCategories]);
 
     // Filter real incomes first
     const realMonthIncomes = incomes.filter(inc => inc.date.startsWith(monthKey));
@@ -258,8 +264,8 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 className="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl border-2 border-transparent focus:border-brand/30 outline-none transition-all dark:text-slate-200"
                             >
                                 <option value="all">🏷️ Todas Categorias</option>
-                                {CATEGORIES.map(cat => (
-                                    <option key={cat.label} value={cat.label}>{cat.icon} {cat.label}</option>
+                                {allCategories.map(cat => (
+                                    <option key={cat.name} value={cat.name}>{cat.icon || '💰'} {cat.name}</option>
                                 ))}
                             </select>
 
@@ -287,7 +293,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                         <div className="flex justify-between items-start">
                             <div className="flex items-center gap-3">
                                 <span className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg shadow-sm ${(inc as any).isVirtual ? 'bg-blue-100 dark:bg-blue-900/40' : 'bg-slate-50 dark:bg-slate-900'}`}>
-                                    {(inc as any).isVirtual ? '🔄' : (CATEGORIES.find(c => c.label === inc.category)?.icon || '💰')}
+                                    {(inc as any).isVirtual ? '🔄' : (allCategories.find(c => c.name === inc.category)?.icon || '💰')}
                                 </span>
                                 <div>
                                     <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-base">{inc.description}</h4>
@@ -343,7 +349,7 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
                                             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-lg shadow-sm border border-slate-100 dark:border-white/5 font-black ${(inc as any).isVirtual ? 'bg-blue-50 dark:bg-blue-900' : 'bg-slate-50 dark:bg-slate-900'}`}>
-                                                {(inc as any).isVirtual ? '🔄' : (CATEGORIES.find(c => c.label === inc.category)?.icon || '💰')}
+                                                {(inc as any).isVirtual ? '🔄' : (allCategories.find(c => c.name === inc.category)?.icon || '💰')}
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
@@ -423,21 +429,21 @@ export const IncomeManager: React.FC<IncomeManagerProps> = ({
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Categoria da Receita</label>
                                     <div className="grid grid-cols-2 gap-2">
-                                        {CATEGORIES.map(cat => {
+                                        {allCategories.map(cat => {
                                             return (
                                                 <button
-                                                    key={cat.label}
+                                                    key={cat.name}
                                                     onClick={() => {
-                                                        setCategory(cat.label);
+                                                        setCategory(cat.name);
                                                     }}
-                                                    className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-3 ${category === cat.label
+                                                    className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-3 ${category === cat.name
                                                         ? 'bg-brand/5 border-brand text-brand'
                                                         : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-white/5 text-slate-400'
                                                         }`}
                                                 >
-                                                    <span className="text-lg">{cat.icon}</span>
+                                                    <span className="text-lg">{cat.icon || '💰'}</span>
                                                     <div className="flex flex-col">
-                                                        <span className="text-[10px] font-black uppercase tracking-tight leading-none">{cat.label}</span>
+                                                        <span className="text-[10px] font-black uppercase tracking-tight leading-none">{cat.name}</span>
                                                     </div>
                                                 </button>
                                             );
