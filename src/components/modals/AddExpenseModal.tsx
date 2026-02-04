@@ -229,16 +229,17 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
     };
 
     const shortcuts = useMemo(() => {
-        return coupleInfo.quickShortcuts && coupleInfo.quickShortcuts.length > 0
-            ? coupleInfo.quickShortcuts
-            : [
-                { id: 's1', description: 'Mercado', category: 'Alimentação', icon: '🛒' },
-                { id: 's2', description: 'Padaria', category: 'Alimentação', icon: '🥖' },
-                { id: 's3', description: 'Combustível', category: 'Transporte', icon: '⛽' },
-                { id: 's4', description: 'Farmácia', category: 'Saúde', icon: '💊' },
-                { id: 's5', description: 'Lanche / iFood', category: 'Alimentação', icon: '🍔' },
-                { id: 's6', description: 'Uber / 99', category: 'Transporte', icon: '🚗' },
-            ] as QuickShortcut[];
+        if (coupleInfo.quickShortcuts && coupleInfo.quickShortcuts.length > 0) {
+            return coupleInfo.quickShortcuts;
+        }
+        return [
+            { id: 's1', description: 'Mercado', category: 'Alimentação', icon: '🛒' },
+            { id: 's2', description: 'Padaria', category: 'Alimentação', icon: '🥖' },
+            { id: 's3', description: 'Combustível', category: 'Transporte', icon: '⛽' },
+            { id: 's4', description: 'Farmácia', category: 'Saúde', icon: '💊' },
+            { id: 's5', description: 'Lanche / iFood', category: 'Alimentação', icon: '🍔' },
+            { id: 's6', description: 'Uber / 99', category: 'Transporte', icon: '🚗' },
+        ];
     }, [coupleInfo.quickShortcuts]);
 
     return (

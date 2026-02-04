@@ -66,9 +66,11 @@ const SidebarMenu: React.FC<Props> = ({
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
 
-  const initialCats = (coupleInfo.categories || []).map(c => typeof c === 'string' ? { name: c } : c);
-
-  const [categories, setCategories] = useState<Category[]>(initialCats);
+  const [categories, setCategories] = useState<Category[]>(() => {
+    const initialCats = (coupleInfo.categories || []).map(c => typeof c === 'string' ? { name: c } : c);
+    if (initialCats.length > 0) return initialCats;
+    return DEFAULT_FREE_CATEGORIES;
+  });
   const [newCategory, setNewCategory] = useState('');
   const [selectedIcon, setSelectedIcon] = useState('📦');
   const [showIconPicker, setShowIconPicker] = useState(false);
@@ -230,8 +232,8 @@ const SidebarMenu: React.FC<Props> = ({
                     placeholder="Ex: Pets, Farmácia..."
                     className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl px-5 text-sm font-bold outline-none dark:text-slate-100"
                   />
+                  <button onClick={addCategory} className="bg-brand text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-brand/20 active:scale-95 transition-all text-xl font-bold">+</button>
                 </div>
-                <button onClick={addCategory} className="w-full bg-slate-900 dark:bg-brand border hover:brightness-110 border-transparent text-white py-3.5 rounded-[1.25rem] font-black text-xs uppercase tracking-widest shadow-lg shadow-brand/10 active:scale-95 transition-all">Adicionar Categoria</button>
               </div>
 
               <div className="flex flex-col gap-2">

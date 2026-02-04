@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { QuickShortcut, CoupleInfo, ExpenseType } from '@/types';
-import { formatAsBRL, parseBRL } from '@/utils';
 
 interface Props {
     coupleInfo: CoupleInfo;
@@ -10,29 +9,39 @@ interface Props {
 
 const RECOMMENDED_ICONS = ['💰', '🏠', '🛒', '🚗', '🎮', '🏥', '🎓', '🛍️', '✈️', '💳', '🏖️', '🏰', '📦', '🍔', '👗', '💊', '🔋'];
 
+const DEFAULT_SHORTCUTS: QuickShortcut[] = [
+    { id: 's1', description: 'Mercado', category: 'Alimentação', icon: '🛒' },
+    { id: 's2', description: 'Padaria', category: 'Alimentação', icon: '🥖' },
+    { id: 's3', description: 'Combustível', category: 'Transporte', icon: '⛽' },
+    { id: 's4', description: 'Farmácia', category: 'Saúde', icon: '💊' },
+    { id: 's5', description: 'Lanche / iFood', category: 'Alimentação', icon: '🍔' },
+    { id: 's6', description: 'Uber / 99', category: 'Transporte', icon: '🚗' },
+];
+
 const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) => {
-    const [shortcuts, setShortcuts] = useState<QuickShortcut[]>(coupleInfo.quickShortcuts || []);
+    const [shortcuts, setShortcuts] = useState<QuickShortcut[]>(() => {
+        if (coupleInfo.quickShortcuts && coupleInfo.quickShortcuts.length > 0) {
+            return coupleInfo.quickShortcuts;
+        }
+        return DEFAULT_SHORTCUTS;
+    });
     const [isSaving, setIsSaving] = useState(false);
 
     const [newShortcut, setNewShortcut] = useState<Partial<QuickShortcut>>({
         description: '',
-        category: coupleInfo.categories?.[0] ? (typeof coupleInfo.categories[0] === 'string' ? coupleInfo.categories[0] : coupleInfo.categories[0].name) : 'Outros',
-        icon: '✨',
-        defaultValue: 0
+        category: 'Outros',
+        icon: '✨'
     });
 
-    const [valueDisplay, setValueDisplay] = useState('');
     const [showIconPicker, setShowIconPicker] = useState(false);
 
     const handleAddShortcut = () => {
-        if (!newShortcut.description || !newShortcut.category) return;
+        if (!newShortcut.description) return;
         const s: QuickShortcut = {
             id: Date.now().toString(),
             description: newShortcut.description,
-            category: newShortcut.category,
-            icon: newShortcut.icon || '✨',
-            defaultType: newShortcut.defaultType,
-            defaultValue: parseBRL(valueDisplay) || undefined
+            category: newShortcut.category || 'Outros',
+            icon: newShortcut.icon || '✨'
         };
         setShortcuts([...shortcuts, s]);
         setNewShortcut({
@@ -40,7 +49,6 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
             description: '',
             icon: '✨'
         });
-        setValueDisplay('');
     };
 
     const handleRemoveShortcut = (id: string) => {
@@ -66,7 +74,7 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-xl shadow-inner border border-brand/5">⚡</div>
                         <div>
-                            <h3 className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight text-lg">Meus Atalhos</h3>
+                            <h3 className="font-extrabold text-slate-900 dark:text-slate-100 tracking-tight text-lg">Gerenciar Atalhos</h3>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Agilidade no Lançamento</p>
                         </div>
                     </div>
@@ -116,30 +124,6 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <select
-                                    value={newShortcut.category}
-                                    onChange={e => setNewShortcut({ ...newShortcut, category: e.target.value })}
-                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none focus:border-brand transition-all text-xs shadow-sm appearance-none"
-                                >
-                                    {(coupleInfo.categories || []).map(cat => {
-                                        const name = typeof cat === 'string' ? cat : cat.name;
-                                        return <option key={name} value={name}>{name}</option>;
-                                    })}
-                                </select>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[10px]">R$</span>
-                                    <input
-                                        type="text"
-                                        inputMode="decimal"
-                                        value={valueDisplay}
-                                        onChange={e => setValueDisplay(formatAsBRL(e.target.value))}
-                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl pl-10 pr-4 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none focus:border-brand transition-all text-sm shadow-sm"
-                                        placeholder="0,00"
-                                    />
-                                </div>
-                            </div>
-
                             <button
                                 onClick={handleAddShortcut}
                                 disabled={!newShortcut.description}
@@ -152,10 +136,10 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
 
                     {/* List existing */}
                     <div className="space-y-4">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Atalhos Salvos</h4>
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Seus Atalhos</h4>
                         {shortcuts.length === 0 ? (
                             <div className="text-center py-10 text-slate-400 font-medium italic text-sm">
-                                Nenhum atalho personalizado ainda.
+                                Nenhum atalho configurado.
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-3 pb-4">
@@ -164,14 +148,7 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
                                         <div className="flex items-center gap-4">
                                             <span className="text-2xl group-hover:scale-110 transition-transform">{s.icon || '✨'}</span>
                                             <div>
-                                                <div className="flex items-center gap-2">
-                                                    <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">{s.description}</p>
-                                                    {s.defaultValue !== undefined && s.defaultValue > 0 && (
-                                                        <span className="text-[10px] font-black text-brand bg-brand/10 px-2 py-0.5 rounded-lg border border-brand/10">
-                                                            R$ {formatAsBRL((Math.round(s.defaultValue * 100)).toString())}
-                                                        </span>
-                                                    )}
-                                                </div>
+                                                <p className="font-bold text-slate-900 dark:text-slate-100 text-sm">{s.description}</p>
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mt-0.5">{s.category}</p>
                                             </div>
                                         </div>
@@ -203,7 +180,7 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
                         ) : (
                             <>
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                                Salvar Ativação de Atalhos
+                                Salvar Alterações
                             </>
                         )}
                     </button>
