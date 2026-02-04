@@ -29,7 +29,7 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
 
     const [newShortcut, setNewShortcut] = useState<Partial<QuickShortcut>>({
         description: '',
-        category: 'Outros',
+        category: '',
         icon: '✨'
     });
 
@@ -134,9 +134,24 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
                                 />
                             </div>
 
+                            <div className="space-y-1">
+                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Categoria</label>
+                                <select
+                                    value={newShortcut.category || ''}
+                                    onChange={e => setNewShortcut({ ...newShortcut, category: e.target.value })}
+                                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3.5 font-bold text-slate-900 dark:text-slate-100 outline-none focus:border-brand transition-all text-sm shadow-sm"
+                                >
+                                    <option value="">Selecione uma categoria</option>
+                                    {(coupleInfo.categories || []).map((cat, idx) => {
+                                        const catName = typeof cat === 'string' ? cat : cat.name;
+                                        return <option key={idx} value={catName}>{catName}</option>;
+                                    })}
+                                </select>
+                            </div>
+
                             <button
                                 onClick={handleAddShortcut}
-                                disabled={!newShortcut.description}
+                                disabled={!newShortcut.description || !newShortcut.category}
                                 className="w-full bg-brand text-white font-black py-4 rounded-2xl shadow-lg shadow-brand/20 hover:brightness-110 active:scale-95 transition-all text-[10px] uppercase tracking-[0.2em] disabled:opacity-50 mt-2"
                             >
                                 Adicionar à Minha Lista
