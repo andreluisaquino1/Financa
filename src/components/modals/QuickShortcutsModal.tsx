@@ -78,7 +78,7 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10005] flex items-center justify-center p-4 animate-in fade-in duration-300">
             <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-in zoom-in duration-300 border border-white/10">
                 <div className="px-8 py-6 border-b dark:border-white/5 flex justify-between items-center bg-white dark:bg-slate-900 z-10 shrink-0">
                     <div className="flex items-center gap-4">

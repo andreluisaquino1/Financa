@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Category, CoupleInfo, QuickShortcut } from '@/types';
+import CategoryManagerModal from '@/components/modals/CategoryManagerModal';
+import IncomeCategoryManagerModal from '@/components/modals/IncomeCategoryManagerModal';
 import QuickShortcutsModal from '@/components/modals/QuickShortcutsModal';
 import { parseBRL, formatAsBRL } from '@/utils';
 import { useAuth } from '@/AuthContext';
@@ -17,7 +19,8 @@ interface Props {
     theme?: 'light' | 'dark',
     p1Color?: string,
     p2Color?: string,
-    shortcuts?: QuickShortcut[]
+    shortcuts?: QuickShortcut[],
+    incomeCats?: (string | Category)[]
   ) => void;
   userEmail?: string;
   onSignOut?: () => void;
@@ -30,8 +33,6 @@ interface Props {
   userId?: string;
   inviteCode?: string | null;
   selectedMonth?: string;
-  isSimpleMode?: boolean;
-  onToggleSimpleMode?: (value: boolean) => void;
 }
 
 const DEFAULT_FREE_CATEGORIES: Category[] = [
@@ -65,8 +66,6 @@ const SidebarMenu: React.FC<Props> = ({
   userId,
   inviteCode,
   selectedMonth,
-  isSimpleMode = false,
-  onToggleSimpleMode
 }) => {
   const [n1, setN1] = useState(coupleInfo.person1Name);
   const [n2, setN2] = useState(coupleInfo.person2Name);
@@ -76,26 +75,19 @@ const SidebarMenu: React.FC<Props> = ({
     if (initialCats.length > 0) return initialCats;
     return DEFAULT_FREE_CATEGORIES;
   });
-  const [newCategory, setNewCategory] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState('📦');
-  const [showIconPicker, setShowIconPicker] = useState(false);
-  const [editingCategoryIndex, setEditingCategoryIndex] = useState<number | null>(null);
-
   const [incomeCategories, setIncomeCategories] = useState<Category[]>(() => {
     const initialCats = (coupleInfo.incomeCategories || []).map(c => typeof c === 'string' ? { name: c } : c);
     if (initialCats.length > 0) return initialCats;
     return DEFAULT_INCOME_CATEGORIES;
   });
-  const [newIncomeCategory, setNewIncomeCategory] = useState('');
-  const [selectedIncomeIcon, setSelectedIncomeIcon] = useState('💰');
-  const [showIncomeIconPicker, setShowIncomeIconPicker] = useState(false);
-  const [editingIncomeCategoryIndex, setEditingIncomeCategoryIndex] = useState<number | null>(null);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(coupleInfo.theme || 'light');
   const [p1Color, setP1Color] = useState(coupleInfo.person1Color || '#2563eb');
   const [p2Color, setP2Color] = useState(coupleInfo.person2Color || '#ec4899');
   const [shortcuts, setShortcuts] = useState<QuickShortcut[]>(coupleInfo.quickShortcuts || []);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
+  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
+  const [showIncomeCategoriesModal, setShowIncomeCategoriesModal] = useState(false);
 
   const { updatePassword } = useAuth();
   const [showPassForm, setShowPassForm] = useState(false);
@@ -136,29 +128,8 @@ const SidebarMenu: React.FC<Props> = ({
     setCategories(updatedCats);
   };
 
-  const addCategory = () => {
-    if (newCategory.trim() && !categories.some(c => c.name === newCategory.trim())) {
-      const updated = [...categories, { name: newCategory.trim(), icon: selectedIcon }];
-      handleUpdateCategories(updated);
-      setNewCategory('');
-      setSelectedIcon('📦');
-    }
-  };
-
-  const removeCategory = (name: string) => {
-    if (confirm(`Remover "${name}"?`)) {
-      handleUpdateCategories(categories.filter(c => c.name !== name));
-    }
-  };
-
-  const moveCategory = (index: number, direction: 'up' | 'down') => {
-    const newCats = [...categories];
-    if (direction === 'up' && index > 0) {
-      [newCats[index], newCats[index - 1]] = [newCats[index - 1], newCats[index]];
-    } else if (direction === 'down' && index < newCats.length - 1) {
-      [newCats[index], newCats[index + 1]] = [newCats[index + 1], newCats[index]];
-    }
-    handleUpdateCategories(newCats);
+  const handleUpdateIncomeCategories = (updatedCats: Category[]) => {
+    setIncomeCategories(updatedCats);
   };
 
   return (
@@ -191,307 +162,56 @@ const SidebarMenu: React.FC<Props> = ({
               Perfil & Renda
             </h3>
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-[1.5rem] border border-slate-100 dark:border-white/5 space-y-3">
                 <TextInput label={`Pessoa 1`} value={n1} onChange={setN1} />
-              </div>
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                 <TextInput label={`Pessoa 2`} value={n2} onChange={setN2} />
               </div>
             </div>
           </section>
 
-          {/* 2. Categorias */}
+          {/* 2. Configurações Globais */}
           <section className="space-y-4">
             <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Categorias de Gasto
+              Configurações Globais
             </h3>
-            <div className="space-y-3">
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowIconPicker(!showIconPicker)}
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border transition-all ${showIconPicker ? 'bg-brand text-white border-brand' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}
-                    >
-                      {selectedIcon}
-                    </button>
-
-                    {showIconPicker && (
-                      <>
-                        <div className="fixed inset-0 z-[110]" onClick={() => setShowIconPicker(false)} />
-                        <div className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-3 z-[120] grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-200">
-                          <div className="col-span-4 mb-1">
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Escolha um Ícone</p>
-                          </div>
-                          {RECOMMENDED_ICONS.map(icon => (
-                            <button
-                              key={icon}
-                              type="button"
-                              onClick={() => {
-                                setSelectedIcon(icon);
-                                setShowIconPicker(false);
-                              }}
-                              className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${selectedIcon === icon ? 'bg-brand/10 ring-2 ring-brand scale-105' : 'bg-slate-50 dark:bg-slate-800/50'}`}
-                            >
-                              {icon}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    type="text" value={newCategory} onChange={e => setNewCategory(e.target.value)}
-                    placeholder="Ex: Pets, Farmácia..."
-                    className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl px-5 text-sm font-bold outline-none dark:text-slate-100"
-                  />
-                  <button onClick={addCategory} className="bg-brand text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-brand/20 active:scale-95 transition-all text-xl font-bold">+</button>
+            <div className="space-y-2">
+              <button
+                onClick={() => setShowCategoriesModal(true)}
+                className="w-full p-5 bg-slate-50 dark:bg-slate-800/40 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center gap-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group text-left shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl group-hover:text-brand transition-colors text-center border border-slate-200 dark:border-white/5">🏷️</div>
+                <div>
+                  <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight block">Categorias de Gastos</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Organizar despesas</span>
                 </div>
-              </div>
+              </button>
 
-              <div className="flex flex-col gap-2">
-                {categories.map((cat, index) => {
-                  const isEditing = editingCategoryIndex === index;
-                  return (
-                    <div key={cat.name} className={`group flex flex-col bg-white dark:bg-slate-800/60 p-2 rounded-2xl border transition-all ${isEditing ? 'border-brand shadow-lg' : 'border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md'}`}>
-                      <div className="flex items-center justify-between px-2 py-1">
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => setEditingCategoryIndex(isEditing ? null : index)}
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner transition-colors ${isEditing ? 'bg-brand text-white' : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300'}`}
-                          >
-                            {cat.icon || '📦'}
-                          </button>
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={cat.name}
-                              onChange={(e) => {
-                                const newCats = [...categories];
-                                newCats[index].name = e.target.value;
-                                setCategories(newCats);
-                              }}
-                              className="bg-slate-100 dark:bg-slate-900 border-none rounded-lg px-2 py-1 text-xs font-bold outline-none dark:text-slate-100 w-32"
-                              autoFocus
-                            />
-                          ) : (
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{cat.name}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {!isEditing ? (
-                            <>
-                              <div className="flex flex-col gap-0.5">
-                                <button
-                                  onClick={() => moveCategory(index, 'up')}
-                                  disabled={index === 0}
-                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
-                                >▲</button>
-                                <button
-                                  onClick={() => moveCategory(index, 'down')}
-                                  disabled={index === categories.length - 1}
-                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
-                                >▼</button>
-                              </div>
-                              <button onClick={() => setEditingCategoryIndex(index)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-brand hover:bg-brand/5 rounded-xl font-bold transition-all">📝</button>
-                              <button onClick={() => removeCategory(cat.name)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all">×</button>
-                            </>
-                          ) : (
-                            <button onClick={() => setEditingCategoryIndex(null)} className="px-3 py-1 bg-brand text-white rounded-lg text-[10px] font-black uppercase">OK</button>
-                          )}
-                        </div>
-                      </div>
+              <button
+                onClick={() => setShowIncomeCategoriesModal(true)}
+                className="w-full p-5 bg-slate-50 dark:bg-slate-800/40 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center gap-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group text-left shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl group-hover:text-emerald-500 transition-colors text-center border border-slate-200 dark:border-white/5">💵</div>
+                <div>
+                  <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight block">Categorias de Receitas</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Gerenciar ganhos</span>
+                </div>
+              </button>
 
-                      {isEditing && (
-                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-xl grid grid-cols-6 gap-1 border border-slate-100 dark:border-white/5">
-                          {RECOMMENDED_ICONS.map(icon => (
-                            <button
-                              key={icon}
-                              type="button"
-                              onClick={() => {
-                                const newCats = [...categories];
-                                newCats[index].icon = icon;
-                                setCategories(newCats);
-                              }}
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-white dark:hover:bg-slate-800 transition-colors ${cat.icon === icon ? 'bg-white dark:bg-slate-800 ring-1 ring-brand' : ''}`}
-                            >
-                              {icon}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              <button
+                onClick={() => setShowShortcutsModal(true)}
+                className="w-full p-5 bg-slate-50 dark:bg-slate-800/40 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center gap-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group text-left shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl group-hover:text-brand transition-colors text-center border border-slate-200 dark:border-white/5">⚡</div>
+                <div>
+                  <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight block">Atalhos Rápidos</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Preenchimento veloz</span>
+                </div>
+              </button>
             </div>
           </section>
 
-          {/* 2.1 Categorias de Receita */}
-          <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
-              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Categorias de Receita
-            </h3>
-            <div className="space-y-3">
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowIncomeIconPicker(!showIncomeIconPicker)}
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner border transition-all ${showIncomeIconPicker ? 'bg-brand text-white border-brand' : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-white/5 text-slate-700 dark:text-slate-300'}`}
-                    >
-                      {selectedIncomeIcon}
-                    </button>
-
-                    {showIncomeIconPicker && (
-                      <>
-                        <div className="fixed inset-0 z-[110]" onClick={() => setShowIncomeIconPicker(false)} />
-                        <div className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-3 z-[120] grid grid-cols-4 gap-2 animate-in fade-in zoom-in-95 duration-200">
-                          <div className="col-span-4 mb-1">
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">Escolha um Ícone</p>
-                          </div>
-                          {RECOMMENDED_ICONS.map(icon => (
-                            <button
-                              key={icon}
-                              type="button"
-                              onClick={() => {
-                                setSelectedIncomeIcon(icon);
-                                setShowIncomeIconPicker(false);
-                              }}
-                              className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-90 ${selectedIncomeIcon === icon ? 'bg-brand/10 ring-2 ring-brand scale-105' : 'bg-slate-50 dark:bg-slate-800/50'}`}
-                            >
-                              {icon}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    type="text" value={newIncomeCategory} onChange={e => setNewIncomeCategory(e.target.value)}
-                    placeholder="Ex: Aluguel, Extra..."
-                    className="flex-1 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl px-5 text-sm font-bold outline-none dark:text-slate-100"
-                  />
-                  <button
-                    onClick={() => {
-                      if (newIncomeCategory.trim() && !incomeCategories.some(c => c.name === newIncomeCategory.trim())) {
-                        setIncomeCategories([...incomeCategories, { name: newIncomeCategory.trim(), icon: selectedIncomeIcon }]);
-                        setNewIncomeCategory('');
-                        setSelectedIncomeIcon('💰');
-                      }
-                    }}
-                    className="bg-brand text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shadow-brand/20 active:scale-95 transition-all text-xl font-bold"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {incomeCategories.map((cat, index) => {
-                  const isEditing = editingIncomeCategoryIndex === index;
-                  return (
-                    <div key={cat.name} className={`group flex flex-col bg-white dark:bg-slate-800/60 p-2 rounded-2xl border transition-all ${isEditing ? 'border-brand shadow-lg' : 'border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md'}`}>
-                      <div className="flex items-center justify-between px-2 py-1">
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => setEditingIncomeCategoryIndex(isEditing ? null : index)}
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner transition-colors ${isEditing ? 'bg-brand text-white' : 'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300'}`}
-                          >
-                            {cat.icon || '💰'}
-                          </button>
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={cat.name}
-                              onChange={(e) => {
-                                const newCats = [...incomeCategories];
-                                newCats[index].name = e.target.value;
-                                setIncomeCategories(newCats);
-                              }}
-                              className="bg-slate-100 dark:bg-slate-900 border-none rounded-lg px-2 py-1 text-xs font-bold outline-none dark:text-slate-100 w-32"
-                              autoFocus
-                            />
-                          ) : (
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{cat.name}</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {!isEditing ? (
-                            <>
-                              <div className="flex flex-col gap-0.5">
-                                <button
-                                  onClick={() => {
-                                    const newCats = [...incomeCategories];
-                                    if (index > 0) {
-                                      [newCats[index], newCats[index - 1]] = [newCats[index - 1], newCats[index]];
-                                      setIncomeCategories(newCats);
-                                    }
-                                  }}
-                                  disabled={index === 0}
-                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
-                                >▲</button>
-                                <button
-                                  onClick={() => {
-                                    const newCats = [...incomeCategories];
-                                    if (index < newCats.length - 1) {
-                                      [newCats[index], newCats[index + 1]] = [newCats[index + 1], newCats[index]];
-                                      setIncomeCategories(newCats);
-                                    }
-                                  }}
-                                  disabled={index === incomeCategories.length - 1}
-                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-[8px] leading-none disabled:opacity-20"
-                                >▼</button>
-                              </div>
-                              <button onClick={() => setEditingIncomeCategoryIndex(index)} className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-brand hover:bg-brand/5 rounded-xl font-bold transition-all">📝</button>
-                              <button
-                                onClick={() => {
-                                  if (confirm(`Remover "${cat.name}"?`)) {
-                                    setIncomeCategories(incomeCategories.filter(c => c.name !== cat.name));
-                                  }
-                                }}
-                                className="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl font-bold transition-all"
-                              >
-                                ×
-                              </button>
-                            </>
-                          ) : (
-                            <button onClick={() => setEditingIncomeCategoryIndex(null)} className="px-3 py-1 bg-brand text-white rounded-lg text-[10px] font-black uppercase">OK</button>
-                          )}
-                        </div>
-                      </div>
-
-                      {isEditing && (
-                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-xl grid grid-cols-6 gap-1 border border-slate-100 dark:border-white/5">
-                          {RECOMMENDED_ICONS.map(icon => (
-                            <button
-                              key={icon}
-                              type="button"
-                              onClick={() => {
-                                const newCats = [...incomeCategories];
-                                newCats[index].icon = icon;
-                                setIncomeCategories(newCats);
-                              }}
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm hover:bg-white dark:hover:bg-slate-800 transition-colors ${cat.icon === icon ? 'bg-white dark:bg-slate-800 ring-1 ring-brand' : ''}`}
-                            >
-                              {icon}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-
-          {/* 4. Senha */}
+          {/* 3. Segurança */}
           <section className="space-y-4">
             <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
@@ -501,13 +221,13 @@ const SidebarMenu: React.FC<Props> = ({
             {!showPassForm ? (
               <button
                 onClick={() => setShowPassForm(true)}
-                className="w-full p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group"
+                className="w-full p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group shadow-sm"
               >
-                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm group-hover:text-brand transition-colors">🔐</div>
-                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tight">Alterar Senha</span>
+                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm group-hover:text-brand transition-colors border border-slate-200 dark:border-white/5">🔐</div>
+                <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tight">Alterar Minha Senha</span>
               </button>
             ) : (
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-brand/30 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-brand/30 space-y-3 animate-in fade-in zoom-in-95 duration-200 shadow-md">
                 <div className="space-y-1">
                   <label className="text-[8px] font-black text-slate-400 uppercase ml-1">Nova Senha</label>
                   <input
@@ -545,40 +265,7 @@ const SidebarMenu: React.FC<Props> = ({
             )}
           </section>
 
-
-          <section className="space-y-4">
-            <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
-              <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
-              Interface
-            </h3>
-            <div className="space-y-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-sm text-slate-700 dark:text-slate-200">Modo Simplificado</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">Ocultar Investimentos, Viagens e<br />Empréstimos para mais foco.</p>
-                </div>
-                <button
-                  onClick={() => onToggleSimpleMode?.(!isSimpleMode)}
-                  className={`w-12 h-7 rounded-full transition-colors relative flex items-center ${isSimpleMode ? 'bg-brand' : 'bg-slate-200 dark:bg-slate-700'}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ml-1 ${isSimpleMode ? 'translate-x-5' : 'translate-x-0'}`} />
-                </button>
-              </div>
-
-              <button
-                onClick={() => setShowShortcutsModal(true)}
-                className="w-full p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-100 dark:border-white/5 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all group text-left"
-              >
-                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm group-hover:text-brand transition-colors text-center">⚡</div>
-                <div>
-                  <span className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-tight block">Atalhos de Preenchimento</span>
-                  <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Personalizar botões rápidos</span>
-                </div>
-              </button>
-            </div>
-          </section>
-
-          {/* 5. Sincronização */}
+          {/* 4. Sincronização */}
           <section className="space-y-4">
             <h3 className="font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest text-[9px] flex items-center gap-2">
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
@@ -588,8 +275,8 @@ const SidebarMenu: React.FC<Props> = ({
               onClick={() => { if (onShowHouseholdLink) { onShowHouseholdLink(); onClose(); } }}
               className="w-full p-4 bg-brand text-white rounded-2xl shadow-lg shadow-brand/20 flex flex-col items-start gap-1 hover:brightness-110 active:scale-[0.98] transition-all"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest">Conectar Parceiro</span>
-              <span className="text-[8px] opacity-70 font-bold">CÓDIGO: {inviteCode || userId?.slice(0, 8)}</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">Conectar ao Parceiro</span>
+              <span className="text-[8px] opacity-70 font-bold">DISPOSITIVO VINCULADO</span>
             </button>
           </section>
 
@@ -599,12 +286,12 @@ const SidebarMenu: React.FC<Props> = ({
               <span className="w-4 h-px bg-slate-200 dark:bg-slate-800"></span>
               Aparência
             </h3>
-            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-[1.5rem] flex items-center justify-between border border-slate-100 dark:border-white/5">
+            <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-[1.5rem] flex items-center justify-between border border-slate-100 dark:border-white/5 shadow-sm">
               <div className="flex gap-1 bg-white dark:bg-slate-900 p-1 rounded-xl shadow-inner border border-slate-100 dark:border-white/5">
-                <button onClick={() => setTheme('light')} className={`p-1.5 rounded-lg transition-all ${theme === 'light' ? 'bg-slate-900 text-white' : 'text-slate-400'}`}>
+                <button onClick={() => setTheme('light')} className={`p-1.5 rounded-lg transition-all ${theme === 'light' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-400'}`}>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </button>
-                <button onClick={() => setTheme('dark')} className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-brand text-white' : 'text-slate-400'}`}>
+                <button onClick={() => setTheme('dark')} className={`p-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-brand text-white shadow-sm' : 'text-slate-400'}`}>
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 </button>
               </div>
@@ -631,15 +318,6 @@ const SidebarMenu: React.FC<Props> = ({
 
           {/* Footer Actions */}
           <div className="space-y-1 pt-6 border-t border-slate-100 dark:border-white/5 pb-10">
-
-            <SidebarBtn icon="↩" label="Sair da Conta" onClick={onSignOut} />
-
-            <SidebarBtn
-              icon="♻️"
-              label="Restaurar Dados (Lixeira)"
-              onClick={() => { onRestoreData?.(); onClose(); }}
-            />
-
             <SidebarBtn
               icon="📅"
               label={`Limpar Mês (${selectedMonth})`}
@@ -653,18 +331,26 @@ const SidebarMenu: React.FC<Props> = ({
             />
 
             <SidebarBtn
-              icon="×"
+              icon="🗑️"
               label="Apagar Todos os Dados"
               onClick={() => {
                 onDeleteAccount();
               }}
               variant="danger"
             />
+
+            <SidebarBtn
+              icon="♻️"
+              label="Restaurar Dados (Lixeira)"
+              onClick={() => { onRestoreData?.(); onClose(); }}
+            />
+
+            <SidebarBtn icon="↩" label="Sair da Conta" onClick={onSignOut} />
           </div>
         </div>
 
         <div className="p-8 border-t border-slate-50 dark:border-white/5 bg-white dark:bg-slate-900 shrink-0">
-          <button onClick={handleSave} className="w-full bg-slate-900 dark:bg-brand text-white font-black py-4.5 rounded-[1.25rem] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+          <button onClick={handleSave} className="w-full bg-slate-900 dark:bg-brand text-white font-black py-5.5 rounded-[1.5rem] shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all text-sm uppercase tracking-[0.2em]">
             Salvar Alterações
           </button>
         </div>
@@ -678,6 +364,30 @@ const SidebarMenu: React.FC<Props> = ({
             setShortcuts(updatedShortcuts);
             (onUpdateSettings as any)(n1, n2, categories, theme, p1Color, p2Color, updatedShortcuts, incomeCategories);
             setShowShortcutsModal(false);
+          }}
+        />
+      )}
+
+      {showCategoriesModal && (
+        <CategoryManagerModal
+          coupleInfo={coupleInfo}
+          onClose={() => setShowCategoriesModal(false)}
+          onSave={async (updatedCategories) => {
+            setCategories(updatedCategories);
+            (onUpdateSettings as any)(n1, n2, updatedCategories, theme, p1Color, p2Color, shortcuts, incomeCategories);
+            setShowCategoriesModal(false);
+          }}
+        />
+      )}
+
+      {showIncomeCategoriesModal && (
+        <IncomeCategoryManagerModal
+          coupleInfo={coupleInfo}
+          onClose={() => setShowIncomeCategoriesModal(false)}
+          onSave={async (updatedIncomeCategories) => {
+            setIncomeCategories(updatedIncomeCategories);
+            (onUpdateSettings as any)(n1, n2, categories, theme, p1Color, p2Color, shortcuts, updatedIncomeCategories);
+            setShowIncomeCategoriesModal(false);
           }}
         />
       )}
