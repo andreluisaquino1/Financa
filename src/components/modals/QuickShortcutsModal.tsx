@@ -55,6 +55,16 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
         setShortcuts(shortcuts.filter(s => s.id !== id));
     };
 
+    const moveShortcut = (index: number, direction: 'up' | 'down') => {
+        const newShortcuts = [...shortcuts];
+        if (direction === 'up' && index > 0) {
+            [newShortcuts[index], newShortcuts[index - 1]] = [newShortcuts[index - 1], newShortcuts[index]];
+        } else if (direction === 'down' && index < newShortcuts.length - 1) {
+            [newShortcuts[index], newShortcuts[index + 1]] = [newShortcuts[index + 1], newShortcuts[index]];
+        }
+        setShortcuts(newShortcuts);
+    };
+
     const handleSave = async () => {
         setIsSaving(true);
         try {
@@ -143,7 +153,7 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-3 pb-4">
-                                {shortcuts.map(s => (
+                                {shortcuts.map((s, index) => (
                                     <div key={s.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm hover:shadow-md transition-all group">
                                         <div className="flex items-center gap-4">
                                             <span className="text-2xl group-hover:scale-110 transition-transform">{s.icon || '✨'}</span>
@@ -152,13 +162,31 @@ const QuickShortcutsModal: React.FC<Props> = ({ coupleInfo, onSave, onClose }) =
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-tight mt-0.5">{s.category}</p>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleRemoveShortcut(s.id)}
-                                            className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-2xl transition-all active:scale-90"
-                                            title="Excluir atalho"
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                        </button>
+                                        <div className="flex items-center gap-1">
+                                            <div className="flex flex-col gap-0.5">
+                                                <button
+                                                    onClick={() => moveShortcut(index, 'up')}
+                                                    disabled={index === 0}
+                                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-[8px] leading-none disabled:opacity-20 transition-colors text-slate-400"
+                                                >
+                                                    ▲
+                                                </button>
+                                                <button
+                                                    onClick={() => moveShortcut(index, 'down')}
+                                                    disabled={index === shortcuts.length - 1}
+                                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-[8px] leading-none disabled:opacity-20 transition-colors text-slate-400"
+                                                >
+                                                    ▼
+                                                </button>
+                                            </div>
+                                            <button
+                                                onClick={() => handleRemoveShortcut(s.id)}
+                                                className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-2xl transition-all active:scale-90"
+                                                title="Excluir atalho"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
