@@ -51,9 +51,15 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
 
     // Modo Múltiplo
     const [isMultiMode, setIsMultiMode] = useState(false);
-    const [multiItems, setMultiItems] = useState<{ id: string, description: string, value: string }[]>([]);
+    const [multiItems, setMultiItems] = useState<{ id: string, description: string, value: string, date: string }[]>([]);
     const [itemDescription, setItemDescription] = useState('');
     const [itemValue, setItemValue] = useState('');
+    const [itemDate, setItemDate] = useState(date); // Inicia com a data global selecionada
+
+    // Sincronizar itemDate quando date (global) muda (útil para carregar o valor inicial)
+    useEffect(() => {
+        setItemDate(date);
+    }, [date]);
 
     // Sync total value and installment value
     useEffect(() => {
@@ -126,9 +132,9 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                 const batchData = multiItems.map(item => ({
                     description: item.description,
                     totalValue: parseBRL(item.value),
+                    date: item.date, // Usa a data do item
                     category,
                     paidBy,
-                    date,
                     type: currentType,
                     installments: 1,
                     reminderDay: reminderDay ? parseInt(reminderDay) : undefined,
@@ -196,10 +202,12 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
         setMultiItems(prev => [...prev, {
             id: Date.now().toString(),
             description: itemDescription,
-            value: itemValue
+            value: itemValue,
+            date: itemDate
         }]);
         setItemDescription('');
         setItemValue('');
+        // Mantém a itemDate atual (geralmente o usuário quer lançar vários na mesma data, mas pode mudar o próximo)
     };
 
     const removeMultiItem = (id: string) => {
@@ -415,13 +423,21 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                 <div className="space-y-3 bg-slate-50 dark:bg-slate-950/40 p-5 rounded-3xl border border-dashed border-slate-300 dark:border-white/10">
                                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1 text-center block">Adicionar Itens à Lista</label>
                                     <div className="flex flex-col gap-3">
-                                        <input
-                                            type="text"
-                                            value={itemDescription}
-                                            onChange={e => setItemDescription(e.target.value)}
-                                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
-                                            placeholder="Descrição do item..."
-                                        />
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <input
+                                                type="text"
+                                                value={itemDescription}
+                                                onChange={e => setItemDescription(e.target.value)}
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all"
+                                                placeholder="Descrição..."
+                                            />
+                                            <input
+                                                type="date"
+                                                value={itemDate}
+                                                onChange={e => setItemDate(e.target.value)}
+                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3 font-bold text-slate-900 dark:text-slate-100 outline-none transition-all text-xs"
+                                            />
+                                        </div>
                                         <div className="flex gap-3">
                                             <div className="relative flex-1">
                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
@@ -454,7 +470,10 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                         {multiItems.map(item => (
                                             <div key={item.id} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-white/5 rounded-2xl shadow-sm animate-in fade-in slide-in-from-right-2">
                                                 <div className="flex flex-col">
-                                                    <span className="font-bold text-slate-700 dark:text-slate-200">{item.description}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-slate-700 dark:text-slate-200">{item.description}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">{item.date.split('-').reverse().join('/')}</span>
+                                                    </div>
                                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{category}</span>
                                                 </div>
                                                 <div className="flex items-center gap-4">
