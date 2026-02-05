@@ -283,6 +283,9 @@ const TripDetail: React.FC<{
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
     const [person, setPerson] = useState<'person1' | 'person2' | 'fund'>('person1');
+    const [isAddingRetroactive, setIsAddingRetroactive] = useState(false);
+    const [retroactiveTotal, setRetroactiveTotal] = useState('');
+    const [retroactiveDescription, setRetroactiveDescription] = useState('Pagamentos Iniciais');
 
     const s1 = coupleInfo.salary1 || 0;
     const s2 = coupleInfo.salary2 || 0;
@@ -338,6 +341,36 @@ const TripDetail: React.FC<{
         resetForm();
     };
 
+    const handleSubmitRetroactive = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const total = parseBRL(retroactiveTotal);
+        if (total <= 0) return;
+
+        const p1Ratio = trip.proportionType === 'proportional' ? p1SalaryRatio : (trip.customPercentage1 ?? 50) / 100;
+        const v1 = Math.round(total * p1Ratio * 100) / 100;
+        const v2 = Math.round((total - v1) * 100) / 100;
+
+        // Add two separate expenses, one for each person
+        await onAddExpense({
+            description: `${retroactiveDescription} (${coupleInfo.person1Name.split(' ')[0]})`,
+            value: v1,
+            paidBy: 'person1',
+            date: new Date().toISOString().split('T')[0],
+            category: 'Viagem'
+        });
+
+        await onAddExpense({
+            description: `${retroactiveDescription} (${coupleInfo.person2Name.split(' ')[0]})`,
+            value: v2,
+            paidBy: 'person2',
+            date: new Date().toISOString().split('T')[0],
+            category: 'Viagem'
+        });
+
+        setIsAddingRetroactive(false);
+        setRetroactiveTotal('');
+    };
+
     const resetForm = () => {
         setDescription('');
         setValue('');
@@ -387,6 +420,15 @@ const TripDetail: React.FC<{
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                             {isAdding ? 'Cancelar' : (view === 'expenses' ? 'Gasto' : 'Aporte')}
+                        </button>
+
+                        <button
+                            onClick={() => { setIsAddingRetroactive(!isAddingRetroactive); setIsAdding(false); }}
+                            className={`flex-1 lg:flex-none ${isAddingRetroactive ? 'bg-slate-100 dark:bg-slate-800 text-slate-500' : 'bg-slate-50 dark:bg-slate-950/40 text-slate-400 border border-slate-100 dark:border-white/5'} hover:brightness-110 px-8 py-5 rounded-2xl font-black text-[10px] transition-all active:scale-95 flex flex-col items-center justify-center gap-1 uppercase tracking-widest`}
+                            title="Lançar o que já foi pago de forma proporcional"
+                        >
+                            <span className="text-lg">🕒</span>
+                            Histórico
                         </button>
 
                         <button
@@ -517,6 +559,38 @@ const TripDetail: React.FC<{
                                 </div>
                                 <button type="submit" className="w-full bg-p1 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all">
                                     {`Lançar ${view === 'expenses' ? 'Gasto' : 'Aporte'}`}
+                                </button>
+                            </form>
+                        )}
+
+                        {isAddingRetroactive && (
+                            <form onSubmit={handleSubmitRetroactive} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-blue-500/20 shadow-lg space-y-4 mb-6 animate-in slide-in-from-top-4">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className="text-2xl">🕒</span>
+                                    <div>
+                                        <h5 className="text-[10px] font-black uppercase text-blue-500 tracking-widest">
+                                            Lançamento Proporcional (Retroativo)
+                                        </h5>
+                                        <p className="text-[9px] font-bold text-slate-400">
+                                            O valor total será dividido entre vocês conforme a proporção da viagem ({(p1Percent).toFixed(0)}% / {(p2Percent).toFixed(0)}%).
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase px-1">Descrição do Lote</label>
+                                        <input autoFocus type="text" value={retroactiveDescription} onChange={e => setRetroactiveDescription(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" placeholder="Ex: Pagamentos Jan/Fev" required />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase px-1">Valor Total Pago Juntos</label>
+                                        <input type="text" inputMode="decimal" value={retroactiveTotal} onChange={e => setRetroactiveTotal(formatAsBRL(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" placeholder="R$ 0,00" required />
+                                    </div>
+                                </div>
+                                <div className="p-4 bg-blue-50 dark:bg-blue-500/5 rounded-xl border border-blue-100 dark:border-blue-500/10 text-[10px] text-blue-600 dark:text-blue-400 leading-relaxed font-bold">
+                                    Isso criará dois registros de gastos separados (um para cada um) para que o Total Gasto da viagem fique correto sem alterar o equilíbrio de quem deve para quem.
+                                </div>
+                                <button type="submit" className="w-full bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all uppercase text-[10px] tracking-widest">
+                                    Confirmar Lançamento em Lote
                                 </button>
                             </form>
                         )}
