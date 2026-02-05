@@ -78,7 +78,7 @@ export const investmentMovementSchema = z.object({
 export const tripSchema = z.object({
     name: z.string().min(1, 'Nome da viagem é obrigatório'),
     budget: z.number().min(0, 'Orçamento não pode ser negativo'),
-    proportionType: z.enum(['equal', 'custom']).optional(),
+    proportionType: z.enum(['proportional', 'custom']).optional(),
     customPercentage1: z.number().min(0).max(100).optional(),
 });
 
@@ -86,8 +86,10 @@ export const tripExpenseSchema = z.object({
     description: z.string().min(1, 'Descrição é obrigatória'),
     value: z.number().positive('Valor deve ser positivo'),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida'),
-    paidBy: z.enum(['person1', 'person2']),
+    paidBy: z.enum(['person1', 'person2', 'fund']),
     category: z.string().optional(),
+    specificValueP1: z.number().min(0).optional(),
+    specificValueP2: z.number().min(0).optional(),
 });
 
 export const tripDepositSchema = z.object({

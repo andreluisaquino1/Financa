@@ -45,8 +45,20 @@ export const calculateTripSettlement = (trip: Trip, p1SalaryRatio: number): Trip
     }
     const p2Ratio = 1 - p1Ratio;
 
-    const p1Responsibility = roundMoney(totalExpenses * p1Ratio);
-    const p2Responsibility = roundMoney(totalExpenses * p2Ratio);
+    let p1Responsibility = 0;
+    let p2Responsibility = 0;
+
+    expenses.forEach(exp => {
+        const spec1 = exp.specificValueP1 ?? 0;
+        const spec2 = exp.specificValueP2 ?? 0;
+        const sharedValue = Math.max(0, exp.value - spec1 - spec2);
+
+        p1Responsibility += spec1 + (sharedValue * p1Ratio);
+        p2Responsibility += spec2 + (sharedValue * p2Ratio);
+    });
+
+    p1Responsibility = roundMoney(p1Responsibility);
+    p2Responsibility = roundMoney(p2Responsibility);
 
     // 4. Final Balance
     // Total Paid = Direct Payment + Deposits to Fund

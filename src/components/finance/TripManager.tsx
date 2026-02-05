@@ -283,9 +283,11 @@ const TripDetail: React.FC<{
     const [description, setDescription] = useState('');
     const [value, setValue] = useState('');
     const [person, setPerson] = useState<'person1' | 'person2' | 'fund'>('person1');
+    const [itemSplitMethod, setItemSplitMethod] = useState<'global' | 'equal'>('global');
     const [isAddingRetroactive, setIsAddingRetroactive] = useState(false);
-    const [retroactiveTotal, setRetroactiveTotal] = useState('');
-    const [retroactiveDescription, setRetroactiveDescription] = useState('Pagamentos Iniciais');
+    const [retroactiveP1, setRetroactiveP1] = useState('');
+    const [retroactiveP2, setRetroactiveP2] = useState('');
+    const [retroactiveDescription, setRetroactiveDescription] = useState('Ajuste Histórico (Saldos)');
 
     const s1 = coupleInfo.salary1 || 0;
     const s2 = coupleInfo.salary2 || 0;
@@ -315,18 +317,37 @@ const TripDetail: React.FC<{
     const p1Percent = trip.proportionType === 'proportional' ? p1SalaryRatio * 100 : (trip.customPercentage1 ?? 50);
     const p2Percent = 100 - p1Percent;
 
+    const budgetUsagePercent = trip.budget > 0 ? Math.min((totalExpenses / trip.budget) * 100, 100) : 0;
+    const isOverBudget = totalExpenses > trip.budget;
+    const budgetStatusColor = totalExpenses > trip.budget
+        ? 'bg-rose-500'
+        : totalExpenses > trip.budget * 0.8
+            ? 'bg-orange-500'
+            : 'bg-emerald-500';
+
     const handleSubmitItem = async (e: React.FormEvent) => {
         e.preventDefault();
         const numValue = parseBRL(value);
         if (numValue <= 0) return;
 
         if (view === 'expenses') {
+            const expenseValue = numValue;
+            let specP1: number | undefined;
+            let specP2: number | undefined;
+
+            if (itemSplitMethod === 'equal') {
+                specP1 = Math.round((expenseValue / 2) * 100) / 100;
+                specP2 = Math.round((expenseValue - specP1) * 100) / 100;
+            }
+
             await onAddExpense({
                 description,
-                value: numValue,
+                value: expenseValue,
                 paidBy: person,
                 date: new Date().toISOString().split('T')[0],
-                category: 'Viagem'
+                category: 'Viagem',
+                specificValueP1: specP1,
+                specificValueP2: specP2
             });
         } else {
             const depositPerson = (person === 'fund' ? 'person1' : person) as 'person1' | 'person2';
@@ -343,39 +364,65 @@ const TripDetail: React.FC<{
 
     const handleSubmitRetroactive = async (e: React.FormEvent) => {
         e.preventDefault();
-        const total = parseBRL(retroactiveTotal);
-        if (total <= 0) return;
+        const v1 = parseBRL(retroactiveP1);
+        const v2 = parseBRL(retroactiveP2);
 
-        const p1Ratio = trip.proportionType === 'proportional' ? p1SalaryRatio : (trip.customPercentage1 ?? 50) / 100;
-        const v1 = Math.round(total * p1Ratio * 100) / 100;
-        const v2 = Math.round((total - v1) * 100) / 100;
+        if (v1 === 0 && v2 === 0) return;
 
-        // Add two separate expenses, one for each person
+        // Add ONE expense that represents this historical settled amount
+        // We set specificValueP1/P2 so the responsibility matches the payment exactly
+        // We set paidBy to 'fund' because it's already "gone" from both, 
+        // and we will add corresponding Deposits to match what they paid.
+
+        // Actually, the simplest way given our updated calculation:
+        // We add an expense of total value, and set specific responsibilities to match the payments.
+        // But who "paid" it in the app? If we say P1 paid it, and P2 owes their part...
+
+        // BEST APPROACH:
+        // Add two deposits (one for each) to the fund.
+        // Add one expense paid by 'fund'.
+
+        const total = v1 + v2;
+
+        if (v1 > 0) {
+            await onAddDeposit({
+                description: `Aporte Histórico: ${retroactiveDescription}`,
+                value: v1,
+                person: 'person1',
+                date: new Date().toISOString().split('T')[0]
+            });
+        }
+
+        if (v2 > 0) {
+            await onAddDeposit({
+                description: `Aporte Histórico: ${retroactiveDescription}`,
+                value: v2,
+                person: 'person2',
+                date: new Date().toISOString().split('T')[0]
+            });
+        }
+
         await onAddExpense({
-            description: `${retroactiveDescription} (${coupleInfo.person1Name.split(' ')[0]})`,
-            value: v1,
-            paidBy: 'person1',
+            description: retroactiveDescription,
+            value: total,
+            paidBy: 'fund',
             date: new Date().toISOString().split('T')[0],
-            category: 'Viagem'
-        });
-
-        await onAddExpense({
-            description: `${retroactiveDescription} (${coupleInfo.person2Name.split(' ')[0]})`,
-            value: v2,
-            paidBy: 'person2',
-            date: new Date().toISOString().split('T')[0],
-            category: 'Viagem'
+            category: 'Viagem',
+            specificValueP1: v1,
+            specificValueP2: v2
         });
 
         setIsAddingRetroactive(false);
-        setRetroactiveTotal('');
+        setRetroactiveP1('');
+        setRetroactiveP2('');
     };
 
     const resetForm = () => {
         setDescription('');
         setValue('');
-        setIsAdding(false);
         setPerson('person1');
+        setItemSplitMethod('global');
+        setIsAdding(false);
     };
 
     const handleDeleteItem = async (id: string, type: 'expenses' | 'deposits') => {
@@ -408,9 +455,30 @@ const TripDetail: React.FC<{
                 </div>
 
                 <div className="flex items-center gap-3 w-full lg:w-auto z-10">
-                    <div className="flex flex-col items-end pr-4 border-r border-slate-100 dark:border-white/5">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Gasto</span>
-                        <span className="text-2xl font-black text-p1 tabular-nums tracking-tighter">{formatCurrency(totalExpenses)}</span>
+                    <div className="flex flex-col items-center sm:items-end pr-4 border-r border-slate-100 dark:border-white/5 space-y-2">
+                        <div className="flex flex-col items-end">
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Orçamento Total</span>
+                            <span className="text-xl font-black text-slate-900 dark:text-slate-100">{formatCurrency(trip.budget)}</span>
+                        </div>
+                        {trip.budget > 0 && (
+                            <div className="w-48 space-y-1.5">
+                                <div className="flex justify-between text-[9px] font-black uppercase tracking-wider">
+                                    <span className={isOverBudget ? 'text-rose-500' : 'text-slate-400'}>
+                                        {isOverBudget ? 'Limite Excedido' : 'Progresso'}
+                                    </span>
+                                    <span className="text-slate-600 dark:text-slate-300">{Math.round((totalExpenses / trip.budget) * 100)}%</span>
+                                </div>
+                                <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-200/50 dark:border-white/5">
+                                    <div
+                                        className={`h-full transition-all duration-1000 ease-out rounded-full ${budgetStatusColor}`}
+                                        style={{ width: `${budgetUsagePercent}%` }}
+                                    />
+                                </div>
+                                <p className="text-[8px] font-bold text-slate-400 text-right leading-none">
+                                    {formatCurrency(totalExpenses)} gastos
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-2 flex-1 lg:flex-none">
@@ -537,17 +605,46 @@ const TripDetail: React.FC<{
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex gap-2 h-14">
-                                            <button type="button" onClick={() => setPerson('person1')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center ${person === 'person1' ? 'bg-p1 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
-                                                <span>{coupleInfo.person1Name.split(' ')[0]}</span>
-                                            </button>
-                                            <button type="button" onClick={() => setPerson('person2')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center ${person === 'person2' ? 'bg-p2 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
-                                                <span>{coupleInfo.person2Name.split(' ')[0]}</span>
-                                            </button>
+                                        <div className="flex flex-col sm:flex-row gap-4">
+                                            <div className="flex-1 space-y-1">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase px-1">Quem pagou?</label>
+                                                <div className="flex gap-2 h-12">
+                                                    <button type="button" onClick={() => setPerson('person1')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center ${person === 'person1' ? 'bg-p1 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
+                                                        <span>{coupleInfo.person1Name.split(' ')[0]}</span>
+                                                    </button>
+                                                    <button type="button" onClick={() => setPerson('person2')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center ${person === 'person2' ? 'bg-p2 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
+                                                        <span>{coupleInfo.person2Name.split(' ')[0]}</span>
+                                                    </button>
+                                                    {view === 'expenses' && (
+                                                        <button type="button" onClick={() => setPerson('fund')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center gap-0.5 ${person === 'fund' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
+                                                            <span>Caixinha 📦</span>
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
                                             {view === 'expenses' && (
-                                                <button type="button" onClick={() => setPerson('fund')} className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center gap-0.5 ${person === 'fund' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}>
-                                                    <span>Caixinha 📦</span>
-                                                </button>
+                                                <div className="flex-1 space-y-1">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase px-1">Como dividir?</label>
+                                                    <div className="flex gap-2 h-12">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setItemSplitMethod('global')}
+                                                            className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center ${itemSplitMethod === 'global' ? 'bg-slate-800 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}
+                                                            title="Segue a porcentagem oficial da viagem"
+                                                        >
+                                                            <span>Global %</span>
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setItemSplitMethod('equal')}
+                                                            className={`flex-1 rounded-xl font-bold text-[10px] uppercase transition-all flex flex-col items-center justify-center ${itemSplitMethod === 'equal' ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'}`}
+                                                            title="Divide 50/50 apenas este item"
+                                                        >
+                                                            <span>50/50 ⚖️</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             )}
                                         </div>
                                         {view === 'expenses' && person === 'fund' && (
@@ -572,25 +669,29 @@ const TripDetail: React.FC<{
                                             Lançamento Proporcional (Retroativo)
                                         </h5>
                                         <p className="text-[9px] font-bold text-slate-400">
-                                            O valor total será dividido entre vocês conforme a proporção da viagem ({(p1Percent).toFixed(0)}% / {(p2Percent).toFixed(0)}%).
+                                            Insira quanto cada um pagou individualmente no passado. Como esses valores já foram acertados na proporção da época, eles não criarão dívidas novas hoje.
                                         </p>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase px-1">Descrição do Lote</label>
-                                        <input autoFocus type="text" value={retroactiveDescription} onChange={e => setRetroactiveDescription(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" placeholder="Ex: Pagamentos Jan/Fev" required />
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="sm:col-span-1 space-y-1">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase px-1">Descrição</label>
+                                        <input autoFocus type="text" value={retroactiveDescription} onChange={e => setRetroactiveDescription(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" required />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase px-1">Valor Total Pago Juntos</label>
-                                        <input type="text" inputMode="decimal" value={retroactiveTotal} onChange={e => setRetroactiveTotal(formatAsBRL(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" placeholder="R$ 0,00" required />
+                                        <label className="text-[10px] font-black text-p1 uppercase px-1">Pago por {coupleInfo.person1Name.split(' ')[0]}</label>
+                                        <input type="text" inputMode="decimal" value={retroactiveP1} onChange={e => setRetroactiveP1(formatAsBRL(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" placeholder="R$ 0,00" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[10px] font-black text-p2 uppercase px-1">Pago por {coupleInfo.person2Name.split(' ')[0]}</label>
+                                        <input type="text" inputMode="decimal" value={retroactiveP2} onChange={e => setRetroactiveP2(formatAsBRL(e.target.value))} className="w-full bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-blue-500 rounded-xl px-4 py-3 font-bold text-sm outline-none transition-all dark:text-slate-100" placeholder="R$ 0,00" />
                                     </div>
                                 </div>
                                 <div className="p-4 bg-blue-50 dark:bg-blue-500/5 rounded-xl border border-blue-100 dark:border-blue-500/10 text-[10px] text-blue-600 dark:text-blue-400 leading-relaxed font-bold">
-                                    Isso criará dois registros de gastos separados (um para cada um) para que o Total Gasto da viagem fique correto sem alterar o equilíbrio de quem deve para quem.
+                                    Isso registrará o gasto total da viagem e os aportes individuais, mantendo o "Saldo Final" zerado para estes itens.
                                 </div>
                                 <button type="submit" className="w-full bg-blue-500 text-white font-black py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all uppercase text-[10px] tracking-widest">
-                                    Confirmar Lançamento em Lote
+                                    Registrar Histórico Quitado
                                 </button>
                             </form>
                         )}

@@ -21,6 +21,8 @@ const mapTrip = (t: TripDB): Trip => ({
         paidBy: e.paid_by,
         date: e.date,
         category: e.category,
+        specificValueP1: e.specific_value_p1 ? Number(e.specific_value_p1) : undefined,
+        specificValueP2: e.specific_value_p2 ? Number(e.specific_value_p2) : undefined,
         created_at: e.created_at
     })),
     deposits: (t.deposits || []).map((d: any) => ({
@@ -152,7 +154,9 @@ export const tripService = {
                 value: expense.value,
                 paid_by: expense.paidBy,
                 date: expense.date,
-                category: expense.category
+                category: expense.category,
+                specific_value_p1: expense.specificValueP1,
+                specific_value_p2: expense.specificValueP2
             };
 
             const { data, error } = await supabase
@@ -169,6 +173,8 @@ export const tripService = {
                 paidBy: data.paid_by,
                 date: data.date,
                 category: data.category,
+                specificValueP1: data.specific_value_p1 ? Number(data.specific_value_p1) : undefined,
+                specificValueP2: data.specific_value_p2 ? Number(data.specific_value_p2) : undefined,
                 created_at: data.created_at
             } : null;
             return handleServiceResponse(mappedData, error);

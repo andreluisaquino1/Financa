@@ -39,6 +39,8 @@ export interface TripExpense {
   paidBy: 'person1' | 'person2' | 'fund';
   date: string;
   category: string;
+  specificValueP1?: number;
+  specificValueP2?: number;
   created_at: string;
   deleted_at?: string;
 }
