@@ -91,37 +91,76 @@ export const exportMonthlyPDF = async (
     drawBox(111, 40, 'Consumo Pessoal', formatCurrency(summary.person1PersonalTotal + summary.person2PersonalTotal), [150, 150, 150]);
     drawBox(159, 40, 'Sobra de Caixa', formatCurrency(residual), [16, 185, 129]);
 
-    // --- SETTLEMENT SECTION ---
+    // --- DETAILED CLOSING SPREADSHEET ---
+    let currentY = 70;
     doc.setFontSize(10);
     doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-    doc.text('Fechamento do Mês', 15, 70);
+    doc.text('Planilha de Fechamento Detalhada', 15, currentY);
+
+    // Step 1: Origem dos Gastos
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('01 | ORIGEM DOS GASTOS COMPARTILHADOS', 15, currentY + 6);
+
+    const totalSharedPlusReimb = (summary.totalFixed || 0) + (summary.totalCommon || 0) + (summary.totalEqual || 0) + (summary.totalReimbursement || 0);
 
     autoTable(doc, {
-        startY: 73,
-        head: [['Pessoa', 'Sua Responsabilidade no Mês']],
+        startY: currentY + 8,
+        head: [['Fixos', 'Variáveis', 'Iguais', 'Reembolsos', 'Total Movimentado']],
+        body: [[
+            formatCurrency(summary.totalFixed || 0),
+            formatCurrency(summary.totalCommon || 0),
+            formatCurrency(summary.totalEqual || 0),
+            formatCurrency(summary.totalReimbursement || 0),
+            formatCurrency(totalSharedPlusReimb)
+        ]],
+        theme: 'grid',
+        headStyles: { fillColor: [71, 85, 105], fontSize: 7 },
+        styles: { fontSize: 7, cellPadding: 2, halign: 'center' },
+        margin: { left: 15, right: 15 }
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 8;
+
+    // Step 2: Detalhamento por Pessoa
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text('02 | DETALHAMENTO POR PESSOA', 15, currentY);
+
+    const p1Diff = summary.person1Responsibility - summary.person1Paid;
+    const p2Diff = summary.person2Responsibility - summary.person2Paid;
+
+    autoTable(doc, {
+        startY: currentY + 2,
+        head: [['Item', coupleInfo.person1Name, coupleInfo.person2Name]],
         body: [
-            [`Responsabilidade de ${coupleInfo.person1Name}`, formatCurrency(summary.person1Responsibility)],
-            [`Responsabilidade de ${coupleInfo.person2Name}`, formatCurrency(summary.person2Responsibility)],
-            ['Diferença a Ser Ajustada entre vocês', formatCurrency(summary.transferAmount)],
+            ['Renda Bruta', formatCurrency(summary.person1TotalIncome), formatCurrency(summary.person2TotalIncome)],
+            ['Responsabilidade', formatCurrency(summary.person1Responsibility), formatCurrency(summary.person2Responsibility)],
+            ['Valor Pago', formatCurrency(summary.person1Paid), formatCurrency(summary.person2Paid)],
+            ['Diferença (Acerto)',
+                `${p1Diff > 0 ? 'Pagar' : 'Receber'}: ${formatCurrency(Math.abs(p1Diff))}`,
+                `${p2Diff > 0 ? 'Pagar' : 'Receber'}: ${formatCurrency(Math.abs(p2Diff))}`
+            ],
         ],
         theme: 'striped',
-        headStyles: { fillColor: p1Col as [number, number, number], fontSize: 8 },
-        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: p1Col as [number, number, number], fontSize: 7 },
+        styles: { fontSize: 7, cellPadding: 2 },
+        columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'right' }, 2: { halign: 'right' } },
         margin: { left: 15, right: 15 }
     });
 
     const lastY = (doc as any).lastAutoTable.finalY + 5;
     doc.setFillColor(darkSlate[0], darkSlate[1], darkSlate[2]);
-    doc.roundedRect(15, lastY, 180, 12, 1, 1, 'F');
+    doc.roundedRect(15, lastY, 180, 10, 1, 1, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     const resultText = summary.whoTransfers === 'none'
         ? 'As contas estão equilibradas! Ninguém precisa transferir para ninguém.'
         : `RESULTADO: ${summary.whoTransfers === 'person1' ? coupleInfo.person1Name : coupleInfo.person2Name} deve transferir ${formatCurrency(summary.transferAmount)} para o parceiro.`;
-    doc.text(resultText, 20, lastY + 7.5);
+    doc.text(resultText, 20, lastY + 6);
 
     // --- CATEGORY CHART SECTION ---
-    const chartY = lastY + 22;
+    const chartY = lastY + 18;
     doc.setFontSize(10);
     doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
     doc.text('Distribuição por Categoria (Top 6)', 15, chartY);
@@ -131,7 +170,7 @@ export const exportMonthlyPDF = async (
         .slice(0, 6);
 
     const maxVal = Math.max(...sortedCategories.map(c => c[1]), 1);
-    let currentY = chartY + 5;
+    currentY = chartY + 5;
 
     sortedCategories.forEach(([category, value]) => {
         const barWidth = (value / maxVal) * 120; // Max width 120mm
@@ -139,7 +178,7 @@ export const exportMonthlyPDF = async (
         doc.rect(15, currentY, 120, 4, 'F');
         doc.setFillColor(p1Col[0], p1Col[1], p1Col[2]); // Foreground bar
         doc.rect(15, currentY, barWidth, 4, 'F');
-        
+
         doc.setTextColor(darkSlate[0], darkSlate[1], darkSlate[2]);
         doc.setFontSize(7);
         doc.text(`${category}: ${formatCurrency(value)}`, 140, currentY + 3);
