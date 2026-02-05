@@ -6,6 +6,7 @@ import ClosingBreakdown from './dashboard/ClosingBreakdown';
 import CategoryChart from './dashboard/CategoryChart';
 import MonthlyInsights from './dashboard/MonthlyInsights';
 import { exportMonthlyPDF } from '@/pdfGenerator';
+import { exportAsImage } from '@/utils/imageExport';
 
 interface Props {
   coupleInfo: CoupleInfo;
@@ -50,7 +51,7 @@ const Dashboard: React.FC<Props> = ({
   const totalPersonal = summary.person1PersonalTotal + summary.person2PersonalTotal;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-8">
+    <div id="dashboard-export-area" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-8 bg-slate-50 dark:bg-transparent p-4 rounded-[2.5rem]">
 
       {/* Hero: Acerto Financeiro */}
       <div className="bg-slate-900 dark:bg-slate-900/40 rounded-[2rem] p-6 md:p-10 shadow-2xl relative overflow-hidden border border-slate-800 dark:border-white/5 group">
@@ -104,6 +105,13 @@ const Dashboard: React.FC<Props> = ({
                   title="Exportar PDF"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                </button>
+                <button
+                  onClick={() => exportAsImage('dashboard-export-area', `Resumo_${monthKey}`)}
+                  className="w-16 h-16 flex items-center justify-center rounded-[1.5rem] bg-emerald-500 text-white hover:bg-emerald-600 transition-all active:scale-90 shadow-2xl shadow-emerald-500/20"
+                  title="Exportar Imagem"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 </button>
                 <button
                   onClick={() => setShowBreakdown(!showBreakdown)}
