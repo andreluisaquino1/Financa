@@ -611,7 +611,12 @@ const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setSplitMethod('custom')}
+                                                    onClick={() => {
+                                                        setSplitMethod('custom');
+                                                        const total = parseBRL(value);
+                                                        setSpecValue1(formatAsBRL(Math.round((total * splitPercentage1 / 100) * 100).toString()));
+                                                        setSpecValue2(formatAsBRL(Math.round((total * (100 - splitPercentage1) / 100) * 100).toString()));
+                                                    }}
                                                     className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${splitMethod === 'custom' ? 'bg-white dark:bg-slate-800 text-brand shadow-md' : 'text-slate-400'}`}
                                                 >
                                                     <span className="text-sm">🎯</span>

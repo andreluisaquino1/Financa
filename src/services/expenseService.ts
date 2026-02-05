@@ -103,13 +103,27 @@ export const expenseService = {
         if (updates.reminderDay !== undefined) dbUpdates.reminder_day = updates.reminderDay;
 
         // Handle metadata merging for split-related fields
-        if (updates.splitPercentage1 !== undefined || updates.specificValueP1 !== undefined || updates.specificValueP2 !== undefined) {
+        if (updates.splitMethod !== undefined || updates.splitPercentage1 !== undefined || updates.specificValueP1 !== undefined || updates.specificValueP2 !== undefined) {
+            const isCustom = (updates.splitMethod ?? updates.splitMethod) === 'custom';
+            
             dbUpdates.metadata = {
                 ...(dbUpdates.metadata || updates.metadata || {}),
+                // If switching away from custom, we should ideally clear these, 
+                // but since they are in a JSONB, we just ensure they are updated if present.
+                // The domain logic will handle the 'proportional' case by ignoring them.
                 ...(updates.splitPercentage1 !== undefined && { splitPercentage1: updates.splitPercentage1 }),
                 ...(updates.specificValueP1 !== undefined && { specificValueP1: updates.specificValueP1 }),
                 ...(updates.specificValueP2 !== undefined && { specificValueP2: updates.specificValueP2 })
             };
+
+            // If we are explicitly setting splitMethod to 'proportional' or null, 
+            // we should probably clear the specific values in metadata to avoid confusion,
+            // although the financial.ts logic change will also handle this.
+            if (updates.splitMethod === 'proportional' || updates.splitMethod === null) {
+                dbUpdates.metadata.splitPercentage1 = undefined;
+                dbUpdates.metadata.specificValueP1 = undefined;
+                dbUpdates.metadata.specificValueP2 = undefined;
+            }
         }
 
         const { data, error } = await supabase

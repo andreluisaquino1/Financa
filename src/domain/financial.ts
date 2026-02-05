@@ -157,8 +157,9 @@ export const calculateSummary = (
             case ExpenseType.FIXED:
             case ExpenseType.COMMON:
             case ExpenseType.EQUAL:
-                const spec1Total = exp.specificValueP1 ?? 0;
-                const spec2Total = exp.specificValueP2 ?? 0;
+                const isCustom = exp.splitMethod === 'custom';
+                const spec1Total = isCustom ? (exp.specificValueP1 ?? 0) : 0;
+                const spec2Total = isCustom ? (exp.specificValueP2 ?? 0) : 0;
 
                 const specRatio1 = exp.totalValue > 0 ? spec1Total / exp.totalValue : 0;
                 const specRatio2 = exp.totalValue > 0 ? spec2Total / exp.totalValue : 0;
@@ -170,7 +171,7 @@ export const calculateSummary = (
                 p1Target = roundMoney(p1Target + monthlySpec1);
                 p2Target = roundMoney(p2Target + monthlySpec2);
 
-                if (exp.splitMethod === 'custom') {
+                if (isCustom) {
                     const perc1 = (exp.splitPercentage1 !== undefined) ? exp.splitPercentage1 : 50;
                     const r1 = perc1 / 100;
                     const share1 = roundMoney(sharedValue * r1);
@@ -179,7 +180,9 @@ export const calculateSummary = (
                     p1Target = roundMoney(p1Target + share1);
                     p2Target = roundMoney(p2Target + share2);
                 } else {
-                    const share1 = roundMoney(sharedValue * salaryRatio1);
+                    // Force 50/50 for EQUAL type if not custom
+                    const currentRatio1 = exp.type === ExpenseType.EQUAL ? 0.5 : salaryRatio1;
+                    const share1 = roundMoney(sharedValue * currentRatio1);
                     const share2 = roundMoney(sharedValue - share1);
 
                     p1Target = roundMoney(p1Target + share1);

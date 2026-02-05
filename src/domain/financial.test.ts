@@ -157,5 +157,58 @@ describe('Financial Domain Logic', () => {
             expect(result.person2Remaining).toBe(5000);
             expect(result.totalGoalSavings).toBe(0);
         });
+        it('should ignore stale specific values when splitMethod is proportional', () => {
+            const expenses: Expense[] = [
+                {
+                    id: '1',
+                    type: ExpenseType.COMMON,
+                    totalValue: 1000,
+                    date: '2024-01-15',
+                    paidBy: 'person1',
+                    household_id: 'h1',
+                    category: 'Test',
+                    description: 'Test',
+                    installments: 1,
+                    createdAt: '',
+                    splitMethod: 'proportional', // Should be proportional
+                    specificValueP1: 900 // Stale value that should be ignored
+                }
+            ];
+
+            const result = calculateSummary(expenses, mockIncomes, getMockCoupleInfo(), '2024-01');
+
+            // Salary P1=5000, P2=5000 -> 50/50 split
+            expect(result.person1Responsibility).toBe(500);
+            expect(result.person2Responsibility).toBe(500);
+        });
+
+        it('should split EQUAL type 50/50 even with unequal salaries', () => {
+            const unequalSalaryInfo: CoupleInfo = {
+                ...getMockCoupleInfo(),
+                salary1: 8000,
+                salary2: 2000
+            };
+
+            const expenses: Expense[] = [
+                {
+                    id: '1',
+                    type: ExpenseType.EQUAL,
+                    totalValue: 1000,
+                    date: '2024-01-15',
+                    paidBy: 'person1',
+                    household_id: 'h1',
+                    category: 'Test',
+                    description: 'Test',
+                    installments: 1,
+                    createdAt: '',
+                    splitMethod: 'proportional'
+                }
+            ];
+
+            const result = calculateSummary(expenses, mockIncomes, unequalSalaryInfo, '2024-01');
+
+            expect(result.person1Responsibility).toBe(500);
+            expect(result.person2Responsibility).toBe(500);
+        });
     });
 });
