@@ -192,9 +192,9 @@ export const useAppData = () => {
         if (!user || !householdId) return;
         try {
             const { data, error } = await loanService.create({
+                ...loan,
                 user_id: user.id,
                 household_id: householdId,
-                ...loan,
                 paid_installments: 0
             });
             if (error) throw error;

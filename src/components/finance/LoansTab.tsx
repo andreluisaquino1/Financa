@@ -67,10 +67,8 @@ const LoansTab: React.FC<Props> = ({ loans, coupleInfo, onAddLoan, onUpdateLoan,
                 ...data,
                 remaining_value: value,
                 paid_installments: 0,
-                status: 'pending',
-                user_id: '',
-                household_id: ''
-            });
+                status: 'pending'
+            } as any);
         }
         setIsAdding(false);
     };

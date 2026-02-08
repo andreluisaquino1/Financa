@@ -19,9 +19,9 @@ export const useIncomes = (user: any, householdId: string | null) => {
 
         try {
             const { data, error } = await incomeService.create({
+                ...inc,
                 user_id: user.id,
-                household_id: activeHouseholdId,
-                ...inc
+                household_id: activeHouseholdId
             });
 
             if (error) throw error;

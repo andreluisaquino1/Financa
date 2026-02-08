@@ -11,9 +11,9 @@ export const useInvestments = (user: any, householdId: string | null) => {
         if (!user || !householdId) return;
         try {
             const { data, error } = await investmentService.create({
+                ...inv,
                 user_id: user.id,
-                household_id: householdId,
-                ...inv
+                household_id: householdId
             });
 
             if (error) throw error;
