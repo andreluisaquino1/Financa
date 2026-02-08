@@ -111,14 +111,15 @@ describe('App Integration Tests', () => {
                             single: () => Promise.resolve({ data: mockProfile, error: null })
                         })
                     }),
-                    update: () => ({ eq: () => Promise.resolve({}) })
+                    update: () => ({ eq: () => ({ select: () => ({ single: () => Promise.resolve({ data: {}, error: null }) }) }) })
                 };
             }
             if (table === 'expenses') {
                 return {
                     select: () => ({
                         eq: () => ({
-                            order: () => Promise.resolve({ data: [], error: null })
+                            order: () => Promise.resolve({ data: [], error: null }),
+                            is: () => { const p = Promise.resolve({ count: 0, data: [], error: null }); (p as any).order = () => Promise.resolve({ data: [], error: null }); return p; }
                         })
                     }),
                     insert: (data: any) => ({
@@ -129,7 +130,7 @@ describe('App Integration Tests', () => {
                     delete: () => ({ eq: () => Promise.resolve({}) })
                 };
             }
-            return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null }) }) }) };
+            return { select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null }), is: () => { const p = Promise.resolve({ count: 0, data: [], error: null }); (p as any).order = () => Promise.resolve({ data: [], error: null }); return p; } }) }) };
         });
     });
 
@@ -142,11 +143,7 @@ describe('App Integration Tests', () => {
                         single: () => Promise.resolve({ data: null, error: null }),
                         maybeSingle: () => Promise.resolve({ data: null, error: null }),
                         order: () => Promise.resolve({ data: [], error: null }),
-                        is: () => ({
-                            eq: () => ({
-                                order: () => Promise.resolve({ data: [], error: null })
-                            })
-                        })
+                        is: () => Promise.resolve({ count: 0, data: [], error: null })
                     }),
                     is: () => ({
                         eq: () => ({
@@ -174,16 +171,15 @@ describe('App Integration Tests', () => {
                             })
                         })
                     }),
-                    update: () => ({ eq: () => Promise.resolve({}) })
+                    update: () => ({ eq: () => ({ select: () => ({ single: () => Promise.resolve({ data: {}, error: null }) }) }) })
                 };
             }
             if (table === 'expenses') {
                 return {
                     select: () => ({
-                        is: () => ({
-                            eq: () => ({
-                                order: () => Promise.resolve({ data: [], error: null })
-                            })
+                        eq: () => ({
+                            order: () => Promise.resolve({ data: [], error: null }),
+                            is: () => { const p = Promise.resolve({ count: 0, data: [], error: null }); (p as any).order = () => Promise.resolve({ data: [], error: null }); return p; }
                         })
                     }),
                     insert: (data: any) => ({
